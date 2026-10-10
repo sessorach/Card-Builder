@@ -79,8 +79,8 @@ ships with four layouts:
 - **Full Art:** the art covers the whole card.
 - **Text Only:** no art, for spells, events and prototypes.
 - **Street:** the first layout designed for our game (see below).
-- **FlagonQuest Technique:** reference cards for FlagonQuest techniques (see
-  below).
+- **FlagonQuest Technique** and **FlagonQuest Item:** reference cards for
+  FlagonQuest techniques and items (see below).
 
 Positions in a layout are percentages of the card rather than pixels or
 millimeters. Text sizes are percentages of the card's width. That way the same
@@ -233,6 +233,30 @@ wouldn't be meaningful. The card uses the site's gold throughout.
 Builder-only columns (prereq check syntax, feature budgets, builder notes and
 so on) are left off the card, since they drive the site's character builder
 rather than play at the table.
+
+### The FlagonQuest Item layout
+
+The companion to the technique card, for FlagonQuest's items. It follows the
+same rules: it reads FlagonQuest's own `scripts/items.csv` as-is and is picked
+automatically when a spreadsheet has its columns. It shares the technique
+card's frame, colors and fonts (kept in one shared file, so the two can't drift
+apart), and mirrors the site's item tiles:
+
+- The name and a level badge; "Category · Slot · Tags" underneath, with the
+  cost in gold on the right.
+- A weapon line, worded like the site's: "Accuracy +1 · Damage 3 + [Cunning]
+  · Range 19 · Skill Archery · Hands 2". Armor shows its Might Req here too.
+- Flat bonuses in gold, like the site's stat badges: "Physical Resist +2 ·
+  Dodge Defense −1". Zero bonuses are left out, as on the site.
+- The effects, then a material's value per level, then the flavor text in
+  muted italics. Unlike techniques, item flavor stays on the card face: it
+  often says what the item actually is ("a mace, shortsword, or similar"),
+  which plain weapons and armor have no other text for. It fits alongside the
+  effects for nearly every item.
+- A footer with the crafting materials.
+
+Crafting bookkeeping (base item options, which are item IDs, and crafting
+notes) is left off, like the builder-only technique columns.
 
 ## Drawing on a canvas
 

@@ -259,6 +259,22 @@ async function run() {
     const brace = fqDeck.ContainedObjects.find((c) => c.Nickname === 'Brace');
     assert.equal(brace.Description, '[b]Tags:[/b] Encounter\n[b]Action:[/b] 1 AP\nYou gain 3 stacks of Protected.\n[b]Prereqs:[/b] Resilience 2\n[i]You draw a deep breath, steeling yourself for the struggle ahead.[/i]');
 
+    // FlagonQuest items: the real items spreadsheet, its layout picked automatically.
+    await page.setInputFiles('#sheet-input', path.join(ROOT, 'examples/flagonquest-items.csv'));
+    await page.waitForFunction(() => /flagonquest-items\.csv: 9 cards/.test(document.getElementById('sheet-status').textContent));
+    await page.waitForFunction(() => document.querySelectorAll('.tile canvas').length === 9);
+    assert.equal(await page.inputValue('#layout-select'), 'flagonquest-item');
+    assert.equal(await page.isHidden('#warnings'), true, 'FlagonQuest items example should load without warnings');
+    for (let i = 0; i < 9; i++) {
+      const png = await page.evaluate((n) => document.querySelectorAll('.tile canvas')[n].toDataURL('image/png'), i);
+      await writeFile(path.join(OUT, `fq-item-${i}.png`), Buffer.from(png.split(',')[1], 'base64'));
+    }
+    const itemTts = await saveDownload(page, 'export-tts');
+    const items = JSON.parse(await itemTts.zip.file('Card Builder/Deck.json').async('string')).ObjectStates[0].ContainedObjects;
+    const armor = items.find((c) => c.Nickname === 'Medium Armor');
+    assert.match(armor.Description, /\[b\]Physical Resist:\[\/b\] 2/);
+    assert.match(armor.Description, /\[b\]Might Req:\[\/b\] 5/);
+
     assert.deepEqual(errors, [], 'no console errors');
     console.log('\nAll end-to-end checks passed.');
   } finally {

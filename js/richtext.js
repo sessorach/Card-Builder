@@ -102,6 +102,14 @@ export function splitList(value) {
     .filter(Boolean);
 }
 
+// signed: a plain number gets its sign ("1" → "+1", "-1" → "−1"); anything else is left alone.
+export function signed(value) {
+  const text = String(value ?? '').trim();
+  if (!/^[+-]?\d+(\.\d+)?$/.test(text)) return text;
+  const n = Number(text);
+  return n < 0 ? `−${Math.abs(n)}` : `+${Math.abs(n)}`;
+}
+
 // Adds a prefix/suffix unless the value already has it ("3" → "$3", "$3" stays "$3").
 export function affix(value, { prefix = '', suffix = '' } = {}) {
   let out = String(value ?? '');

@@ -1,6 +1,6 @@
 // Draws cards onto canvases from a layout definition. Knows nothing about any
 // particular game: layouts name the fields, this just draws them.
-import { parseRich, joinParts, joinInline, splitList, affix, fitRich, textHeight, ICON_SCALE } from './richtext.js';
+import { parseRich, joinParts, joinInline, splitList, affix, signed, fitRich, textHeight, ICON_SCALE } from './richtext.js';
 import { FONT_LIBRARY, DEFAULT_FONTS } from './fonts.js';
 import { applyTexture } from './textures.js';
 
@@ -298,14 +298,17 @@ function drawImageElement(ctx, card, el, b, { assets, theme, s, color, fonts }) 
 // One field's text. entry: 'field' or { field, bold, italic, color, prefix, suffix, list, listSep }.
 // list: the cell holds comma-separated items, shown joined with listSep.
 // One field's text. entry: 'field' or { field, bold, italic, color, prefix, suffix,
-//   label, labelColor   — "Label: " before the value, bold, in its own color
+//   label, labelColor, labelSep — "Label: " before the value, bold, in its own color
+//     (labelSep replaces the ":", e.g. '' for "Physical Resist +2")
+//   signed — show a plain number with its sign ("1" → "+1"); hideZero — skip a value of 0
 //   list, listSep, exclude, itemColors — a comma-separated cell shown as a list,
 //     leaving out `exclude` items and coloring items named in `itemColors` }.
 function entryAtoms(card, entry, base) {
   const e = typeof entry === 'string' ? { field: entry } : entry;
   const style = { bold: e.bold ?? base.bold, italic: e.italic ?? base.italic, color: e.color ?? base.color };
-  const value = fieldValue(card, e.field);
-  if (!value) return [];
+  const raw = fieldValue(card, e.field);
+  if (!raw || (e.hideZero && Number(raw) === 0)) return [];
+  const value = e.signed ? signed(raw) : raw;
   let atoms;
   if (e.list) {
     const skip = new Set((e.exclude || []).map((x) => x.toLowerCase()));
@@ -318,23 +321,26 @@ function entryAtoms(card, entry, base) {
     atoms = parseRich(affix(value, e), style);
   }
   if (!atoms.length || !e.label) return atoms;
-  const label = parseRich(`${e.label}:`, { bold: true, italic: false, color: e.labelColor ?? style.color });
+  const label = parseRich(`${e.label}${e.labelSep ?? ':'}`, { bold: true, italic: false, color: e.labelColor ?? style.color });
   return [...label, { ...atoms[0], space: true }, ...atoms.slice(1)];
 }
 
 function textAtoms(card, el) {
   const base = { bold: el.weight === 'bold', italic: !!el.italic };
   if (el.text != null) return parseRich(el.text, base); // fixed text, e.g. a label
-  if (el.parts) return joinParts(el.parts.map((p) => entryAtoms(card, p, base)));
-  if (el.join) {
-    const sepStyle = { ...base, color: el.sepColor };
-    // unique: drop an entry whose value repeats the one before it ("1–1" → "1").
-    const entries = el.unique
-      ? el.join.filter((p, i, all) => i === 0 || fieldValue(card, p.field ?? p) !== fieldValue(card, all[i - 1].field ?? all[i - 1]))
-      : el.join;
-    return joinInline(entries.map((p) => entryAtoms(card, p, base)), el.sep ?? ' ', sepStyle);
-  }
+  // A paragraph in `parts` can itself be an inline group: { join: [...], sep }.
+  if (el.parts) return joinParts(el.parts.map((p) => (p?.join ? joinAtoms(card, p, base) : entryAtoms(card, p, base))));
+  if (el.join) return joinAtoms(card, el, base);
   return entryAtoms(card, el, base);
+}
+
+function joinAtoms(card, el, base) {
+  const sepStyle = { ...base, color: el.sepColor };
+  // unique: drop an entry whose value repeats the one before it ("1–1" → "1").
+  const entries = el.unique
+    ? el.join.filter((p, i, all) => i === 0 || fieldValue(card, p.field ?? p) !== fieldValue(card, all[i - 1].field ?? all[i - 1]))
+    : el.join;
+  return joinInline(entries.map((p) => entryAtoms(card, p, base)), el.sep ?? ' ', sepStyle);
 }
 
 // shadow: true (soft glow) or { color, x, y, blur } with offsets in ems of the font size.

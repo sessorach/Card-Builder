@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseRich, layoutRich, fitRich, joinParts, joinInline, splitList, affix, toTtsText, textHeight, PARAGRAPH_GAP } from '../../js/richtext.js';
+import { parseRich, layoutRich, fitRich, joinParts, joinInline, splitList, affix, signed, toTtsText, textHeight, PARAGRAPH_GAP } from '../../js/richtext.js';
 
 // Monospace fake: every character is 0.5em wide.
 const measure = (text, style, size) => text.length * size * 0.5;
@@ -80,6 +80,15 @@ test('joinInline joins chunks with a separator and keeps wrap points', () => {
 test('splitList splits on commas, semicolons and pipes', () => {
   assert.deepEqual(splitList(' Crew, Hustler;Night Shift | , '), ['Crew', 'Hustler', 'Night Shift']);
   assert.deepEqual(splitList(''), []);
+});
+
+test('signed shows plain numbers with their sign', () => {
+  assert.equal(signed('1'), '+1');
+  assert.equal(signed('0'), '+0');
+  assert.equal(signed('-1'), '−1');
+  assert.equal(signed('+2'), '+2');
+  assert.equal(signed('[Level]'), '[Level]');
+  assert.equal(signed(''), '');
 });
 
 test('affix adds a prefix or suffix only when missing', () => {

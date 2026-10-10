@@ -17,7 +17,7 @@ export function layoutFields(layout) {
   for (const el of layout.elements) {
     if (el.type === 'image') fields.push(el.field || 'art');
     if (el.type !== 'text' || el.text != null) continue;
-    if (el.parts) fields.push(...el.parts.map(entryField));
+    if (el.parts) fields.push(...el.parts.flatMap((p) => (p?.join ? p.join.map(entryField) : [entryField(p)])));
     else if (el.join) fields.push(...el.join.map(entryField));
     else if (el.field) fields.push(el.field);
   }

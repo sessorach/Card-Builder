@@ -22,5 +22,9 @@
   "flagonquest-techniques.csv": {
     "layout": "flagonquest-technique",
     "images": []
+  },
+  "flagonquest-items.csv": {
+    "layout": "flagonquest-item",
+    "images": []
   }
 }

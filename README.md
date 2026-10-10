@@ -27,8 +27,8 @@ Not sure where to start? Pick a layout and download its blank CSV template
   and `deck` splits cards into separate decks.
 - Card text can use `**bold**`, `*italic*` and line breaks.
 - The **Columns** link on the page lists every column a layout uses.
-- FlagonQuest players can drop in the techniques spreadsheet from the
-  FlagonQuest repo as-is; the page picks the right layout by itself.
+- FlagonQuest players can drop in the techniques or items spreadsheet from
+  the FlagonQuest repo as-is; the page picks the right layout by itself.
 
 ## Playing with friends
 
