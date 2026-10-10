@@ -1,12 +1,21 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { templateColumns, templateCsv } from '../../js/template.js';
+import { parseDelimited, rowsToCards } from '../../js/spreadsheet.js';
 import { LAYOUTS, getLayout } from '../../layouts/index.js';
 
 test('Street template lists its columns in drawing order, without art or color', () => {
   assert.deepEqual(templateColumns(getLayout('street')), [
     'name', 'count', 'deck', 'cost', 'text', 'flavor', 'type', 'tags', 'strengf', 'helf', 'steal',
   ]);
+});
+
+test('list columns carry a note in the template header, and it reads back cleanly', () => {
+  const csv = templateCsv(getLayout('street'));
+  assert.equal(csv, 'name,count,deck,cost,text,flavor,type,tags (separate with commas),strengf,helf,steal\r\n');
+  const { cards, columns } = rowsToCards(parseDelimited(`${csv}Boss,1,,5,,,Thug,"Crew, Leader",4,3,2\r\n`));
+  assert.ok(columns.includes('tags'));
+  assert.equal(cards[0].fields.tags, 'Crew, Leader');
 });
 
 test('layouts without colorBy get a color column', () => {

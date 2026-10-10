@@ -23,8 +23,13 @@ const HEADER_ALIASES = {
   template: 'layout',
 };
 
+// Notes in parentheses are ignored, so "tags (separate with commas)" reads as "tags".
 export function normalizeHeader(header) {
-  const key = String(header ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
+  const key = String(header ?? '')
+    .replace(/\([^)]*\)/g, '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ');
   return HEADER_ALIASES[key] || key.replace(/ /g, '_');
 }
 

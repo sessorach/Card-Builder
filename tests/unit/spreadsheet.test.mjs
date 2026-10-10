@@ -27,6 +27,8 @@ test('normalizes header aliases', () => {
   assert.equal(normalizeHeader('Qty'), 'count');
   assert.equal(normalizeHeader('Rules Text'), 'text');
   assert.equal(normalizeHeader('Power Level'), 'power_level');
+  assert.equal(normalizeHeader('Tags (separate with commas)'), 'tags');
+  assert.equal(normalizeHeader('Qty (copies in deck)'), 'count');
 });
 
 test('builds cards with counts, decks and warnings', () => {

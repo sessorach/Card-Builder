@@ -181,7 +181,7 @@ async function run() {
     assert.equal(templateDownload.suggestedFilename(), 'street-template.csv');
     const templateFile = path.join(OUT, 'street-template.csv');
     await templateDownload.saveAs(templateFile);
-    assert.equal(await readFile(templateFile, 'utf8'), 'name,count,deck,cost,text,flavor,type,tags,strengf,helf,steal\r\n');
+    assert.equal(await readFile(templateFile, 'utf8'), 'name,count,deck,cost,text,flavor,type,tags (separate with commas),strengf,helf,steal\r\n');
 
     assert.deepEqual(errors, [], 'no console errors');
     console.log('\nAll end-to-end checks passed.');

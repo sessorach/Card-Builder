@@ -116,8 +116,9 @@ Street was specified element by element:
 - A smaller **rules box** for the card's text and effect.
 - A **type bar** at the bottom with the card's type followed by its tags:
   "THUG — CREW · LEADER". Tags go in one `tags` column, separated by
-  commas. Separate `tag1`, `tag2`, `tag3` columns were considered and rejected
-  because the number of tags varies from card to card.
+  commas (`Crew, Leader`). Semicolons and `|` are also accepted, but commas
+  are the convention. Separate `tag1`, `tag2`, `tag3` columns were considered
+  and rejected because the number of tags varies from card to card.
 - A **stat row** at the very bottom: three stats, each in its own small box.
 
 **Only Thug units have stats.** The three stats are **Strengf**, **Helf** and
@@ -248,6 +249,12 @@ because a sample card could too easily end up in someone's deck; the example
 spreadsheets show filled-in cards instead. The `art` column is left out, since
 images match cards by name. `color` is included only for layouts that don't
 color cards by type.
+
+A CSV can't hold comments, so a column that needs explaining carries a short
+note in its header instead, such as `tags (separate with commas)`. When a
+spreadsheet is read, anything in parentheses in a header is ignored, so the
+note can stay in place. That also lets people annotate their own column
+headers.
 
 Problems in the spreadsheet show up as warnings above the preview, and the
 rest of the cards still render. Examples include an unknown layout name, a
