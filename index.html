@@ -116,6 +116,41 @@
 
           <button type="button" class="primary" id="export-tts" disabled>Download TTS deck (.zip)</button>
           <p class="hint" id="tts-reason"></p>
+
+          <details class="help" id="tts-help">
+            <summary>How to load your deck into TTS</summary>
+
+            <ol data-help-mode="local">
+              <li><b>Download</b> the TTS deck with the button above.</li>
+              <li><b>Unzip it.</b> Inside is a folder called <code>Card Builder</code>.</li>
+              <li><b>Move the <code>Card Builder</code> folder into your Saved Objects folder:</b>
+                <code class="path" data-fill="savedObjects" data-empty="(enter it above)"></code>
+                It has to be that exact folder, because the deck looks for its card images there.</li>
+              <li><b>Open TTS</b> and start a game (Singleplayer is fine for a first look).</li>
+              <li>Click <b>Objects</b> in the top menu, then <b>Saved Objects → Card Builder</b>, and click a deck to put it on the table.</li>
+            </ol>
+            <p class="help-note" data-help-mode="local">Only you will see these cards. To play online, choose <b>A website</b> above.</p>
+
+            <ol data-help-mode="web">
+              <li><b>Download</b> the TTS deck with the button above.</li>
+              <li><b>Unzip it.</b> Inside the <code>Card Builder</code> folder are your decks and an <code>images</code> folder.</li>
+              <li><b>Upload the files inside <code>images</code></b> to
+                <code class="path" data-fill="baseUrl" data-empty="(enter it above)"></code>
+                Each file should open in a browser at that address followed by its file name.</li>
+              <li><b>Move the <code>Card Builder</code> folder into your TTS Saved Objects folder.</b>
+                <span class="help-sub">Windows: Documents\My Games\Tabletop Simulator\Saves\Saved Objects<br>Mac: ~/Library/Tabletop Simulator/Saves/Saved Objects</span></li>
+              <li><b>Open TTS</b>, click <b>Objects</b> in the top menu, then <b>Saved Objects → Card Builder</b>, and click a deck to put it on the table.</li>
+            </ol>
+            <p class="help-note" data-help-mode="web">Everyone in the game loads the images from your website, so all players see the cards. Only the person putting the deck on the table needs the Saved Objects files.</p>
+
+            <h4>If something goes wrong</h4>
+            <ul>
+              <li><b>The deck isn't in Saved Objects:</b> make sure <code>Card Builder</code> sits directly inside Saved Objects. Unzipping sometimes adds an extra folder around it; if so, move the inner one.</li>
+              <li><b>Cards are blank or show an image error:</b> TTS can't find the pictures. <span data-help-mode="local">Check that the folder entered above is where you put <code>Card Builder</code>, then download again.</span><span data-help-mode="web">Check that the images open in your browser at the address you entered.</span></li>
+              <li><b>Changed some cards?</b> Download again and replace the old <code>Card Builder</code> folder<span data-help-mode="web">, and upload the new images</span>. TTS picks up the changes because the image names are new each time.</li>
+            </ul>
+            <p class="help-note">The ZIP also includes these steps in <code>HOW TO IMPORT.txt</code>, plus the settings for importing a deck by hand.</p>
+          </details>
         </div>
 
         <button type="button" class="secondary" id="export-images" disabled>Download card images (.zip)</button>

@@ -17,7 +17,7 @@
 Repo: `sessorach/Card-Builder` on GitHub (public, default branch `main`). GitHub Pages is on and deploys `main`. A static web page: drop a spreadsheet + art → preview cards → download a zip of card PNGs, or a zip containing a Tabletop Simulator Saved Object (the primary use). No build step, no framework, no server.
 
 ## Where things live
-- `index.html`, `css/style.css`: the page.
+- `index.html`, `css/style.css`: the page. The TTS help (`#tts-help`) is a `<details>` whose steps switch with `[data-help-mode]` and fill in the user's folder or URL via `[data-fill]` (wired in `setupControls` in main.js). Keep its steps consistent with `instructions()` in js/export.js (`HOW TO IMPORT.txt`) and the README.
 - `js/main.js`: UI wiring and state (inputs, preview, export buttons, localStorage settings).
 - `js/spreadsheet.js`: CSV/TSV parser, header aliases, rows → cards, grouping by deck. Pure, Node-tested.
 - `js/xlsx.js`: minimal .xlsx reader (JSZip + DOMParser). Browser-only; covered by e2e.

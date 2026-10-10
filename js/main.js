@@ -347,6 +347,7 @@ async function runExport(kind) {
       const { location } = ttsLocation();
       const blob = await buildTtsZip({ ...common, cardPx: cardPx(), location, quality: settings.quality });
       download(blob, `${base} - TTS.zip`);
+      $('tts-help').open = true; // walk them through the next steps
     }
     setStatus('Done! Check your downloads.');
   } catch (err) {
@@ -459,9 +460,17 @@ function setupControls() {
     rerender();
   });
 
+  // The TTS help shows only the steps for the chosen mode, with the user's folder or address filled in.
+  const fillHelp = () => {
+    document.querySelectorAll('[data-fill]').forEach((el) => {
+      el.textContent = settings[el.dataset.fill].trim() || el.dataset.empty;
+    });
+  };
   const showMode = () => {
     $('tts-local').hidden = settings.ttsMode !== 'local';
     $('tts-web').hidden = settings.ttsMode !== 'web';
+    document.querySelectorAll('[data-help-mode]').forEach((el) => (el.hidden = el.dataset.helpMode !== settings.ttsMode));
+    fillHelp();
     updateExportButtons();
   };
   document.querySelectorAll('input[name="tts-mode"]').forEach((radio) => {
@@ -480,6 +489,7 @@ function setupControls() {
     input.addEventListener('input', () => {
       settings[key] = input.value;
       saveSettings();
+      fillHelp();
       updateExportButtons();
     });
   };

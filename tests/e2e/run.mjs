@@ -84,7 +84,16 @@ async function run() {
     await page.fill('#tts-folder', 'C:\\Users\\tester\\Documents\\My Games\\Tabletop Simulator\\Saves\\Saved Objects');
     assert.equal(await page.isDisabled('#export-tts'), false);
 
+    assert.equal(await page.evaluate(() => document.getElementById('tts-help').open), false);
     const tts = await saveDownload(page, 'export-tts');
+
+    // The TTS help opens after the download, with this computer's steps and folder filled in.
+    assert.equal(await page.evaluate(() => document.getElementById('tts-help').open), true);
+    const localHelp = await page.innerText('#tts-help');
+    assert.match(localHelp, /Move the Card Builder folder into your Saved Objects folder:\s+C:\\Users\\tester\\Documents/);
+    assert.match(localHelp, /Only you will see these cards/);
+    assert.doesNotMatch(localHelp, /Upload the files inside images/);
+    await page.screenshot({ path: path.join(OUT, 'tts-help.png'), clip: await page.locator('#tts-help').boundingBox() });
     const names = Object.keys(tts.zip.files).filter((n) => !n.endsWith('/')).sort();
     console.log('TTS zip:', names);
     const fire = JSON.parse(await tts.zip.file('Card Builder/Fire Deck.json').async('string'));
@@ -107,6 +116,9 @@ async function run() {
     await page.check('input[name="tts-mode"][value="web"]');
     assert.equal(await page.isDisabled('#export-tts'), true);
     await page.fill('#tts-url', 'https://example.com/decks');
+    const webHelp = await page.innerText('#tts-help');
+    assert.match(webHelp, /Upload the files inside images to\s+https:\/\/example\.com\/decks/);
+    assert.doesNotMatch(webHelp, /Only you will see these cards/);
     await page.selectOption('#tts-quality', 'compatible');
     const web = await saveDownload(page, 'export-tts');
     const water = JSON.parse(await web.zip.file('Card Builder/Water Deck.json').async('string'));

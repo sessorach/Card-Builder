@@ -296,6 +296,16 @@ live:
 - **A website:** the player gives a web address and uploads the images there.
   This works for online play. GitHub Pages works for this.
 
+**Loading instructions live on the page.** Under the TTS download button
+there is a collapsible "How to load your deck into TTS" guide, so the steps are
+right where people need them rather than only in the README. It shows only the
+steps for the image location that was chosen, fills in the folder or web
+address that was typed, covers the usual problems (an extra folder from
+unzipping, blank cards, updating a deck), and opens by itself after a TTS
+download. A collapsible section was chosen over a pop-up window because it can
+be read alongside the form and doesn't get in the way. The same steps also ship
+inside the ZIP as `HOW TO IMPORT.txt`.
+
 Card hover descriptions in TTS include the type, subtype and tags, the cost,
 the rules text, the stats and the flavor text. Any other filled-in column is
 listed by its column name (for example "Strengf 4 · Helf 3 · Steal 2"). That

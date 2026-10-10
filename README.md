@@ -15,7 +15,8 @@ your browser: **https://sessorach.github.io/Card-Builder/**
    - **TTS deck:** a ZIP with each deck ready for Tabletop Simulator,
      including the number of copies from your spreadsheet. Unzip it into your
      TTS `Saved Objects` folder, then find it in-game under
-     *Objects → Saved Objects → Card Builder*.
+     *Objects → Saved Objects → Card Builder*. Step-by-step help is on the
+     page, under the download button.
 
 Not sure where to start? Pick a layout and download its blank CSV template
 (the link is under the layout picker), or load one of the examples on the page.
