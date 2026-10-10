@@ -88,10 +88,11 @@ export function localImagesFolder(savedObjects) {
 }
 
 // Where TTS will load an image from.
-//   { mode: 'local', savedObjects: 'C:\\…\\Saved Objects' } → C:\…\Saved Objects\Card Builder\images\name.jpg
-//   { mode: 'web', baseUrl: 'https://example.com/decks/' } → https://example.com/decks/name.jpg
-// Local images use a plain file path, the form TTS's own documentation shows
-// (C:\Users\…\example.png). An earlier file:/// form failed to load in TTS.
+//   Windows:   C:\…\Saved Objects\Card Builder\images\name.jpg   (plain path, as TTS's docs show)
+//   Linux/Mac: file:///home/…/Saved Objects/Card Builder/images/name.jpg
+//   Web:       https://example.com/decks/name.jpg
+// Tested in TTS on Linux: a plain /home/… path is treated as a web address
+// ("Cannot connect to destination host"), so non-Windows paths need file:///.
 export function imageUrl(fileName, location) {
   if (location.mode === 'web') {
     const base = cleanInput(location.baseUrl).replace(/\/*$/, '/');
@@ -101,7 +102,8 @@ export function imageUrl(fileName, location) {
     throw new Error('Use the full folder path (TTS does not understand "~").');
   }
   const folder = localImagesFolder(location.savedObjects);
-  return folder + (isWindowsPath(folder) ? '\\' : '/') + fileName;
+  if (isWindowsPath(folder)) return `${folder}\\${fileName}`;
+  return `file://${folder}/${fileName}`;
 }
 
 // Columns the description handles itself (or that aren't card text at all).

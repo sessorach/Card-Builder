@@ -35,9 +35,14 @@ test('local images get a plain path inside Saved Objects/Card Builder/images', (
   assert.equal(local('file:///C:/Users/me/Saved Objects'), windows);
   assert.equal(local('C:\\Users\\me\\Saved Objects\\Card Builder'), windows);
   assert.equal(local('C:/Users/me/Saved Objects/card builder/images/'), windows);
+  // Linux and Mac need a file:/// address: TTS treats a bare /home/… path as a web address.
   assert.equal(
     local('/Users/me/Library/Tabletop Simulator/Saves/Saved Objects/'),
-    '/Users/me/Library/Tabletop Simulator/Saves/Saved Objects/Card Builder/images/a b.jpg',
+    'file:///Users/me/Library/Tabletop Simulator/Saves/Saved Objects/Card Builder/images/a b.jpg',
+  );
+  assert.equal(
+    local('file:///home/me/.local/share/Tabletop Simulator/Saves/Saved Objects'),
+    'file:///home/me/.local/share/Tabletop Simulator/Saves/Saved Objects/Card Builder/images/a b.jpg',
   );
   assert.throws(() => imageUrl('a.jpg', { mode: 'local', savedObjects: '~/TTS' }));
 });

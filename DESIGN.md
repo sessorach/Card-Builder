@@ -329,11 +329,21 @@ live:
   deck points at the files there. This is the quickest option, but other
   players can't see the images.
 
-  The deck refers to these files by plain file path
-  (`C:\Users\…\Saved Objects\Card Builder\images\…`), the form TTS's own
-  documentation shows for local files. The first version wrote web-style
-  `file:///C:/…` addresses instead, and the first real test in TTS failed with
-  "unsupported file format" errors and no cards. The folder box also forgives
+  How the deck points at these files depends on the system, based on testing
+  in TTS:
+  - **Windows:** a plain file path
+    (`C:\Users\…\Saved Objects\Card Builder\images\…`), the form TTS's own
+    documentation shows for local files. Not yet tested in TTS on Windows.
+  - **Linux and Mac:** a `file:///` address (`file:///home/…`). In a test on
+    Linux, TTS treated a plain `/home/…` path as a web address and failed with
+    "Cannot connect to destination host". With `file:///` it tried to read the
+    file itself.
+
+  That Linux test still failed after the switch, with "unsupported format:
+  UNKNOWN" errors for every picture, whether or not the spaces in the folder
+  names were encoded as `%20`. Others report that `file:///home/…` works, so
+  the most likely cause is that the pictures weren't at the exact folder the
+  deck pointed to. This is still being confirmed. The folder box also forgives
   easy slips: surrounding quotes (which Windows adds with "Copy as path"), a
   pasted `file:///` address, or giving the `Card Builder` folder itself instead
   of Saved Objects. The on-page help shows the exact folder the deck will look
