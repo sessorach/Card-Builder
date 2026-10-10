@@ -1,0 +1,193 @@
+// Tabletop Simulator deck building: packing cards into grid sheets and writing
+// the Saved Object JSON. Pure logic, unit-tested in Node.
+//
+// How TTS custom decks work: a deck's faces come from one or more "sheet"
+// images, each a grid of up to 10 × 7 cards. Every card names its sheet and
+// slot with CardID = sheetKey * 100 + slotIndex. One back image is shared.
+import { toTtsText } from './richtext.js';
+
+export const MAX_COLUMNS = 10;
+export const MAX_ROWS = 7;
+// TTS can use the last slot of a 10 × 7 sheet as the "hidden" face, so we
+// leave it empty: 69 cards per sheet.
+export const MAX_PER_SHEET = MAX_COLUMNS * MAX_ROWS - 1;
+
+export const SHEET_LIMITS = {
+  high: 8192, // full 300 DPI cards fit in a 10 × 7 poker sheet
+  compatible: 4096, // safest for older graphics cards
+};
+
+// uniqueCount cards → [{ start, count, cols, rows }]
+export function planSheets(uniqueCount) {
+  const sheets = [];
+  for (let start = 0; start < uniqueCount; start += MAX_PER_SHEET) {
+    const count = Math.min(MAX_PER_SHEET, uniqueCount - start);
+    // Roughly square grids waste the fewest slots; TTS needs at least 2 × 2.
+    let rows = Math.min(MAX_ROWS, Math.max(2, Math.ceil(Math.sqrt(count))));
+    let cols = Math.max(2, Math.ceil(count / rows));
+    if (cols > MAX_COLUMNS) {
+      cols = MAX_COLUMNS;
+      rows = Math.ceil(count / cols);
+    }
+    sheets.push({ start, count, cols, rows });
+  }
+  return sheets;
+}
+
+// Card pixel size on a sheet, scaled down (never up) to keep the sheet within maxSheetPx.
+export function sheetCardPx(cardPx, cols, rows, maxSheetPx) {
+  const scale = Math.min(1, maxSheetPx / (cols * cardPx.width), maxSheetPx / (rows * cardPx.height));
+  return { width: Math.floor(cardPx.width * scale), height: Math.floor(cardPx.height * scale) };
+}
+
+export function slug(text) {
+  return (
+    String(text || '')
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 60) || 'deck'
+  );
+}
+
+// Saved Object file names are shown in TTS's browser, so keep them readable.
+export function safeFileName(text) {
+  return String(text || 'Deck').replace(/[\\/:*?"<>|]+/g, '').trim().slice(0, 80) || 'Deck';
+}
+
+// Where TTS will load images from.
+//   { mode: 'local', folder: 'C:\\Users\\me\\...\\images' } → file:///C:/Users/me/.../images/name.png
+//   { mode: 'web', baseUrl: 'https://example.com/decks/' } → https://example.com/decks/name.png
+export function imageUrl(fileName, location) {
+  if (location.mode === 'web') {
+    const base = location.baseUrl.trim().replace(/\/*$/, '/');
+    return base + encodeURIComponent(fileName);
+  }
+  let folder = location.folder.trim().replace(/\\/g, '/').replace(/\/*$/, '');
+  if (folder.startsWith('~')) throw new Error('Use the full folder path (TTS does not understand "~").');
+  if (!folder.startsWith('/')) folder = `/${folder}`; // Windows drive paths: /C:/...
+  return `file://${folder}/${fileName}`;
+}
+
+export function cardDescription(fields) {
+  const typeLine = [fields.type, fields.subtype].filter(Boolean).join(' — ');
+  const parts = [];
+  if (typeLine) parts.push(`[b]${typeLine}[/b]`);
+  if (fields.cost) parts.push(`Cost: ${fields.cost}`);
+  if (fields.text) parts.push(toTtsText(fields.text));
+  if (fields.stats) parts.push(`[b]${fields.stats}[/b]`);
+  if (fields.flavor) parts.push(`[i]${toTtsText(fields.flavor)}[/i]`);
+  return parts.join('\n');
+}
+
+export function randomGuid(rng = Math.random) {
+  return Array.from({ length: 6 }, () => Math.floor(rng() * 16).toString(16)).join('');
+}
+
+const TRANSFORM = { posX: 0, posY: 1, posZ: 0, rotX: 0, rotY: 180, rotZ: 180, scaleX: 1, scaleY: 1, scaleZ: 1 };
+
+function baseObject(name, nickname, description, guid) {
+  return {
+    GUID: guid,
+    Name: name,
+    Transform: { ...TRANSFORM },
+    Nickname: nickname,
+    Description: description,
+    GMNotes: '',
+    ColorDiffuse: { r: 0.713235259, g: 0.713235259, b: 0.713235259 },
+    Locked: false,
+    Grid: true,
+    Snap: true,
+    IgnoreFoW: false,
+    MeasureMovement: false,
+    DragSelectable: true,
+    Autoraise: true,
+    Sticky: true,
+    Tooltip: true,
+    GridProjection: false,
+    HideWhenFaceDown: true,
+    Hands: true,
+    SidewaysCard: false,
+    LuaScript: '',
+    LuaScriptState: '',
+    XmlUI: '',
+  };
+}
+
+// deck: { name, cards: [{ name, count, fields }] } in sheet order (the order passed to planSheets)
+// sheets: [{ start, count, cols, rows, faceUrl }]
+// Returns the full Saved Object file contents as a JS object.
+export function buildSavedObject({ deck, sheets, backUrl, rng = Math.random }) {
+  const usedKeys = new Set();
+  const customDeck = {};
+  const sheetKeys = sheets.map((sheet) => {
+    let key;
+    do key = 1000 + Math.floor(rng() * 9000);
+    while (usedKeys.has(key));
+    usedKeys.add(key);
+    customDeck[key] = {
+      FaceURL: sheet.faceUrl,
+      BackURL: backUrl,
+      NumWidth: sheet.cols,
+      NumHeight: sheet.rows,
+      BackIsHidden: true,
+      UniqueBack: false,
+      Type: 0,
+    };
+    return key;
+  });
+
+  const cardObjects = [];
+  deck.cards.forEach((card, i) => {
+    const sheetIndex = sheets.findIndex((s) => i >= s.start && i < s.start + s.count);
+    const key = sheetKeys[sheetIndex];
+    const cardId = key * 100 + (i - sheets[sheetIndex].start);
+    for (let copy = 0; copy < card.count; copy++) {
+      cardObjects.push({
+        ...baseObject('Card', card.name, cardDescription(card.fields), randomGuid(rng)),
+        CardID: cardId,
+        CustomDeck: { [key]: customDeck[key] },
+      });
+    }
+  });
+
+  let object;
+  if (cardObjects.length === 1) {
+    object = cardObjects[0];
+  } else {
+    object = {
+      ...baseObject('DeckCustom', deck.name, `${cardObjects.length} cards`, randomGuid(rng)),
+      Hands: false,
+      DeckIDs: cardObjects.map((c) => c.CardID),
+      CustomDeck: customDeck,
+      ContainedObjects: cardObjects,
+    };
+  }
+
+  return {
+    SaveName: '',
+    Date: '',
+    VersionNumber: '',
+    GameMode: '',
+    GameType: '',
+    GameComplexity: '',
+    Tags: [],
+    Gravity: 0.5,
+    PlayArea: 0.5,
+    Table: '',
+    Sky: '',
+    Note: '',
+    TabStates: {},
+    LuaScript: '',
+    LuaScriptState: '',
+    XmlUI: '',
+    ObjectStates: [object],
+  };
+}
+
+export function versionStamp(date = new Date()) {
+  const p = (n) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}${p(date.getMonth() + 1)}${p(date.getDate())}-${p(date.getHours())}${p(date.getMinutes())}${p(date.getSeconds())}`;
+}

@@ -1,0 +1,55 @@
+"""Generates the abstract placeholder art in examples/art (run: python3 tools/make-example-art.py).
+
+Needs Pillow. Output is deterministic (seeded), so re-running produces the same files.
+"""
+import math
+import random
+from pathlib import Path
+
+from PIL import Image, ImageDraw, ImageFilter
+
+OUT = Path(__file__).resolve().parent.parent / "examples" / "art"
+W, H = 900, 700
+
+PALETTES = {
+    "ember.jpg": [(40, 10, 5), (180, 50, 20), (250, 160, 50), (255, 230, 150)],
+    "cinder.jpg": [(25, 20, 18), (90, 40, 30), (200, 80, 30), (120, 110, 100)],
+    "tide.jpg": [(5, 20, 45), (20, 80, 130), (60, 160, 190), (200, 240, 250)],
+    "coral.jpg": [(10, 40, 50), (40, 120, 130), (230, 120, 110), (250, 200, 170)],
+}
+
+
+def lerp(a, b, t):
+    return tuple(int(a[i] + (b[i] - a[i]) * t) for i in range(3))
+
+
+def make(name, colors, seed):
+    rnd = random.Random(seed)
+    img = Image.new("RGB", (W, H))
+    px = img.load()
+    for y in range(H):
+        t = y / (H - 1)
+        row = lerp(colors[0], colors[1], t / 0.6) if t < 0.6 else lerp(colors[1], colors[0], (t - 0.6) / 0.4 * 0.5)
+        for x in range(W):
+            px[x, y] = row
+    layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(layer)
+    for _ in range(60):
+        r = rnd.randint(20, 160)
+        cx, cy = rnd.randint(-50, W + 50), rnd.randint(-50, H + 50)
+        c = colors[rnd.randint(1, 3)]
+        draw.ellipse((cx - r, cy - r, cx + r, cy + r), fill=c + (rnd.randint(40, 120),))
+    for i in range(6):
+        amp, phase, base = rnd.randint(20, 60), rnd.random() * math.tau, rnd.randint(H // 3, H)
+        pts = [(x, base + amp * math.sin(x / 90 + phase)) for x in range(0, W + 10, 10)]
+        draw.line(pts, fill=colors[3] + (90,), width=rnd.randint(3, 10))
+    layer = layer.filter(ImageFilter.GaussianBlur(18))
+    img = Image.alpha_composite(img.convert("RGBA"), layer).convert("RGB")
+    img.save(OUT / name, quality=85)
+
+
+if __name__ == "__main__":
+    OUT.mkdir(parents=True, exist_ok=True)
+    for i, (name, colors) in enumerate(PALETTES.items()):
+        make(name, colors, seed=i + 1)
+        print("wrote", OUT / name)
