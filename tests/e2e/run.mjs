@@ -101,10 +101,10 @@ async function run() {
     assert.equal(deck.Name, 'DeckCustom');
     assert.equal(deck.ContainedObjects.length, 11);
     const [sheet] = Object.values(deck.CustomDeck);
-    assert.match(sheet.FaceURL, /^file:\/\/\/C:\/Users\/tester\/Documents\/My Games\/Tabletop Simulator\/Saves\/Saved Objects\/Card Builder\/images\/fire-deck-\d{8}-\d{6}-sheet1\.jpg$/);
+    assert.match(sheet.FaceURL, /^C:\\Users\\tester\\Documents\\My Games\\Tabletop Simulator\\Saves\\Saved Objects\\Card Builder\\images\\fire-deck-\d{8}-\d{6}-sheet1\.jpg$/);
     assert.equal(sheet.NumWidth, 2);
     assert.equal(sheet.NumHeight, 2);
-    const faceName = 'Card Builder/images/' + sheet.FaceURL.split('/').pop();
+    const faceName = 'Card Builder/images/' + sheet.FaceURL.split(/[\\/]/).pop();
     const face = await tts.zip.file(faceName).async('nodebuffer');
     assert.deepEqual(imageSize(face), { width: 2 * 744, height: 2 * 1039 });
     await writeFile(path.join(OUT, 'fire-sheet.jpg'), face);

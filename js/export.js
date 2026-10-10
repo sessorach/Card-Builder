@@ -8,10 +8,14 @@ import {
   slug,
   safeFileName,
   versionStamp,
+  savedObjectsFolder,
+  localImagesFolder,
+  cleanInput,
   SHEET_LIMITS,
+  TTS_FOLDER,
 } from './tts.js';
 
-export const TTS_FOLDER = 'Card Builder';
+export { TTS_FOLDER };
 const SHEET_TYPE = 'image/jpeg';
 const SHEET_QUALITY = 0.92;
 
@@ -61,17 +65,21 @@ function instructions({ decks, location, manual }) {
   if (location.mode === 'local') {
     lines.push(
       `1. Unzip so the "${TTS_FOLDER}" folder lands inside your TTS "Saved Objects" folder:`,
-      `   ${location.savedObjects}`,
+      `   ${savedObjectsFolder(location.savedObjects)}`,
       '2. In TTS: Objects → Saved Objects → Card Builder, then click a deck to spawn it.',
       '',
+      'The decks look for their card images in exactly this folder:',
+      `   ${localImagesFolder(location.savedObjects)}`,
+      'If the cards come up blank or with an image error, check the images are there.',
+      '',
       'These images are loaded from files on this computer, so other players will',
-      'not see them. To play online, use "Web hosted" in Card Builder, or import',
+      'not see them. To play online, choose "A website" in Card Builder, or import',
       'manually (below) and let TTS upload the images to the Steam Cloud.',
     );
   } else {
     lines.push(
       `1. Upload everything in "${TTS_FOLDER}/images" so each file is reachable at:`,
-      `   ${location.baseUrl.replace(/\/*$/, '/')}<file name>`,
+      `   ${cleanInput(location.baseUrl).replace(/\/*$/, '/')}<file name>`,
       `2. Put the "${TTS_FOLDER}" folder (the .json and .png files) in your TTS "Saved Objects" folder.`,
       '3. In TTS: Objects → Saved Objects → Card Builder, then click a deck to spawn it.',
     );
@@ -106,13 +114,7 @@ export async function buildTtsZip({ decks, cardPx, getCanvas, getBack, location,
   const maxSheet = SHEET_LIMITS[quality] || SHEET_LIMITS.high;
   const manual = [];
 
-  const urlFor = (file) =>
-    location.mode === 'web'
-      ? imageUrl(file, location)
-      : imageUrl(file, {
-          mode: 'local',
-          folder: `${location.savedObjects.replace(/[\\/]+$/, '')}/${TTS_FOLDER}/images`,
-        });
+  const urlFor = (file) => imageUrl(file, location);
 
   const usedNames = new Set();
   for (const deck of decks) {

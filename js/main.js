@@ -7,6 +7,7 @@ import { AssetStore, decodeImage, renderCard, renderBack, findArt, cardAccent } 
 import { loadFonts } from './fonts.js';
 import { buildImagesZip, buildTtsZip } from './export.js';
 import { templateCsv } from './template.js';
+import { cleanInput, savedObjectsFolder, localImagesFolder } from './tts.js';
 
 const $ = (id) => document.getElementById(id);
 const IMAGE_EXT = /\.(png|jpe?g|webp|gif|bmp|avif)$/i;
@@ -309,11 +310,11 @@ function openLightbox(source) {
 
 function ttsLocation() {
   if (settings.ttsMode === 'web') {
-    const url = settings.baseUrl.trim();
+    const url = cleanInput(settings.baseUrl);
     if (!/^https?:\/\/\S+/i.test(url)) return { error: 'Enter the web address (starting with https://) the images will be uploaded to.' };
     return { location: { mode: 'web', baseUrl: url } };
   }
-  const folder = settings.savedObjects.trim();
+  const folder = cleanInput(settings.savedObjects);
   if (!folder) return { error: 'Enter your Saved Objects folder so TTS can find the images.' };
   if (folder.startsWith('~')) return { error: 'Use the full folder path; TTS doesn\'t understand "~".' };
   return { location: { mode: 'local', savedObjects: folder } };
@@ -462,8 +463,14 @@ function setupControls() {
 
   // The TTS help shows only the steps for the chosen mode, with the user's folder or address filled in.
   const fillHelp = () => {
+    const typed = cleanInput(settings.savedObjects);
+    const values = {
+      savedObjects: typed && savedObjectsFolder(typed),
+      imagesFolder: typed && localImagesFolder(typed),
+      baseUrl: cleanInput(settings.baseUrl),
+    };
     document.querySelectorAll('[data-fill]').forEach((el) => {
-      el.textContent = settings[el.dataset.fill].trim() || el.dataset.empty;
+      el.textContent = values[el.dataset.fill] || el.dataset.empty;
     });
   };
   const showMode = () => {

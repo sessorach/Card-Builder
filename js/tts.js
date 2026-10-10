@@ -57,18 +57,51 @@ export function safeFileName(text) {
   return String(text || 'Deck').replace(/[\\/:*?"<>|]+/g, '').trim().slice(0, 80) || 'Deck';
 }
 
-// Where TTS will load images from.
-//   { mode: 'local', folder: 'C:\\Users\\me\\...\\images' } → file:///C:/Users/me/.../images/name.png
-//   { mode: 'web', baseUrl: 'https://example.com/decks/' } → https://example.com/decks/name.png
+// The folder the TTS download unzips to, inside Saved Objects.
+export const TTS_FOLDER = 'Card Builder';
+
+// Tidies a pasted folder path or web address: Windows "Copy as path" wraps it in quotes.
+export function cleanInput(text) {
+  return String(text ?? '')
+    .trim()
+    .replace(/^(["'])(.*)\1$/, '$2')
+    .trim();
+}
+
+const isWindowsPath = (p) => /^[a-zA-Z]:/.test(p) || p.includes('\\');
+
+// The Saved Objects folder from what was typed. Also accepts a file:/// address, or
+// the Card Builder (or Card Builder/images) folder itself, since those are easy slips.
+export function savedObjectsFolder(input) {
+  let folder = cleanInput(input).replace(/^file:\/\//i, '');
+  if (/^\/[a-zA-Z]:/.test(folder)) folder = folder.slice(1); // file:///C:/… → C:/…
+  folder = folder.replace(/[\\/]+$/, '');
+  const tail = new RegExp(`[\\\\/]${TTS_FOLDER}([\\\\/]images)?$`, 'i');
+  return folder.replace(tail, '');
+}
+
+// Where the card images end up once the download is unzipped into Saved Objects.
+export function localImagesFolder(savedObjects) {
+  const root = savedObjectsFolder(savedObjects);
+  const sep = isWindowsPath(root) ? '\\' : '/';
+  return [root.replace(/[\\/]/g, sep), TTS_FOLDER, 'images'].join(sep);
+}
+
+// Where TTS will load an image from.
+//   { mode: 'local', savedObjects: 'C:\\…\\Saved Objects' } → C:\…\Saved Objects\Card Builder\images\name.jpg
+//   { mode: 'web', baseUrl: 'https://example.com/decks/' } → https://example.com/decks/name.jpg
+// Local images use a plain file path, the form TTS's own documentation shows
+// (C:\Users\…\example.png). An earlier file:/// form failed to load in TTS.
 export function imageUrl(fileName, location) {
   if (location.mode === 'web') {
-    const base = location.baseUrl.trim().replace(/\/*$/, '/');
+    const base = cleanInput(location.baseUrl).replace(/\/*$/, '/');
     return base + encodeURIComponent(fileName);
   }
-  let folder = location.folder.trim().replace(/\\/g, '/').replace(/\/*$/, '');
-  if (folder.startsWith('~')) throw new Error('Use the full folder path (TTS does not understand "~").');
-  if (!folder.startsWith('/')) folder = `/${folder}`; // Windows drive paths: /C:/...
-  return `file://${folder}/${fileName}`;
+  if (cleanInput(location.savedObjects).startsWith('~')) {
+    throw new Error('Use the full folder path (TTS does not understand "~").');
+  }
+  const folder = localImagesFolder(location.savedObjects);
+  return folder + (isWindowsPath(folder) ? '\\' : '/') + fileName;
 }
 
 // Columns the description handles itself (or that aren't card text at all).

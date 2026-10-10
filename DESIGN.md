@@ -305,6 +305,16 @@ live:
 - **This computer:** the player gives their Saved Objects folder path, and the
   deck points at the files there. This is the quickest option, but other
   players can't see the images.
+
+  The deck refers to these files by plain file path
+  (`C:\Users\…\Saved Objects\Card Builder\images\…`), the form TTS's own
+  documentation shows for local files. The first version wrote web-style
+  `file:///C:/…` addresses instead, and the first real test in TTS failed with
+  "unsupported file format" errors and no cards. The folder box also forgives
+  easy slips: surrounding quotes (which Windows adds with "Copy as path"), a
+  pasted `file:///` address, or giving the `Card Builder` folder itself instead
+  of Saved Objects. The on-page help shows the exact folder the deck will look
+  in, to make a wrong location easy to spot.
 - **A website:** the player gives a web address and uploads the images there.
   This works for online play. GitHub Pages works for this.
 

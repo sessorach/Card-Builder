@@ -72,5 +72,7 @@ Elements are drawn in order. `x/y/w/h` are % of card width/height; `size`, `minS
 - cdn.sheetjs.com and cdnjs are blocked from the cloud container; the npm registry works (`npm pack <pkg>` to fetch a tarball for vendoring).
 - The Claude GitHub App can't create repositories (403); the user has to create them.
 - TTS caches images by URL, so sheet file names must keep their timestamp.
+- Local-mode image paths are plain OS paths (`C:\…\Card Builder\images\x.jpg`, or `/Users/…` on Mac), built by `imageUrl`/`localImagesFolder` in js/tts.js. Don't go back to `file:///` URLs: the user's first TTS test with them failed ("unsupported file format", no cards). The plain-path form matches TTS's docs but wasn't yet confirmed in TTS when it was made, so ask how it went if the user tests TTS again.
+- I can't run TTS in the container. Anything about TTS behavior is from docs and forum reports; say so when it matters, and ask the user for exact error text.
 - Canvas only draws fonts that have already loaded; `loadFonts()` (js/fonts.js) preloads every face listed in `FONT_LIBRARY`. A new font, or a new weight/italic of an existing one, needs its face added there, or it silently renders in the fallback font.
 - To compare fonts quickly, render an HTML sample page with Playwright (scratchpad) rather than editing layouts back and forth.

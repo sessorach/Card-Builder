@@ -25,14 +25,26 @@ test('scales sheet cells down to the limit, never up', () => {
   assert.ok(Math.abs(small.width / small.height - 744 / 1039) < 0.01);
 });
 
-test('builds image URLs for local folders and websites', () => {
+test('local images get a plain path inside Saved Objects/Card Builder/images', () => {
+  const local = (savedObjects) => imageUrl('a b.jpg', { mode: 'local', savedObjects });
+  const windows = 'C:\\Users\\me\\Saved Objects\\Card Builder\\images\\a b.jpg';
+  assert.equal(local('C:\\Users\\me\\Saved Objects'), windows);
+  assert.equal(local('C:\\Users\\me\\Saved Objects\\'), windows);
+  // Easy slips: "Copy as path" quotes, a file:/// address, or the Card Builder folder itself.
+  assert.equal(local('"C:\\Users\\me\\Saved Objects"'), windows);
+  assert.equal(local('file:///C:/Users/me/Saved Objects'), windows);
+  assert.equal(local('C:\\Users\\me\\Saved Objects\\Card Builder'), windows);
+  assert.equal(local('C:/Users/me/Saved Objects/card builder/images/'), windows);
   assert.equal(
-    imageUrl('a b.jpg', { mode: 'local', folder: 'C:\\Users\\me\\Saved Objects\\' }),
-    'file:///C:/Users/me/Saved Objects/a b.jpg',
+    local('/Users/me/Library/Tabletop Simulator/Saves/Saved Objects/'),
+    '/Users/me/Library/Tabletop Simulator/Saves/Saved Objects/Card Builder/images/a b.jpg',
   );
-  assert.equal(imageUrl('a.jpg', { mode: 'local', folder: '/Users/me/TTS' }), 'file:///Users/me/TTS/a.jpg');
+  assert.throws(() => imageUrl('a.jpg', { mode: 'local', savedObjects: '~/TTS' }));
+});
+
+test('web images get the base address plus the encoded file name', () => {
   assert.equal(imageUrl('a b.jpg', { mode: 'web', baseUrl: 'https://x.io/decks' }), 'https://x.io/decks/a%20b.jpg');
-  assert.throws(() => imageUrl('a.jpg', { mode: 'local', folder: '~/TTS' }));
+  assert.equal(imageUrl('a.jpg', { mode: 'web', baseUrl: ' "https://x.io/decks/" ' }), 'https://x.io/decks/a.jpg');
 });
 
 test('slug makes safe file names', () => {
