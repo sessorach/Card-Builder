@@ -106,6 +106,42 @@ export function imageUrl(fileName, location) {
   return `file://${folder}/${fileName}`;
 }
 
+// ---- Steam Cloud -------------------------------------------------------------
+// The deck's images are uploaded to the player's Steam Cloud from inside TTS,
+// and the links TTS gives back are pasted into Card Builder. Image file names
+// carry a hash of their content, so a pasted link can be remembered and reused
+// for as long as that exact image stays the same.
+
+// 16 hex characters from two 32-bit FNV-1a passes over the bytes.
+export function contentHash(bytes) {
+  let a = 0x811c9dc5;
+  let b = 0x01000193 ^ 0x5bd1e995;
+  for (let i = 0; i < bytes.length; i++) {
+    a = Math.imul(a ^ bytes[i], 0x01000193);
+    b = Math.imul(b ^ bytes[i], 0x01000193) ^ (b >>> 13);
+  }
+  const hex = (n) => (n >>> 0).toString(16).padStart(8, '0');
+  return hex(a) + hex(b);
+}
+
+export function cloudSheetName(deckBase, index, hash) {
+  return `${slug(deckBase)}-sheet${index + 1}-${hash.slice(0, 10)}.jpg`;
+}
+
+export function cloudBackName(hash) {
+  return `back-${hash.slice(0, 10)}.jpg`;
+}
+
+// A pasted link: any http(s) address with no spaces (after tidying quotes).
+export function isLink(text) {
+  return /^https?:\/\/\S+$/i.test(cleanInput(text));
+}
+
+// Steam Cloud links from TTS point at Steam's user-content servers.
+export function looksLikeSteamCloud(text) {
+  return /steamusercontent|steamcommunity|akamaihd\.net\/ugc/i.test(cleanInput(text));
+}
+
 // Columns the description handles itself (or that aren't card text at all).
 const DESCRIBED = new Set(['name', 'count', 'deck', 'layout', 'art', 'color', 'type', 'subtype', 'tags', 'cost', 'text', 'flavor', 'stats']);
 

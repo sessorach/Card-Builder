@@ -8,6 +8,9 @@ import {
   slug,
   safeFileName,
   versionStamp,
+  contentHash,
+  cloudSheetName,
+  cloudBackName,
   savedObjectsFolder,
   localImagesFolder,
   cleanInput,
@@ -62,7 +65,17 @@ function instructions({ decks, location, manual }) {
     '======================================',
     '',
   ];
-  if (location.mode === 'local') {
+  if (location.mode === 'cloud') {
+    lines.push(
+      `1. Put the "${TTS_FOLDER}" folder inside your TTS "Saved Objects" folder:`,
+      '   Windows: Documents\\My Games\\Tabletop Simulator\\Saves\\Saved Objects',
+      '   Mac:     ~/Library/Tabletop Simulator/Saves/Saved Objects',
+      '   Linux:   ~/.local/share/Tabletop Simulator/Saves/Saved Objects',
+      '2. In TTS: Objects → Saved Objects → Card Builder, then click a deck to spawn it.',
+      '',
+      'The card images load from your Steam Cloud, so everyone in your game sees them.',
+    );
+  } else if (location.mode === 'local') {
     lines.push(
       `1. Unzip so the "${TTS_FOLDER}" folder lands inside your TTS "Saved Objects" folder:`,
       `   ${savedObjectsFolder(location.savedObjects)}`,
@@ -73,8 +86,7 @@ function instructions({ decks, location, manual }) {
       'If the cards come up blank or with an image error, check the images are there.',
       '',
       'These images are loaded from files on this computer, so other players will',
-      'not see them. To play online, choose "A website" in Card Builder, or import',
-      'manually (below) and let TTS upload the images to the Steam Cloud.',
+      'not see them. To play online, choose "Steam Cloud" in Card Builder.',
     );
   } else {
     lines.push(
@@ -84,62 +96,117 @@ function instructions({ decks, location, manual }) {
       '3. In TTS: Objects → Saved Objects → Card Builder, then click a deck to spawn it.',
     );
   }
-  lines.push(
-    '',
-    'Manual import (works for anyone; TTS offers to upload the images to Steam Cloud):',
-    'Objects → Components → Custom → Deck, then for each sheet below:',
-  );
-  for (const m of manual) {
+  if (location.mode !== 'cloud') {
     lines.push(
       '',
-      `  ${m.deck}${m.sheetCount > 1 ? ` (sheet ${m.index + 1} of ${m.sheetCount})` : ''}`,
-      `    Face:   images/${m.face}`,
-      `    Back:   images/${m.back}   (tick "Back is Hidden")`,
-      `    Width: ${m.cols}   Height: ${m.rows}   Number: ${m.count}`,
+      'Manual import (works for anyone; TTS offers to upload the images to Steam Cloud):',
+      'Objects → Components → Custom → Deck, then for each sheet below:',
     );
-    if (m.copies !== m.count) {
-      lines.push(`    Manual import gives one of each card; the Saved Object has all ${m.copies} copies.`);
+    for (const m of manual) {
+      lines.push(
+        '',
+        `  ${m.deck}${m.sheetCount > 1 ? ` (sheet ${m.index + 1} of ${m.sheetCount})` : ''}`,
+        `    Face:   images/${m.face}`,
+        `    Back:   images/${m.back}   (tick "Back is Hidden")`,
+        `    Width: ${m.cols}   Height: ${m.rows}   Number: ${m.count}`,
+      );
+      if (m.copies !== m.count) {
+        lines.push(`    Manual import gives one of each card; the Saved Object has all ${m.copies} copies.`);
+      }
     }
   }
   lines.push('', `Decks in this export: ${decks.map((d) => d.name).join(', ')}`, '');
   return lines.join('\n');
 }
 
-// location: { mode: 'local', savedObjects } | { mode: 'web', baseUrl }
-export async function buildTtsZip({ decks, cardPx, getCanvas, getBack, location, quality, onProgress = () => {} }) {
-  const zip = new JSZip();
-  const root = zip.folder(TTS_FOLDER);
-  const images = root.folder('images');
-  const version = versionStamp();
+async function encodeSheet(canvas) {
+  const blob = await canvasToBlob(canvas, SHEET_TYPE, SHEET_QUALITY);
+  const hash = contentHash(new Uint8Array(await blob.arrayBuffer()));
+  return { blob, hash };
+}
+
+// Renders every deck's sheets and back once, as JPEGs with content hashes.
+// Both the Steam Cloud upload pack and the TTS deck are built from this.
+// Returns [{ deck, base, back: { blob, hash }, sheets: [{ ...plan, blob, hash }] }].
+export async function prepareTtsImages({ decks, cardPx, getCanvas, getBack, quality, onProgress = () => {} }) {
   const maxSheet = SHEET_LIMITS[quality] || SHEET_LIMITS.high;
-  const manual = [];
-
-  const urlFor = (file) => imageUrl(file, location);
-
   const usedNames = new Set();
+  const prepared = [];
   for (const deck of decks) {
     let base = safeFileName(deck.name);
     for (let n = 2; usedNames.has(base.toLowerCase()); n++) base = `${safeFileName(deck.name)} (${n})`;
     usedNames.add(base.toLowerCase());
-    const prefix = `${slug(base)}-${version}`;
 
-    const backFile = `${prefix}-back.jpg`;
-    images.file(backFile, await canvasToBlob(getBack(deck), SHEET_TYPE, SHEET_QUALITY));
-
+    const back = await encodeSheet(getBack(deck));
     const plan = planSheets(deck.cards.length);
     const sheets = [];
     for (const [index, sheet] of plan.entries()) {
       onProgress(`Building sheet ${index + 1}/${plan.length} for ${deck.name}…`);
       const cellPx = sheetCardPx(cardPx, sheet.cols, sheet.rows, maxSheet);
-      const canvas = drawSheet(deck.cards, sheet, getCanvas, cellPx);
-      const face = `${prefix}-sheet${index + 1}.jpg`;
-      images.file(face, await canvasToBlob(canvas, SHEET_TYPE, SHEET_QUALITY));
-      sheets.push({ ...sheet, faceUrl: urlFor(face) });
-      const copies = deck.cards.slice(sheet.start, sheet.start + sheet.count).reduce((n, c) => n + c.count, 0);
-      manual.push({ deck: deck.name, index, sheetCount: plan.length, face, back: backFile, cols: sheet.cols, rows: sheet.rows, count: sheet.count, copies });
+      sheets.push({ ...sheet, index, ...(await encodeSheet(drawSheet(deck.cards, sheet, getCanvas, cellPx))) });
     }
+    prepared.push({ deck, base, back, sheets });
+  }
+  return prepared;
+}
 
-    const saved = buildSavedObject({ deck, sheets, backUrl: urlFor(backFile) });
+// The images to upload to Steam Cloud, once each (decks sharing a back share
+// one upload). Returns [{ hash, name, label, blob }].
+export function cloudFiles(prepared) {
+  const files = new Map();
+  for (const { deck, base, back, sheets } of prepared) {
+    for (const sheet of sheets) {
+      if (!files.has(sheet.hash)) {
+        const label = sheets.length > 1 ? `${deck.name}: sheet ${sheet.index + 1} of ${sheets.length}` : `${deck.name}: cards`;
+        files.set(sheet.hash, { hash: sheet.hash, name: cloudSheetName(base, sheet.index, sheet.hash), label, blob: sheet.blob });
+      }
+    }
+    if (files.has(back.hash)) {
+      const shared = files.get(back.hash);
+      if (shared.decks) shared.decks.push(deck.name);
+    } else {
+      files.set(back.hash, { hash: back.hash, name: cloudBackName(back.hash), decks: [deck.name], blob: back.blob });
+    }
+  }
+  return [...files.values()].map((f) => (f.decks ? { ...f, label: `Card back (${f.decks.join(', ')})` } : f));
+}
+
+export async function buildUploadZip(files, onProgress = () => {}) {
+  const zip = new JSZip();
+  const folder = zip.folder('Card Builder uploads');
+  for (const f of files) folder.file(f.name, f.blob);
+  onProgress('Zipping…');
+  return zip.generateAsync({ type: 'blob' });
+}
+
+// location: { mode: 'cloud', links: { hash: url } } | { mode: 'local', savedObjects } | { mode: 'web', baseUrl }
+export async function buildTtsZip({ prepared, getCanvas, location, onProgress = () => {} }) {
+  const zip = new JSZip();
+  const root = zip.folder(TTS_FOLDER);
+  const cloud = location.mode === 'cloud';
+  const images = cloud ? null : root.folder('images');
+  const version = versionStamp();
+  const manual = [];
+
+  // Steam Cloud: the pasted link for that exact image. Otherwise: write the file and point at it.
+  const place = (name, image) => {
+    if (cloud) return location.links[image.hash];
+    images.file(name, image.blob);
+    return imageUrl(name, location);
+  };
+
+  for (const { deck, base, back, sheets } of prepared) {
+    const prefix = `${slug(base)}-${version}`;
+    const backFile = `${prefix}-back.jpg`;
+    const backUrl = place(backFile, back);
+    const placed = sheets.map((sheet) => {
+      const face = `${prefix}-sheet${sheet.index + 1}.jpg`;
+      const copies = deck.cards.slice(sheet.start, sheet.start + sheet.count).reduce((n, c) => n + c.count, 0);
+      manual.push({ deck: deck.name, index: sheet.index, sheetCount: sheets.length, face, back: backFile, cols: sheet.cols, rows: sheet.rows, count: sheet.count, copies });
+      return { ...sheet, faceUrl: place(face, sheet) };
+    });
+
+    const saved = buildSavedObject({ deck, sheets: placed, backUrl });
     root.file(`${base}.json`, JSON.stringify(saved, null, 2));
 
     // Thumbnail shown in TTS's Saved Objects browser.
@@ -149,7 +216,7 @@ export async function buildTtsZip({ decks, cardPx, getCanvas, getBack, location,
     root.file(`${base}.png`, await canvasToBlob(thumb));
   }
 
-  root.file('HOW TO IMPORT.txt', instructions({ decks, location, manual }));
+  root.file('HOW TO IMPORT.txt', instructions({ decks: prepared.map((p) => p.deck), location, manual }));
   onProgress('Zipping…');
   return zip.generateAsync({ type: 'blob' });
 }

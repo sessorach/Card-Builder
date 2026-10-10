@@ -148,6 +148,43 @@ select:focus, input:focus { outline: 2px solid var(--accent); outline-offset: 1p
   background: var(--surface-2);
 }
 
+.badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--bg);
+}
+.radio-hint { margin: 0 0 6px 24px; color: var(--muted); font-size: 0.8rem; }
+
+/* Steam Cloud steps and link list */
+.cloud-steps { margin: 0 0 10px; padding-left: 20px; font-size: 0.88rem; }
+.cloud-steps li { margin-bottom: 8px; }
+.cloud-steps button { display: block; margin-top: 6px; }
+.cloud-links { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.cloud-links:empty { display: none; }
+.cloud-links.stale { opacity: 0.5; }
+.cloud-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+}
+.cloud-row.done { border-left-color: #6cc24a; }
+.cloud-row.bad { border-left-color: var(--danger); }
+.cloud-file { display: flex; flex-direction: column; font-size: 0.82rem; }
+.cloud-file code { background: none; padding: 0; color: var(--muted); overflow-wrap: anywhere; }
+.cloud-row.done .cloud-file span::after { content: ' ✓'; color: #6cc24a; font-weight: 700; }
+.cloud-note { font-size: 0.78rem; color: var(--danger); }
+.cloud-note:empty { display: none; }
+
 .help {
   margin-top: 10px;
   border: 1px solid var(--border);

@@ -79,7 +79,9 @@ async function run() {
     await page.screenshot({ path: path.join(OUT, 'lightbox.png') });
     await page.click('#lightbox');
 
-    // TTS export needs a folder first.
+    // Steam Cloud is the default; "This computer" needs a folder first.
+    assert.equal(await page.isChecked('input[name="tts-mode"][value="cloud"]'), true);
+    await page.check('input[name="tts-mode"][value="local"]');
     assert.equal(await page.isDisabled('#export-tts'), true);
     await page.fill('#tts-folder', 'C:\\Users\\tester\\Documents\\My Games\\Tabletop Simulator\\Saves\\Saved Objects');
     assert.equal(await page.isDisabled('#export-tts'), false);
@@ -175,6 +177,58 @@ async function run() {
     assert.match(warnings, /unknown layout "nope"/);
     assert.match(warnings, /Missing art \(1\): ghost\.png/);
     assert.match(warnings, /No image found for 1 card: Lonely Card\. Name each image after its card/);
+
+    // Steam Cloud: download the images to upload, paste links, download the deck.
+    await page.click('[data-example="street-cards.csv"] >> nth=0');
+    await page.waitForFunction(() => document.querySelectorAll('.tile canvas').length === 5);
+    await page.check('input[name="tts-mode"][value="cloud"]');
+    await page.selectOption('#tts-quality', 'high');
+    assert.equal(await page.isDisabled('#export-tts'), true);
+    assert.match(await page.textContent('#tts-reason'), /Step 1: download the images to upload/);
+    const pack = await saveDownload(page, 'cloud-pack');
+    const packFiles = Object.keys(pack.zip.files).filter((n) => !n.endsWith('/')).sort();
+    console.log('Steam Cloud upload zip:', packFiles);
+    assert.equal(packFiles.length, 2);
+    assert.ok(packFiles.every((n) => /^Card Builder uploads\/(street-deck-sheet1|back)-[0-9a-f]{10}\.jpg$/.test(n)));
+    const rows = await page.$$eval('.cloud-row', (els) => els.map((el) => el.querySelector('code').textContent));
+    assert.deepEqual(rows.sort(), packFiles.map((n) => n.split('/').pop()).sort());
+    assert.match(await page.textContent('#tts-reason'), /Paste the Steam Cloud link for 2 more images/);
+    const links = {};
+    for (const [i, name] of rows.entries()) {
+      links[name] = `https://steamusercontent-a.akamaihd.net/ugc/${1000 + i}/HASH${i}/`;
+      await page.fill(`.cloud-row:has(code:text-is("${name}")) input`, links[name]);
+    }
+    assert.equal(await page.isDisabled('#export-tts'), false);
+    const cloudTts = await saveDownload(page, 'export-tts');
+    const cloudNames = Object.keys(cloudTts.zip.files);
+    assert.ok(!cloudNames.some((n) => n.includes('/images/')), 'Steam Cloud decks ship no image files');
+    const cloudDeck = JSON.parse(await cloudTts.zip.file('Card Builder/Street Deck.json').async('string')).ObjectStates[0];
+    const [cloudSheet] = Object.values(cloudDeck.CustomDeck);
+    assert.equal(cloudSheet.FaceURL, links[rows.find((n) => n.startsWith('street-deck-sheet1'))]);
+    assert.equal(cloudSheet.BackURL, links[rows.find((n) => n.startsWith('back-'))]);
+    assert.equal(cloudDeck.ContainedObjects.length, 11);
+    assert.match(await cloudTts.zip.file('Card Builder/HOW TO IMPORT.txt').async('string'), /load from your Steam Cloud/);
+
+    // After a reload, unchanged images get their links back without re-uploading.
+    await page.reload();
+    await page.waitForSelector('body[data-ready="true"]');
+    await page.click('[data-example="street-cards.csv"] >> nth=0');
+    await page.waitForFunction(() => document.querySelectorAll('.tile canvas').length === 5);
+    assert.equal(await page.isChecked('input[name="tts-mode"][value="cloud"]'), true);
+    // The uploaded back from earlier was lost in the reload; add it again so the images match.
+    await page.setInputFiles('#back-input', path.join(ROOT, 'examples/art/tide.jpg'));
+    await page.waitForFunction(() => document.getElementById('back-status').textContent === 'tide.jpg');
+    await page.waitForFunction(() => document.querySelectorAll('.tile canvas').length === 5);
+    await saveDownload(page, 'cloud-pack');
+    assert.match(await page.textContent('#status'), /All links are already filled in/);
+    assert.equal(await page.isDisabled('#export-tts'), false);
+
+    // Changing the sheet resolution makes new images, so the links go stale.
+    await page.selectOption('#tts-quality', 'compatible');
+    assert.equal(await page.isDisabled('#export-tts'), true);
+    assert.match(await page.textContent('#tts-reason'), /Your cards changed/);
+    await page.screenshot({ path: path.join(OUT, 'steam-cloud.png'), fullPage: true });
+    await page.selectOption('#tts-quality', 'high');
 
     // Blank CSV template follows the selected layout.
     await page.selectOption('#layout-select', 'street');

@@ -316,16 +316,57 @@ Specific choices:
 - **Sheets are JPEG at 92% quality.** Full-resolution PNG sheets can run to tens
   of megabytes, which makes them slow to load, especially for friends
   downloading them online.
-- **Sheet file names include a timestamp.** TTS caches images by web address,
-  so reusing a name would keep showing the old art after an update.
+- **Image names change whenever an image changes.** TTS caches images by
+  address, so reusing a name would keep showing the old art after an update.
+  "This computer" and "My own website" put the download time in each name.
+  Steam Cloud names carry a fingerprint (hash) of the image itself, which lets
+  pasted links be reused (see below).
 - **Two resolutions:** High keeps full 300 DPI cards (a full sheet stays under
   8192 pixels), and Compatible scales sheets to 4096 pixels for older graphics
   cards.
 
-TTS loads images from web addresses, so the export asks where the images will
-live:
+TTS loads images from addresses, so the export asks how TTS will get the
+images.
 
-- **This computer:** the player gives their Saved Objects folder path, and the
+**Standing goal: as easy as possible for the end user, with no infrastructure.**
+People making cards shouldn't need a GitHub repository, a web host or any other
+setup to share a deck with friends. The ideal is instructions as simple as "do
+this in TTS, then paste these links here."
+
+There are three options, and Steam Cloud is the default:
+
+- **Steam Cloud (recommended).** Every TTS player has free Steam Cloud storage,
+  and only TTS itself can upload to it, so the flow goes back and forth once:
+  1. Card Builder gives a ZIP of just the images to upload. They can be
+     unzipped anywhere, since TTS's own file picker reads them.
+  2. In TTS's Cloud Manager, the player uploads them. Clicking an uploaded file
+     copies its link.
+  3. The player pastes each link next to the matching file name in Card
+     Builder.
+  4. Card Builder builds the deck with those links, so the cards keep their
+     names, hover text and copy counts, and everyone in the game sees the art.
+
+  To keep repeat use easy, each image's file name includes a fingerprint of
+  its content, and pasted links are remembered by fingerprint in the browser.
+  After a page reload, or after changing a few cards, any image that is still
+  the same gets its link back automatically, so only changed images need
+  uploading again. Identical images, such as one card back shared by several
+  decks, are uploaded once. If the cards change after the images were
+  downloaded, the deck download waits until the images are downloaded again,
+  so a deck can't silently point at outdated pictures.
+
+  Rejected alternatives:
+  - *TTS's "Upload All" button in the Cloud Manager.* It uploads a game's
+    local images and switches them to cloud links, which would keep names and
+    counts. But it needs the deck to load from local files first, and that
+    failed on Linux.
+  - *TTS's own deck import with "Cloud" chosen.* It is simple and works
+    everywhere, but the cards arrive unnamed, with no hover text and one copy
+    of each.
+  - *Hosting the images on a website (GitHub Pages and so on).* It works well
+    but needs exactly the kind of setup the goal rules out. It stays available
+    as "My own website" for people who already have hosting.
+- **This computer only:** the player gives their Saved Objects folder path, and the
   deck points at the files there. This is the quickest option, but other
   players can't see the images.
 
@@ -348,13 +389,13 @@ live:
   pasted `file:///` address, or giving the `Card Builder` folder itself instead
   of Saved Objects. The on-page help shows the exact folder the deck will look
   in, to make a wrong location easy to spot.
-- **A website:** the player gives a web address and uploads the images there.
-  This works for online play. GitHub Pages works for this.
+- **My own website:** the player gives a web address and uploads the images
+  there. This works for online play, for people who already have hosting.
 
 **Loading instructions live on the page.** Under the TTS download button
 there is a collapsible "How to load your deck into TTS" guide, so the steps are
 right where people need them rather than only in the README. It shows only the
-steps for the image location that was chosen, fills in the folder or web
+steps for the image option that was chosen, fills in the folder or web
 address that was typed, covers the usual problems (an extra folder from
 unzipping, blank cards, updating a deck), and opens by itself after a TTS
 download. A collapsible section was chosen over a pop-up window because it can

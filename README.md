@@ -28,8 +28,9 @@ Not sure where to start? Pick a layout and download its blank CSV template
 - Card text can use `**bold**`, `*italic*` and line breaks.
 - The **Columns** link on the page lists every column a layout uses.
 
-## Playing online
+## Playing with friends
 
-By default, TTS decks load their images from your computer, so only you can
-see them. To play with friends, choose **A website** before downloading, then
-upload the files from the ZIP's `images` folder to that web address.
+Leave the TTS option on **Steam Cloud** (the default). The page walks you
+through it: download the card images, upload them in TTS's Cloud Manager, and
+paste their links back into the page. Then everyone in your game sees the
+cards. Links are remembered, so next time only changed images need uploading.

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { planSheets, sheetCardPx, buildSavedObject, imageUrl, slug, cardDescription, MAX_PER_SHEET } from '../../js/tts.js';
+import { planSheets, sheetCardPx, buildSavedObject, imageUrl, slug, cardDescription, contentHash, cloudSheetName, cloudBackName, isLink, looksLikeSteamCloud, MAX_PER_SHEET } from '../../js/tts.js';
 
 const seeded = (seed = 1) => () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
 
@@ -101,4 +101,30 @@ test('card descriptions include tags and any extra columns, labelled', () => {
     '[b]Thug — Crew · Leader[/b]\nCost: 5\n[b]Go.[/b]\n[b]Strengf 4 · Steal 2 · Street cred 1[/b]\n[i]Yo[/i]',
   );
   assert.equal(cardDescription({ name: 'Plain', type: 'Event', text: 'Hi' }), '[b]Event[/b]\nHi');
+});
+
+test('content hashes are stable, 16 hex characters, and differ for different bytes', () => {
+  const a = contentHash(new Uint8Array([1, 2, 3]));
+  assert.match(a, /^[0-9a-f]{16}$/);
+  assert.equal(contentHash(new Uint8Array([1, 2, 3])), a);
+  assert.notEqual(contentHash(new Uint8Array([1, 2, 4])), a);
+  assert.notEqual(contentHash(new Uint8Array([])), a);
+});
+
+test('Steam Cloud file names carry the content hash', () => {
+  assert.equal(cloudSheetName('Street Deck', 0, '0123456789abcdef'), 'street-deck-sheet1-0123456789.jpg');
+  assert.equal(cloudBackName('0123456789abcdef'), 'back-0123456789.jpg');
+});
+
+test('pasted links are recognized, and Steam Cloud links are told apart', () => {
+  const steam = 'https://steamusercontent-a.akamaihd.net/ugc/1234567890/ABCDEF0123/';
+  assert.ok(isLink(steam));
+  assert.ok(isLink(` "${steam}" `));
+  assert.ok(looksLikeSteamCloud(steam));
+  assert.ok(looksLikeSteamCloud('https://steamusercontent.com/ugc/123/ABC/'));
+  assert.ok(isLink('https://example.com/a.jpg'));
+  assert.ok(!looksLikeSteamCloud('https://example.com/a.jpg'));
+  assert.ok(!isLink('not a link'));
+  assert.ok(!isLink('https://has space.com/a'));
+  assert.ok(!isLink(''));
 });

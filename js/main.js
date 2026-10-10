@@ -5,9 +5,9 @@ import { LAYOUTS, getLayout } from '../layouts/index.js';
 import { CARD_SIZES, DEFAULT_SIZE_ID, getSize, sizePx } from './sizes.js';
 import { AssetStore, decodeImage, renderCard, renderBack, findArt, cardAccent } from './render.js';
 import { loadFonts } from './fonts.js';
-import { buildImagesZip, buildTtsZip } from './export.js';
+import { buildImagesZip, buildTtsZip, prepareTtsImages, cloudFiles, buildUploadZip } from './export.js';
 import { templateCsv } from './template.js';
-import { cleanInput, savedObjectsFolder, localImagesFolder } from './tts.js';
+import { cleanInput, savedObjectsFolder, localImagesFolder, isLink, looksLikeSteamCloud } from './tts.js';
 
 const $ = (id) => document.getElementById(id);
 const IMAGE_EXT = /\.(png|jpe?g|webp|gif|bmp|avif)$/i;
@@ -23,6 +23,8 @@ const state = {
   canvases: new Map(), // card.id → rendered canvas
   backs: new Map(), // deck name → rendered back canvas
   busy: false,
+  // Steam Cloud: the images last downloaded for upload, and which render they came from.
+  cloudPack: null, // { token, quality, prepared, files }
 };
 
 // ---- Settings (remembered per browser) --------------------------------------
@@ -38,12 +40,30 @@ function loadSettings() {
 const settings = {
   layout: 'default',
   size: DEFAULT_SIZE_ID,
-  ttsMode: 'local',
+  ttsMode: 'cloud',
   savedObjects: '',
   baseUrl: '',
   quality: 'high',
   ...loadSettings(),
 };
+// Steam Cloud links pasted so far, by image content hash. Kept across visits, so
+// an image that hasn't changed never needs uploading or pasting again.
+const LINKS_KEY = 'card-builder:cloud-links';
+const cloudLinks = (() => {
+  try {
+    return JSON.parse(localStorage.getItem(LINKS_KEY)) || {};
+  } catch {
+    return {};
+  }
+})();
+function saveCloudLinks() {
+  try {
+    localStorage.setItem(LINKS_KEY, JSON.stringify(cloudLinks));
+  } catch {
+    /* links just won't be remembered */
+  }
+}
+
 function saveSettings() {
   try {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
@@ -308,7 +328,25 @@ function openLightbox(source) {
 
 // ---- Exports ------------------------------------------------------------------
 
+function cloudPackStale() {
+  const pack = state.cloudPack;
+  return !!pack && (pack.token !== renderToken || pack.quality !== settings.quality);
+}
+
 function ttsLocation() {
+  if (settings.ttsMode === 'cloud') {
+    const pack = state.cloudPack;
+    if (!pack) return { error: 'Step 1: download the images to upload.' };
+    if (cloudPackStale()) {
+      return { error: 'Your cards changed since you downloaded the images. Download them again; links for images that didn\'t change fill in by themselves.' };
+    }
+    const missing = pack.files.filter((f) => !isLink(cloudLinks[f.hash] || ''));
+    if (missing.length) {
+      return { error: `Paste the Steam Cloud link for ${missing.length} more image${missing.length === 1 ? '' : 's'}.` };
+    }
+    const links = Object.fromEntries(pack.files.map((f) => [f.hash, cleanInput(cloudLinks[f.hash])]));
+    return { location: { mode: 'cloud', links } };
+  }
   if (settings.ttsMode === 'web') {
     const url = cleanInput(settings.baseUrl);
     if (!/^https?:\/\/\S+/i.test(url)) return { error: 'Enter the web address (starting with https://) the images will be uploaded to.' };
@@ -323,6 +361,8 @@ function ttsLocation() {
 function updateExportButtons() {
   const ready = state.cards.length > 0 && !state.busy;
   $('export-images').disabled = !ready;
+  $('cloud-pack').disabled = !ready;
+  $('cloud-links').classList.toggle('stale', cloudPackStale());
   const { error } = ttsLocation();
   $('export-tts').disabled = !ready || !!error;
   $('tts-reason').textContent = state.cards.length ? error || '' : '';
@@ -344,19 +384,81 @@ async function runExport(kind) {
     if (kind === 'images') {
       const blob = await buildImagesZip(common);
       download(blob, `${base} - card images.zip`);
+      setStatus('Done! Check your downloads.');
+    } else if (kind === 'cloud-pack') {
+      const prepared = await prepareTtsImages({ ...common, cardPx: cardPx(), quality: settings.quality });
+      const files = cloudFiles(prepared);
+      state.cloudPack = { token: renderToken, quality: settings.quality, prepared, files };
+      download(await buildUploadZip(files, setStatus), `${base} - upload to Steam Cloud.zip`);
+      renderCloudLinks();
+      const todo = files.filter((f) => !isLink(cloudLinks[f.hash] || '')).length;
+      setStatus(
+        todo
+          ? `Upload ${todo === files.length ? 'these' : `the ${todo} new`} image${todo === 1 ? '' : 's'} in TTS, then paste the links below.`
+          : 'All links are already filled in from last time. Download the TTS deck.',
+      );
     } else {
       const { location } = ttsLocation();
-      const blob = await buildTtsZip({ ...common, cardPx: cardPx(), location, quality: settings.quality });
+      const prepared =
+        location.mode === 'cloud'
+          ? state.cloudPack.prepared
+          : await prepareTtsImages({ ...common, cardPx: cardPx(), quality: settings.quality });
+      const blob = await buildTtsZip({ prepared, getCanvas: common.getCanvas, location, onProgress: setStatus });
       download(blob, `${base} - TTS.zip`);
       $('tts-help').open = true; // walk them through the next steps
+      setStatus('Done! Check your downloads.');
     }
-    setStatus('Done! Check your downloads.');
   } catch (err) {
     console.error(err);
     setStatus(`Export failed: ${err.message}`);
   } finally {
     state.busy = false;
     updateExportButtons();
+  }
+}
+
+// One row per image to upload: which deck it belongs to, its file name, and a box for its link.
+function renderCloudLinks() {
+  const box = $('cloud-links');
+  box.replaceChildren();
+  const pack = state.cloudPack;
+  if (!pack) return;
+  for (const file of pack.files) {
+    const row = document.createElement('label');
+    row.className = 'cloud-row';
+    const info = document.createElement('span');
+    info.className = 'cloud-file';
+    const label = document.createElement('span');
+    label.textContent = file.label;
+    const name = document.createElement('code');
+    name.textContent = file.name;
+    info.append(label, name);
+    const input = document.createElement('input');
+    input.type = 'url';
+    input.spellcheck = false;
+    input.placeholder = 'Paste the Steam Cloud link';
+    input.value = cloudLinks[file.hash] || '';
+    input.dataset.hash = file.hash;
+    const note = document.createElement('span');
+    note.className = 'cloud-note';
+    const check = () => {
+      const value = cleanInput(input.value);
+      const ok = isLink(value);
+      row.classList.toggle('done', ok);
+      row.classList.toggle('bad', !!value && !ok);
+      note.textContent = !value ? '' : !ok ? 'That isn\'t a link.' : looksLikeSteamCloud(value) ? '' : 'Not a Steam Cloud link? It will still be used.';
+    };
+    input.addEventListener('input', () => {
+      const value = cleanInput(input.value);
+      if (value) cloudLinks[file.hash] = value;
+      else delete cloudLinks[file.hash];
+      saveCloudLinks();
+      check();
+      updateExportButtons();
+    });
+    check();
+    row.append(info, input, note);
+    box.append(row);
   }
 }
 
@@ -474,6 +576,7 @@ function setupControls() {
     });
   };
   const showMode = () => {
+    $('tts-cloud').hidden = settings.ttsMode !== 'cloud';
     $('tts-local').hidden = settings.ttsMode !== 'local';
     $('tts-web').hidden = settings.ttsMode !== 'web';
     document.querySelectorAll('[data-help-mode]').forEach((el) => (el.hidden = el.dataset.helpMode !== settings.ttsMode));
@@ -508,6 +611,7 @@ function setupControls() {
   quality.addEventListener('change', () => {
     settings.quality = quality.value;
     saveSettings();
+    updateExportButtons(); // Steam Cloud images were made at the old resolution
   });
 
   $('sheet-input').addEventListener('change', (e) => e.target.files[0] && loadSpreadsheet(e.target.files[0]));
@@ -537,6 +641,7 @@ function setupControls() {
 
   $('export-images').addEventListener('click', () => runExport('images'));
   $('export-tts').addEventListener('click', () => runExport('tts'));
+  $('cloud-pack').addEventListener('click', () => runExport('cloud-pack'));
 }
 
 async function init() {
