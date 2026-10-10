@@ -334,8 +334,8 @@ already needed for the downloads.
 Old-style `.xls` files are not supported. Saving as `.xlsx` or `.csv` works
 around it.
 
-**Blank templates.** Under the layout picker there is a link to download a
-blank CSV template for the chosen layout. The template's columns are worked out
+**Blank templates.** The Templates & examples tab has a blank CSV template
+for every layout. The template's columns are worked out
 from the layout itself, in the order the layout draws them, so every layout
 (including new ones) gets an up-to-date template with no extra work.
 Hand-written template files per layout were rejected because they would drift
@@ -459,8 +459,8 @@ There are three options, and Steam Cloud is the default:
 - **My own website:** the player gives a web address and uploads the images
   there. This works for online play, for people who already have hosting.
 
-**Loading instructions live on the page.** Under the TTS download button
-there is a collapsible "How to load your deck into TTS" guide, so the steps are
+**Loading instructions live on the page.** Under the TTS download button, in
+the TTS export tab, there is a collapsible "How to load your deck into TTS" guide, so the steps are
 right where people need them rather than only in the README. It shows only the
 steps for the image option that was chosen, fills in the folder or web
 address that was typed, covers the usual problems (an extra folder from
@@ -476,6 +476,40 @@ way a layout's own stats show up on hover without the TTS export needing to
 know about them. A layout can instead list exactly what goes on hover, and
 with which labels. FlagonQuest techniques do this, because their spreadsheet
 has around thirty columns, most of them only for the site's character builder.
+
+## The page
+
+The page has a narrow sidebar on the left and tabs on the right. The sidebar
+holds only the three things every visit needs, in order:
+
+1. **Your files:** one row each for the spreadsheet, the card art and the card
+   back, with a check mark and a short status ("5 images · all cards
+   matched"). Files can be dropped anywhere on the page, or on a row to pick
+   what kind they are. A collapsible Tips section holds the reminders.
+2. **Look:** the layout and card size pickers, side by side.
+3. **Download:** a button for the TTS deck and one for card images.
+
+The tabs on the right are **Cards** (the preview), **Data** (the spreadsheet as
+it was read: one row per card, which header became which column, and whether
+each card found its art), **TTS export** (the image options, the Steam Cloud
+steps and link boxes, and the loading guide) and **Templates & examples**
+(examples to load or download, a blank template per layout, and the column
+reference). Loading a spreadsheet or an example brings the Cards tab forward,
+unless the Data tab is open.
+
+This replaced a five-step sidebar in which every step carried its own rows of
+small links (examples, example downloads, the column list, the template, the
+folder picker, "clear" links) and the whole TTS form. Once the process had
+settled, those links made the sidebar hard to scan. Explanations and links
+still exist, but they live in a collapsible section or on a tab, not in the
+sidebar's main flow.
+
+- **Rejected: a step-by-step wizard** (Files → Look → Download, one step
+  showing at a time). It is the most guided option, but it adds clicks for the
+  common case of coming back to change a layout and download again.
+- **Rejected: a toolbar with a slide-out download drawer and no sidebar.** It
+  gives the cards the most room, but less is visible at a glance, and the
+  Steam Cloud steps would be hidden in a drawer.
 
 ## Documentation
 

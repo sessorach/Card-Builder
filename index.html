@@ -23,189 +23,240 @@
   <main class="app">
     <aside class="panel">
       <section class="step">
-        <h2><span class="num">1</span> Spreadsheet</h2>
-        <label class="drop" data-drop="sheet">
-          <input type="file" id="sheet-input" accept=".csv,.tsv,.txt,.xlsx" hidden>
-          <span class="drop-title">Drop a .csv or .xlsx</span>
-          <span class="drop-sub" id="sheet-status">or click to choose a file</span>
-        </label>
-        <p class="hint">
-          Try an example:
-          <button type="button" class="link" data-example="example-cards.csv">Default</button> ·
-          <button type="button" class="link" data-example="street-cards.csv">Street</button> ·
-          <button type="button" class="link" data-example="flagonquest-techniques.csv">FlagonQuest techniques</button> ·
-          <button type="button" class="link" data-example="flagonquest-items.csv">FlagonQuest items</button>
-          <br>Example spreadsheets:
-          <a href="examples/example-cards.csv" download>Default</a> ·
-          <a href="examples/street-cards.csv" download>Street</a> ·
-          <a href="examples/flagonquest-techniques.csv" download>FlagonQuest techniques</a> ·
-          <a href="examples/flagonquest-items.csv" download>FlagonQuest items</a> ·
-          <a href="#columns" id="show-columns">Columns</a>
-        </p>
-      </section>
-
-      <section class="step">
-        <h2><span class="num">2</span> Card art</h2>
-        <label class="drop" data-drop="art">
-          <input type="file" id="art-input" accept="image/*" multiple hidden>
-          <span class="drop-title">Drop images or a folder</span>
-          <span class="drop-sub" id="art-status">Name each image after its card, e.g. <code>Block Party Boss.png</code></span>
-        </label>
-        <p class="hint"><label class="link"><input type="file" id="art-folder-input" webkitdirectory hidden>Choose a folder</label> · <button type="button" class="link" id="clear-art">Clear art</button></p>
-      </section>
-
-      <section class="step">
-        <h2><span class="num">3</span> Card back</h2>
-        <div class="back-row">
-          <label class="drop drop-small" data-drop="back">
-            <input type="file" id="back-input" accept="image/*" hidden>
-            <span class="drop-title">Drop a back image</span>
-            <span class="drop-sub" id="back-status">Optional: a back is generated per deck</span>
-          </label>
-          <canvas id="back-preview" class="back-preview" width="120" height="168" aria-label="Card back preview"></canvas>
+        <h2><span class="num">1</span> Your files</h2>
+        <div class="files">
+          <div class="file-row" data-drop="sheet">
+            <label class="file-pick">
+              <input type="file" id="sheet-input" accept=".csv,.tsv,.txt,.xlsx" hidden>
+              <span class="file-icon" aria-hidden="true"></span>
+              <span class="file-text"><b>Spreadsheet</b><span class="file-status" id="sheet-status">Drop a .csv or .xlsx, or click to choose</span></span>
+            </label>
+          </div>
+          <div class="file-row" data-drop="art">
+            <label class="file-pick">
+              <input type="file" id="art-input" accept="image/*" multiple hidden>
+              <span class="file-icon" aria-hidden="true"></span>
+              <span class="file-text"><b>Card art</b><span class="file-status" id="art-status">Images named after their cards</span></span>
+            </label>
+            <div class="file-actions">
+              <label class="mini" title="Choose a whole folder of images"><input type="file" id="art-folder-input" webkitdirectory hidden>Folder</label>
+              <button type="button" class="mini" id="clear-art" title="Remove all card art" hidden>Clear</button>
+            </div>
+          </div>
+          <div class="file-row" data-drop="back">
+            <label class="file-pick">
+              <input type="file" id="back-input" accept="image/*" hidden>
+              <canvas id="back-preview" class="back-thumb" width="120" height="168" aria-label="Card back preview"></canvas>
+              <span class="file-text"><b>Card back</b><span class="file-status" id="back-status">Generated · drop an image to replace it</span></span>
+            </label>
+            <div class="file-actions">
+              <button type="button" class="mini" id="clear-back" title="Go back to the generated back" hidden>Clear</button>
+            </div>
+          </div>
         </div>
-        <p class="hint"><button type="button" class="link" id="clear-back">Use the generated back</button></p>
+        <details class="tips">
+          <summary>Tips</summary>
+          <ul>
+            <li>Drop files anywhere on the page: a spreadsheet, images, or a whole folder.</li>
+            <li>Name each image after its card, like <code>Block Party Boss.png</code>. Capitals, spaces and punctuation don't matter.</li>
+            <li>Without a back image, each deck gets a generated back in its color.</li>
+            <li>Starting a new spreadsheet? Get a blank template or an example under <button type="button" class="link" data-tab-link="start">Templates &amp; examples</button>.</li>
+          </ul>
+        </details>
       </section>
 
       <section class="step">
-        <h2><span class="num">4</span> Style</h2>
-        <div class="field">
-          <label for="layout-select">Layout</label>
-          <select id="layout-select"></select>
-          <p class="hint" id="layout-desc"></p>
-          <p class="hint"><button type="button" class="link" id="download-template">Download a blank template (.csv)</button></p>
-          <p class="hint">A <code>layout</code> column overrides this per card.</p>
-        </div>
-        <div class="field">
-          <label for="size-select">Card size</label>
-          <select id="size-select"></select>
-        </div>
-      </section>
-
-      <section class="step">
-        <h2><span class="num">5</span> Export</h2>
-
-        <div class="tts">
-          <h3>Tabletop Simulator</h3>
-          <fieldset class="field">
-            <legend>How will TTS get the card images?</legend>
-            <label class="radio"><input type="radio" name="tts-mode" value="cloud" checked> Steam Cloud <span class="badge">recommended</span></label>
-            <p class="radio-hint">Everyone in your game sees the cards. Nothing to set up or host.</p>
-            <label class="radio"><input type="radio" name="tts-mode" value="local"> This computer only</label>
-            <label class="radio"><input type="radio" name="tts-mode" value="web"> My own website</label>
-          </fieldset>
-
+        <h2><span class="num">2</span> Look</h2>
+        <div class="look-row">
           <div class="field">
-            <label for="tts-quality">Sheet resolution</label>
-            <select id="tts-quality">
-              <option value="high">High: full-resolution cards</option>
-              <option value="compatible">Compatible: max 4096 px sheets (older PCs)</option>
-            </select>
+            <label for="layout-select">Layout</label>
+            <select id="layout-select"></select>
           </div>
-
-          <div id="tts-cloud">
-            <ol class="cloud-steps">
-              <li>
-                <b>Download the images to upload.</b> Unzip them anywhere, like your Downloads folder.
-                <button type="button" class="secondary" id="cloud-pack" disabled>Download images to upload (.zip)</button>
-              </li>
-              <li>
-                <b>Upload them in TTS.</b> Start any game, open the <b>Cloud Manager</b> from the menu bar at the top
-                (under <i>Modding</i> or <i>Upload</i>, depending on your TTS version), click the <b>folder icon</b>
-                next to its search bar, and pick the images.
-              </li>
-              <li>
-                <b>Copy each link back here.</b> Click an uploaded image in the Cloud Manager to copy its link,
-                then paste it next to the same file name below.
-              </li>
-              <li><b>Download the TTS deck</b> with the button below.</li>
-            </ol>
-            <div id="cloud-links" class="cloud-links"></div>
+          <div class="field field-size">
+            <label for="size-select">Size</label>
+            <select id="size-select"></select>
           </div>
-
-          <div class="field" id="tts-local">
-            <label for="tts-folder">Your TTS “Saved Objects” folder</label>
-            <input type="text" id="tts-folder" spellcheck="false" placeholder="C:\Users\you\Documents\My Games\Tabletop Simulator\Saves\Saved Objects">
-            <details class="hint">
-              <summary>Where is it?</summary>
-              <p><b>Windows:</b> C:\Users\<i>you</i>\Documents\My Games\Tabletop Simulator\Saves\Saved Objects</p>
-              <p><b>Mac:</b> /Users/<i>you</i>/Library/Tabletop Simulator/Saves/Saved Objects</p>
-              <p><b>Linux:</b> /home/<i>you</i>/.local/share/Tabletop Simulator/Saves/Saved Objects</p>
-            </details>
-          </div>
-
-          <div class="field" id="tts-web" hidden>
-            <label for="tts-url">Web address the images will be uploaded to</label>
-            <input type="url" id="tts-url" spellcheck="false" placeholder="https://you.github.io/my-decks/">
-            <p class="hint">After downloading, upload the files from <code>images/</code> to this address.</p>
-          </div>
-
-          <button type="button" class="primary" id="export-tts" disabled>Download TTS deck (.zip)</button>
-          <p class="hint" id="tts-reason"></p>
-
-          <details class="help" id="tts-help">
-            <summary>How to load your deck into TTS</summary>
-
-            <ol data-help-mode="cloud">
-              <li><b>Follow steps 1–4 above</b> to upload the images and download the TTS deck.</li>
-              <li><b>Unzip the deck.</b> Inside is a folder called <code>Card Builder</code>.</li>
-              <li><b>Move the <code>Card Builder</code> folder into your TTS Saved Objects folder.</b>
-                <span class="help-sub">Windows: Documents\My Games\Tabletop Simulator\Saves\Saved Objects<br>Mac: ~/Library/Tabletop Simulator/Saves/Saved Objects<br>Linux: ~/.local/share/Tabletop Simulator/Saves/Saved Objects</span></li>
-              <li><b>Open TTS</b>, click <b>Objects</b> in the top menu, then <b>Saved Objects → Card Builder</b>, and click a deck to put it on the table.</li>
-            </ol>
-            <p class="help-note" data-help-mode="cloud">The pictures load from your Steam Cloud, so everyone in your game sees them. The links are remembered here: next time, only images that changed need uploading again.</p>
-
-            <ol data-help-mode="local">
-              <li><b>Download</b> the TTS deck with the button above.</li>
-              <li><b>Unzip it.</b> Inside is a folder called <code>Card Builder</code>.</li>
-              <li><b>Move the <code>Card Builder</code> folder into your Saved Objects folder:</b>
-                <code class="path" data-fill="savedObjects" data-empty="(enter it above)"></code>
-                It has to be that exact folder, because the deck looks for its card images there.</li>
-              <li><b>Open TTS</b> and start a game (Singleplayer is fine for a first look).</li>
-              <li>Click <b>Objects</b> in the top menu, then <b>Saved Objects → Card Builder</b>, and click a deck to put it on the table.</li>
-            </ol>
-            <p class="help-note" data-help-mode="local">Only you will see these cards. To play online, choose <b>A website</b> above.</p>
-
-            <ol data-help-mode="web">
-              <li><b>Download</b> the TTS deck with the button above.</li>
-              <li><b>Unzip it.</b> Inside the <code>Card Builder</code> folder are your decks and an <code>images</code> folder.</li>
-              <li><b>Upload the files inside <code>images</code></b> to
-                <code class="path" data-fill="baseUrl" data-empty="(enter it above)"></code>
-                Each file should open in a browser at that address followed by its file name.</li>
-              <li><b>Move the <code>Card Builder</code> folder into your TTS Saved Objects folder.</b>
-                <span class="help-sub">Windows: Documents\My Games\Tabletop Simulator\Saves\Saved Objects<br>Mac: ~/Library/Tabletop Simulator/Saves/Saved Objects<br>Linux: ~/.local/share/Tabletop Simulator/Saves/Saved Objects</span></li>
-              <li><b>Open TTS</b>, click <b>Objects</b> in the top menu, then <b>Saved Objects → Card Builder</b>, and click a deck to put it on the table.</li>
-            </ol>
-            <p class="help-note" data-help-mode="web">Everyone in the game loads the images from your website, so all players see the cards. Only the person putting the deck on the table needs the Saved Objects files.</p>
-
-            <h4>If something goes wrong</h4>
-            <ul>
-              <li><b>The deck isn't in Saved Objects:</b> make sure <code>Card Builder</code> sits directly inside Saved Objects. Unzipping sometimes adds an extra folder around it; if so, move the inner one.</li>
-              <li><b>Cards are blank or show an image error:</b> TTS can't find the pictures. <span data-help-mode="cloud">Check that each link was pasted next to the right file name, then download the deck again.</span><span data-help-mode="local">The deck looks for them in exactly this folder, so check they're there:
-                <code class="path" data-fill="imagesFolder" data-empty="(enter your Saved Objects folder above)"></code></span><span data-help-mode="web">Check that the images open in your browser at the address you entered.</span></li>
-              <li><b>Changed some cards?</b> <span data-help-mode="cloud">Download the images to upload again; only the new ones need uploading and pasting. Then download the deck again and replace the old <code>Card Builder</code> folder.</span><span data-help-mode="local">Download again and replace the old <code>Card Builder</code> folder.</span><span data-help-mode="web">Download again, replace the old <code>Card Builder</code> folder, and upload the new images.</span> TTS picks up the changes because changed images get new names.</li>
-            </ul>
-            <p class="help-note">The deck ZIP also includes these steps in <code>HOW TO IMPORT.txt</code>.</p>
-          </details>
         </div>
+        <p class="hint" id="layout-desc"></p>
+      </section>
 
-        <button type="button" class="secondary" id="export-images" disabled>Download card images (.zip)</button>
-        <p class="status" id="status" role="status" aria-live="polite"></p>
+      <section class="step">
+        <h2><span class="num">3</span> Download</h2>
+        <div class="download-buttons">
+          <button type="button" class="primary" id="open-tts" data-tab-link="tts">Tabletop Simulator deck…</button>
+          <button type="button" class="secondary" id="export-images" disabled>Card images (.zip)</button>
+        </div>
+        <p class="status" id="status" data-status role="status" aria-live="polite"></p>
       </section>
     </aside>
 
-    <section class="preview" aria-label="Card preview">
+    <section class="main" data-tab="cards">
+      <nav class="tabs" role="tablist" aria-label="View">
+        <button type="button" role="tab" data-tab="cards" aria-selected="true">Cards <span class="tab-count" id="card-count"></span></button>
+        <button type="button" role="tab" data-tab="data" aria-selected="false">Data</button>
+        <button type="button" role="tab" data-tab="tts" aria-selected="false">TTS export</button>
+        <button type="button" role="tab" data-tab="start" aria-selected="false">Templates &amp; examples</button>
+      </nav>
+
       <div id="warnings" class="warnings" hidden></div>
-      <div id="decks">
-        <div class="empty">
-          <p>Drop a spreadsheet anywhere on the page to get started, or try an example deck: <button type="button" class="link" data-example="example-cards.csv">Default</button> · <button type="button" class="link" data-example="street-cards.csv">Street</button> · <button type="button" class="link" data-example="flagonquest-techniques.csv">FlagonQuest techniques</button> · <button type="button" class="link" data-example="flagonquest-items.csv">FlagonQuest items</button>.</p>
+
+      <div class="tab-panel" data-panel="cards" role="tabpanel">
+        <div id="decks">
+          <div class="empty">
+            <p class="empty-title">Drop a spreadsheet and your card art anywhere on the page.</p>
+            <p>Or try an example: <button type="button" class="chip" data-example="example-cards.csv">Default</button> <button type="button" class="chip" data-example="street-cards.csv">Street</button> <button type="button" class="chip" data-example="flagonquest-techniques.csv">FlagonQuest techniques</button> <button type="button" class="chip" data-example="flagonquest-items.csv">FlagonQuest items</button></p>
+            <p>Starting from scratch? Blank templates are under <button type="button" class="link" data-tab-link="start">Templates &amp; examples</button>.</p>
+          </div>
         </div>
       </div>
 
-      <section class="columns" id="columns" hidden>
-        <h2>Spreadsheet columns</h2>
-        <p>The first row holds column names. Only <code>name</code> is needed; everything else is optional.</p>
-        <table>
+      <div class="tab-panel" data-panel="data" role="tabpanel" hidden>
+        <div id="data-view">
+          <p class="empty">Load a spreadsheet to see what was read from it.</p>
+        </div>
+      </div>
+
+      <div class="tab-panel sheet" data-panel="tts" role="tabpanel" hidden>
+        <h2>Tabletop Simulator deck</h2>
+        <p class="lead">A deck for each <code>deck</code> in your spreadsheet, with the right number of copies.</p>
+
+        <fieldset class="field">
+          <legend>How will TTS get the card images?</legend>
+          <div class="modes">
+            <label class="mode"><input type="radio" name="tts-mode" value="cloud" checked><span><b>Steam Cloud</b> <span class="badge">recommended</span><small>Everyone in your game sees the cards. Nothing to set up or host.</small></span></label>
+            <label class="mode"><input type="radio" name="tts-mode" value="local"><span><b>This computer only</b><small>Quickest to try. Only you see the cards.</small></span></label>
+            <label class="mode"><input type="radio" name="tts-mode" value="web"><span><b>My own website</b><small>For people who already host files online.</small></span></label>
+          </div>
+        </fieldset>
+
+        <div class="field field-inline">
+          <label for="tts-quality">Sheet resolution</label>
+          <select id="tts-quality">
+            <option value="high">High: full-resolution cards</option>
+            <option value="compatible">Compatible: max 4096 px sheets (older PCs)</option>
+          </select>
+        </div>
+
+        <div id="tts-cloud">
+          <ol class="cloud-steps">
+            <li>
+              <b>Download the images to upload.</b> Unzip them anywhere, like your Downloads folder.
+              <button type="button" class="secondary" id="cloud-pack" disabled>Download images to upload (.zip)</button>
+            </li>
+            <li>
+              <b>Upload them in TTS.</b> Start any game, open the <b>Cloud Manager</b> from the menu bar at the top
+              (under <i>Modding</i> or <i>Upload</i>, depending on your TTS version), click the <b>folder icon</b>
+              next to its search bar, and pick the images.
+            </li>
+            <li>
+              <b>Copy each link back here.</b> Click an uploaded image in the Cloud Manager to copy its link,
+              then paste it next to the same file name below.
+            </li>
+            <li><b>Download the TTS deck</b> with the button below.</li>
+          </ol>
+          <div id="cloud-links" class="cloud-links"></div>
+        </div>
+
+        <div class="field" id="tts-local">
+          <label for="tts-folder">Your TTS “Saved Objects” folder</label>
+          <input type="text" id="tts-folder" spellcheck="false" placeholder="C:\Users\you\Documents\My Games\Tabletop Simulator\Saves\Saved Objects">
+          <details class="hint">
+            <summary>Where is it?</summary>
+            <p><b>Windows:</b> C:\Users\<i>you</i>\Documents\My Games\Tabletop Simulator\Saves\Saved Objects</p>
+            <p><b>Mac:</b> /Users/<i>you</i>/Library/Tabletop Simulator/Saves/Saved Objects</p>
+            <p><b>Linux:</b> /home/<i>you</i>/.local/share/Tabletop Simulator/Saves/Saved Objects</p>
+          </details>
+        </div>
+
+        <div class="field" id="tts-web" hidden>
+          <label for="tts-url">Web address the images will be uploaded to</label>
+          <input type="url" id="tts-url" spellcheck="false" placeholder="https://you.github.io/my-decks/">
+          <p class="hint">After downloading, upload the files from <code>images/</code> to this address.</p>
+        </div>
+
+        <button type="button" class="primary wide" id="export-tts" disabled>Download TTS deck (.zip)</button>
+        <p class="hint" id="tts-reason"></p>
+        <p class="status" data-status aria-hidden="true"></p>
+
+        <details class="help" id="tts-help">
+          <summary>How to load your deck into TTS</summary>
+
+          <ol data-help-mode="cloud">
+            <li><b>Follow steps 1–4 above</b> to upload the images and download the TTS deck.</li>
+            <li><b>Unzip the deck.</b> Inside is a folder called <code>Card Builder</code>.</li>
+            <li><b>Move the <code>Card Builder</code> folder into your TTS Saved Objects folder.</b>
+              <span class="help-sub">Windows: Documents\My Games\Tabletop Simulator\Saves\Saved Objects<br>Mac: ~/Library/Tabletop Simulator/Saves/Saved Objects<br>Linux: ~/.local/share/Tabletop Simulator/Saves/Saved Objects</span></li>
+            <li><b>Open TTS</b>, click <b>Objects</b> in the top menu, then <b>Saved Objects → Card Builder</b>, and click a deck to put it on the table.</li>
+          </ol>
+          <p class="help-note" data-help-mode="cloud">The pictures load from your Steam Cloud, so everyone in your game sees them. The links are remembered here: next time, only images that changed need uploading again.</p>
+
+          <ol data-help-mode="local">
+            <li><b>Download</b> the TTS deck with the button above.</li>
+            <li><b>Unzip it.</b> Inside is a folder called <code>Card Builder</code>.</li>
+            <li><b>Move the <code>Card Builder</code> folder into your Saved Objects folder:</b>
+              <code class="path" data-fill="savedObjects" data-empty="(enter it above)"></code>
+              It has to be that exact folder, because the deck looks for its card images there.</li>
+            <li><b>Open TTS</b> and start a game (Singleplayer is fine for a first look).</li>
+            <li>Click <b>Objects</b> in the top menu, then <b>Saved Objects → Card Builder</b>, and click a deck to put it on the table.</li>
+          </ol>
+          <p class="help-note" data-help-mode="local">Only you will see these cards. To play online, choose <b>Steam Cloud</b> above.</p>
+
+          <ol data-help-mode="web">
+            <li><b>Download</b> the TTS deck with the button above.</li>
+            <li><b>Unzip it.</b> Inside the <code>Card Builder</code> folder are your decks and an <code>images</code> folder.</li>
+            <li><b>Upload the files inside <code>images</code></b> to
+              <code class="path" data-fill="baseUrl" data-empty="(enter it above)"></code>
+              Each file should open in a browser at that address followed by its file name.</li>
+            <li><b>Move the <code>Card Builder</code> folder into your TTS Saved Objects folder.</b>
+              <span class="help-sub">Windows: Documents\My Games\Tabletop Simulator\Saves\Saved Objects<br>Mac: ~/Library/Tabletop Simulator/Saves/Saved Objects<br>Linux: ~/.local/share/Tabletop Simulator/Saves/Saved Objects</span></li>
+            <li><b>Open TTS</b>, click <b>Objects</b> in the top menu, then <b>Saved Objects → Card Builder</b>, and click a deck to put it on the table.</li>
+          </ol>
+          <p class="help-note" data-help-mode="web">Everyone in the game loads the images from your website, so all players see the cards. Only the person putting the deck on the table needs the Saved Objects files.</p>
+
+          <h4>If something goes wrong</h4>
+          <ul>
+            <li><b>The deck isn't in Saved Objects:</b> make sure <code>Card Builder</code> sits directly inside Saved Objects. Unzipping sometimes adds an extra folder around it; if so, move the inner one.</li>
+            <li><b>Cards are blank or show an image error:</b> TTS can't find the pictures. <span data-help-mode="cloud">Check that each link was pasted next to the right file name, then download the deck again.</span><span data-help-mode="local">The deck looks for them in exactly this folder, so check they're there:
+              <code class="path" data-fill="imagesFolder" data-empty="(enter your Saved Objects folder above)"></code></span><span data-help-mode="web">Check that the images open in your browser at the address you entered.</span></li>
+            <li><b>Changed some cards?</b> <span data-help-mode="cloud">Download the images to upload again; only the new ones need uploading and pasting. Then download the deck again and replace the old <code>Card Builder</code> folder.</span><span data-help-mode="local">Download again and replace the old <code>Card Builder</code> folder.</span><span data-help-mode="web">Download again, replace the old <code>Card Builder</code> folder, and upload the new images.</span> TTS picks up the changes because changed images get new names.</li>
+          </ul>
+          <p class="help-note">The deck ZIP also includes these steps in <code>HOW TO IMPORT.txt</code>.</p>
+        </details>
+      </div>
+
+      <div class="tab-panel sheet" data-panel="start" role="tabpanel" hidden>
+        <h2>Examples</h2>
+        <p class="lead">Load one to see how it works, or download its spreadsheet to start from.</p>
+        <table class="list">
+          <tr>
+            <th>Default</th>
+            <td>Eight fantasy cards in two decks, with art.</td>
+            <td class="actions"><button type="button" class="small" data-example="example-cards.csv">Load</button> <a class="small" href="examples/example-cards.csv" download>Download .csv</a></td>
+          </tr>
+          <tr>
+            <th>Street</th>
+            <td>Five Street cards. The art is matched by card name.</td>
+            <td class="actions"><button type="button" class="small" data-example="street-cards.csv">Load</button> <a class="small" href="examples/street-cards.csv" download>Download .csv</a></td>
+          </tr>
+          <tr>
+            <th>FlagonQuest techniques</th>
+            <td>Rows from FlagonQuest's techniques spreadsheet, unchanged.</td>
+            <td class="actions"><button type="button" class="small" data-example="flagonquest-techniques.csv">Load</button> <a class="small" href="examples/flagonquest-techniques.csv" download>Download .csv</a></td>
+          </tr>
+          <tr>
+            <th>FlagonQuest items</th>
+            <td>Rows from FlagonQuest's items spreadsheet, unchanged.</td>
+            <td class="actions"><button type="button" class="small" data-example="flagonquest-items.csv">Load</button> <a class="small" href="examples/flagonquest-items.csv" download>Download .csv</a></td>
+          </tr>
+        </table>
+
+        <h2>Blank templates</h2>
+        <p class="lead">A spreadsheet with just the header row: every column the layout uses, in the order it draws them.</p>
+        <table class="list" id="template-list"></table>
+
+        <h2 id="columns">Spreadsheet columns</h2>
+        <p class="lead">The first row holds column names. Only <code>name</code> is needed; everything else is optional.</p>
+        <table class="columns">
           <tr><th>name</th><td>Card name.</td></tr>
           <tr><th>count</th><td>Copies in the deck (default 1; 0 leaves the card out).</td></tr>
           <tr><th>deck</th><td>Which deck the card belongs to. Each deck becomes its own TTS object.</td></tr>
@@ -221,7 +272,7 @@
           <tr><th>layout</th><td>Override the layout for this card: <span id="layout-ids"></span>.</td></tr>
         </table>
         <p><b>Icons:</b> <code>{fire}</code> in text draws an uploaded image named <code>fire.png</code> or <code>icon-fire.png</code>. Without one, it draws a ringed letter.</p>
-      </section>
+      </div>
     </section>
   </main>
 

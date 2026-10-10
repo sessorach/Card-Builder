@@ -96,9 +96,10 @@ export function detectDelimiter(text, filename = '') {
 export function rowsToCards(rows) {
   const warnings = [];
   const nonEmpty = rows.filter((r) => r.some((c) => String(c ?? '').trim() !== ''));
-  if (!nonEmpty.length) return { cards: [], warnings: ['The spreadsheet is empty.'], columns: [] };
+  if (!nonEmpty.length) return { cards: [], warnings: ['The spreadsheet is empty.'], columns: [], headers: [] };
 
   const [header, ...body] = nonEmpty;
+  const headers = header.map((h) => String(h ?? '').trim()); // as written, for showing the data
   const columns = header.map(normalizeHeader);
   if (!columns.includes('name')) {
     warnings.push('No "name" column found. Cards will be named by row number.');
@@ -142,7 +143,7 @@ export function rowsToCards(rows) {
   });
 
   if (!cards.length && !warnings.length) warnings.push('No cards found under the header row.');
-  return { cards, warnings, columns };
+  return { cards, warnings, columns, headers };
 }
 
 export function groupByDeck(cards) {

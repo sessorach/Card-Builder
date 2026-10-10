@@ -38,7 +38,7 @@ test('normalizes header aliases', () => {
 });
 
 test('builds cards with counts, decks and warnings', () => {
-  const { cards, warnings } = rowsToCards([
+  const { cards, warnings, columns, headers } = rowsToCards([
     ['Name', 'Qty', 'Deck', 'Layout', 'Image'],
     ['Imp', '3', 'Fire', 'Full-Art', 'imp.png'],
     ['Skipped', '0', '', '', ''],
@@ -56,6 +56,8 @@ test('builds cards with counts, decks and warnings', () => {
     ],
   );
   assert.equal(warnings.length, 2);
+  assert.deepEqual(headers, ['Name', 'Qty', 'Deck', 'Layout', 'Image']);
+  assert.deepEqual(columns, ['name', 'count', 'deck', 'layout', 'art']);
 });
 
 test('groups cards into decks in first-seen order', () => {

@@ -52,6 +52,15 @@ async function saveDownload(page, buttonId) {
   return { name: download.suggestedFilename(), zip: await JSZip.loadAsync(await readFile(file)) };
 }
 
+const tab = (page, name) => page.click(`[role="tab"][data-tab="${name}"]`);
+
+// Examples load from the Templates & examples tab (the empty page has its own buttons).
+async function loadExample(page, file) {
+  await tab(page, 'start');
+  await page.click(`.list [data-example="${file}"]`);
+  assert.equal(await page.isVisible('[data-panel="cards"]'), true, 'loading an example shows the cards');
+}
+
 async function run() {
   await mkdir(OUT, { recursive: true });
   const server = await serve();
@@ -67,10 +76,12 @@ async function run() {
     await page.waitForSelector('body[data-ready="true"]');
 
     // Example deck: 8 unique cards in two decks, art loaded.
-    await page.click('[data-example="example-cards.csv"] >> nth=0');
+    await page.screenshot({ path: path.join(OUT, 'start.png') });
+    await page.click('.empty [data-example="example-cards.csv"]');
     await page.waitForFunction(() => document.querySelectorAll('.tile canvas').length === 8);
     assert.match(await page.textContent('#sheet-status'), /8 cards \(22 with copies\)/);
-    assert.match(await page.textContent('#art-status'), /6 images/);
+    assert.equal(await page.textContent('#art-status'), '6 images · all cards matched');
+    assert.equal(await page.textContent('#card-count'), '8');
     assert.equal(await page.isHidden('#warnings'), true, 'example should load without warnings');
     await page.screenshot({ path: path.join(OUT, 'preview.png'), fullPage: true });
 
@@ -78,6 +89,20 @@ async function run() {
     await page.click('.tile >> nth=0');
     await page.screenshot({ path: path.join(OUT, 'lightbox.png') });
     await page.click('#lightbox');
+
+    // The Data tab shows the spreadsheet as read, one row per card.
+    await tab(page, 'data');
+    assert.equal(await page.locator('table.data tbody tr').count(), 8);
+    const dataHeaders = await page.$$eval('table.data thead th', (els) => els.map((el) => el.firstChild.textContent));
+    assert.ok(['Row', 'Art', 'name', 'count', 'deck'].every((h) => dataHeaders.includes(h)), dataHeaders.join(','));
+    await page.screenshot({ path: path.join(OUT, 'data.png') });
+    await page.click('table.data tbody tr >> nth=0');
+    assert.equal(await page.isVisible('#lightbox'), true, 'clicking a data row shows its card');
+    await page.click('#lightbox');
+
+    // The sidebar's TTS button opens the TTS tab.
+    await page.click('#open-tts');
+    assert.equal(await page.isVisible('#export-tts'), true);
 
     // Steam Cloud is the default; "This computer" needs a folder first.
     assert.equal(await page.isChecked('input[name="tts-mode"][value="cloud"]'), true);
@@ -141,14 +166,15 @@ async function run() {
     await page.waitForFunction(() => document.getElementById('back-status').textContent === 'tide.jpg');
 
     // Layout selector re-renders.
+    await tab(page, 'cards');
     await page.selectOption('#layout-select', 'full-art');
     await page.waitForFunction(() => document.querySelectorAll('.tile canvas').length === 8);
     await page.screenshot({ path: path.join(OUT, 'preview-full-art.png'), fullPage: true });
 
     // Street example: graffiti layout; only Thugs have stats.
-    await page.click('[data-example="street-cards.csv"] >> nth=0');
+    await loadExample(page, 'street-cards.csv');
     await page.waitForFunction(() => document.querySelectorAll('.tile canvas').length === 5);
-    assert.match(await page.textContent('#sheet-status'), /street-cards\.csv: 5 cards/);
+    assert.match(await page.textContent('#sheet-status'), /street-cards\.csv · 5 cards/);
     assert.equal(await page.isHidden('#warnings'), true, 'street example should load without warnings');
     await page.screenshot({ path: path.join(OUT, 'preview-street.png'), fullPage: true });
     // Street art has no art column: every image is matched by card name.
@@ -156,6 +182,7 @@ async function run() {
       const png = await page.evaluate((n) => document.querySelectorAll('.tile canvas')[n].toDataURL('image/png'), index);
       await writeFile(path.join(OUT, `street-${name}.png`), Buffer.from(png.split(',')[1], 'base64'));
     }
+    await tab(page, 'tts');
     const streetTts = await saveDownload(page, 'export-tts');
     const street = JSON.parse(await streetTts.zip.file('Card Builder/Street Deck.json').async('string'));
     assert.equal(street.ObjectStates[0].ContainedObjects.length, 11);
@@ -166,9 +193,9 @@ async function run() {
 
     // .xlsx files: inline strings (openpyxl) and shared strings (Excel).
     await page.setInputFiles('#sheet-input', path.join(ROOT, 'tests/fixtures/cards.xlsx'));
-    await page.waitForFunction(() => /cards\.xlsx: 2 cards \(3 with copies\)/.test(document.getElementById('sheet-status').textContent));
+    await page.waitForFunction(() => /cards\.xlsx · 2 cards \(3 with copies\)/.test(document.getElementById('sheet-status').textContent));
     await page.setInputFiles('#sheet-input', path.join(ROOT, 'tests/fixtures/shared-strings.xlsx'));
-    await page.waitForFunction(() => /shared-strings\.xlsx: 2 cards \(5 with copies\)/.test(document.getElementById('sheet-status').textContent));
+    await page.waitForFunction(() => /shared-strings\.xlsx · 2 cards \(5 with copies\)/.test(document.getElementById('sheet-status').textContent));
 
     // Bad input surfaces warnings instead of failing.
     await page.setInputFiles('#sheet-input', { name: 'bad.csv', mimeType: 'text/csv', buffer: Buffer.from('name,layout,art\nOdd,nope,ghost.png\nLonely Card,,\n') });
@@ -177,10 +204,17 @@ async function run() {
     assert.match(warnings, /unknown layout "nope"/);
     assert.match(warnings, /Missing art \(1\): ghost\.png/);
     assert.match(warnings, /No image found for 1 card: Lonely Card\. Name each image after its card/);
+    assert.match(await page.textContent('#art-status'), /· 2 cards without art$/);
+    // A header that means another column shows what it was read as.
+    await page.setInputFiles('#sheet-input', { name: 'alias.csv', mimeType: 'text/csv', buffer: Buffer.from('Name,Effects\nZap,Deal 1.\n') });
+    await tab(page, 'data');
+    await page.waitForFunction(() => /alias\.csv/.test(document.getElementById('data-view').textContent));
+    assert.equal(await page.textContent('table.data thead th:has-text("Effects") small'), 'text');
 
     // Steam Cloud: download the images to upload, paste links, download the deck.
-    await page.click('[data-example="street-cards.csv"] >> nth=0');
+    await loadExample(page, 'street-cards.csv');
     await page.waitForFunction(() => document.querySelectorAll('.tile canvas').length === 5);
+    await tab(page, 'tts');
     await page.check('input[name="tts-mode"][value="cloud"]');
     await page.selectOption('#tts-quality', 'high');
     assert.equal(await page.isDisabled('#export-tts'), true);
@@ -212,13 +246,14 @@ async function run() {
     // After a reload, unchanged images get their links back without re-uploading.
     await page.reload();
     await page.waitForSelector('body[data-ready="true"]');
-    await page.click('[data-example="street-cards.csv"] >> nth=0');
+    await page.click('.empty [data-example="street-cards.csv"]');
     await page.waitForFunction(() => document.querySelectorAll('.tile canvas').length === 5);
     assert.equal(await page.isChecked('input[name="tts-mode"][value="cloud"]'), true);
     // The uploaded back from earlier was lost in the reload; add it again so the images match.
     await page.setInputFiles('#back-input', path.join(ROOT, 'examples/art/tide.jpg'));
     await page.waitForFunction(() => document.getElementById('back-status').textContent === 'tide.jpg');
     await page.waitForFunction(() => document.querySelectorAll('.tile canvas').length === 5);
+    await tab(page, 'tts');
     await saveDownload(page, 'cloud-pack');
     assert.match(await page.textContent('#status'), /All links are already filled in/);
     assert.equal(await page.isDisabled('#export-tts'), false);
@@ -230,10 +265,10 @@ async function run() {
     await page.screenshot({ path: path.join(OUT, 'steam-cloud.png'), fullPage: true });
     await page.selectOption('#tts-quality', 'high');
 
-    // Blank CSV template follows the selected layout.
-    await page.selectOption('#layout-select', 'street');
-    assert.equal(await page.textContent('#download-template'), 'Download a blank Street template (.csv)');
-    const [templateDownload] = await Promise.all([page.waitForEvent('download'), page.click('#download-template')]);
+    // Blank CSV templates: one per layout, in the Templates & examples tab.
+    await tab(page, 'start');
+    await page.screenshot({ path: path.join(OUT, 'templates.png'), fullPage: true });
+    const [templateDownload] = await Promise.all([page.waitForEvent('download'), page.click('[data-template="street"]')]);
     assert.equal(templateDownload.suggestedFilename(), 'street-template.csv');
     const templateFile = path.join(OUT, 'street-template.csv');
     await templateDownload.saveAs(templateFile);
@@ -242,7 +277,7 @@ async function run() {
     // FlagonQuest: the real techniques spreadsheet layout, picked automatically.
     await page.selectOption('#layout-select', 'default');
     await page.setInputFiles('#sheet-input', path.join(ROOT, 'examples/flagonquest-techniques.csv'));
-    await page.waitForFunction(() => /flagonquest-techniques\.csv: 9 cards/.test(document.getElementById('sheet-status').textContent));
+    await page.waitForFunction(() => /flagonquest-techniques\.csv · 9 cards/.test(document.getElementById('sheet-status').textContent));
     await page.waitForFunction(() => document.querySelectorAll('.tile canvas').length === 9);
     assert.equal(await page.inputValue('#layout-select'), 'flagonquest-technique');
     assert.match(await page.textContent('#status'), /Switched to the FlagonQuest Technique layout/);
@@ -253,6 +288,7 @@ async function run() {
       const png = await page.evaluate((n) => document.querySelectorAll('.tile canvas')[n].toDataURL('image/png'), at);
       await writeFile(path.join(OUT, `fq-${name}.png`), Buffer.from(png.split(',')[1], 'base64'));
     }
+    await tab(page, 'tts');
     await page.check('input[name="tts-mode"][value="local"]');
     const fqTts = await saveDownload(page, 'export-tts');
     const fqDeck = JSON.parse(await fqTts.zip.file('Card Builder/Deck.json').async('string')).ObjectStates[0];
@@ -261,7 +297,7 @@ async function run() {
 
     // FlagonQuest items: the real items spreadsheet, its layout picked automatically.
     await page.setInputFiles('#sheet-input', path.join(ROOT, 'examples/flagonquest-items.csv'));
-    await page.waitForFunction(() => /flagonquest-items\.csv: 9 cards/.test(document.getElementById('sheet-status').textContent));
+    await page.waitForFunction(() => /flagonquest-items\.csv · 9 cards/.test(document.getElementById('sheet-status').textContent));
     await page.waitForFunction(() => document.querySelectorAll('.tile canvas').length === 9);
     assert.equal(await page.inputValue('#layout-select'), 'flagonquest-item');
     assert.equal(await page.isHidden('#warnings'), true, 'FlagonQuest items example should load without warnings');
@@ -269,6 +305,7 @@ async function run() {
       const png = await page.evaluate((n) => document.querySelectorAll('.tile canvas')[n].toDataURL('image/png'), i);
       await writeFile(path.join(OUT, `fq-item-${i}.png`), Buffer.from(png.split(',')[1], 'base64'));
     }
+    await tab(page, 'tts');
     const itemTts = await saveDownload(page, 'export-tts');
     const items = JSON.parse(await itemTts.zip.file('Card Builder/Deck.json').async('string')).ObjectStates[0].ContainedObjects;
     const armor = items.find((c) => c.Nickname === 'Medium Armor');

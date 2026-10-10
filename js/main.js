@@ -10,12 +10,16 @@ import { templateCsv } from './template.js';
 import { cleanInput, savedObjectsFolder, localImagesFolder, isLink, looksLikeSteamCloud, cardDescription } from './tts.js';
 
 const $ = (id) => document.getElementById(id);
+const ART_HINT = 'Images named after their cards';
+const BACK_HINT = 'Generated · drop an image to replace it';
 const IMAGE_EXT = /\.(png|jpe?g|webp|gif|bmp|avif)$/i;
 const SHEET_EXT = /\.(csv|tsv|txt|xlsx)$/i;
 
 const state = {
   sheetName: '',
   cards: [],
+  columns: [], // normalized column names, as rowsToCards returns them
+  headers: [], // the same columns as written in the spreadsheet
   sheetWarnings: [],
   assets: new AssetStore(),
   back: null, // uploaded back image (ImageBitmap) or null
@@ -88,7 +92,16 @@ function resolveLayout(card) {
 }
 
 function setStatus(text) {
-  $('status').textContent = text;
+  document.querySelectorAll('[data-status]').forEach((el) => (el.textContent = text));
+}
+
+// ---- Tabs ---------------------------------------------------------------------------
+
+const currentTab = () => document.querySelector('.main').dataset.tab;
+function showTab(name) {
+  document.querySelector('.main').dataset.tab = name;
+  document.querySelectorAll('[role="tab"]').forEach((tab) => tab.setAttribute('aria-selected', String(tab.dataset.tab === name)));
+  document.querySelectorAll('.tab-panel').forEach((panel) => (panel.hidden = panel.dataset.panel !== name));
 }
 
 function download(blob, filename) {
@@ -118,7 +131,7 @@ async function loadSpreadsheet(file) {
       const text = await file.text();
       rows = parseDelimited(text, detectDelimiter(text, file.name));
     }
-    const { cards, warnings, columns } = rowsToCards(rows);
+    const { cards, warnings, columns, headers } = rowsToCards(rows);
     // A spreadsheet that fits a layout's known columns (e.g. FlagonQuest's techniques
     // sheet) picks that layout, unless it chooses layouts itself with a layout column.
     if (!columns.includes('layout')) {
@@ -130,11 +143,13 @@ async function loadSpreadsheet(file) {
     }
     state.sheetName = file.name;
     state.cards = cards;
+    state.columns = columns;
+    state.headers = headers;
     state.sheetWarnings = warnings;
-    const sheetDrop = document.querySelector('[data-drop="sheet"]');
-    sheetDrop.classList.toggle('loaded', cards.length > 0);
+    document.querySelector('[data-drop="sheet"]').classList.toggle('loaded', cards.length > 0);
     const total = cards.reduce((n, c) => n + c.count, 0);
-    $('sheet-status').textContent = `${file.name}: ${cards.length} cards (${total} with copies)`;
+    $('sheet-status').textContent = `${file.name} · ${cards.length} cards (${total} with copies)`;
+    if (currentTab() !== 'data') showTab('cards');
     await rerender();
   } catch (err) {
     console.error(err);
@@ -159,7 +174,7 @@ async function addArt(files) {
   );
   if (failed.length) state.sheetWarnings.push(`Couldn't open: ${failed.join(', ')}`);
   document.querySelector('[data-drop="art"]').classList.add('loaded');
-  $('art-status').textContent = `${state.assets.size} images loaded`;
+  $('clear-art').hidden = false;
   setStatus('');
   await rerender();
 }
@@ -174,11 +189,13 @@ async function setBack(file) {
     state.sheetWarnings.push(`Couldn't open back image ${file.name}.`);
   }
   document.querySelector('[data-drop="back"]').classList.toggle('loaded', !!state.back);
-  $('back-status').textContent = state.back ? state.backName : 'Optional: a back is generated per deck';
+  $('clear-back').hidden = !state.back;
+  $('back-status').textContent = state.back ? state.backName : BACK_HINT;
   await rerender();
 }
 
 async function loadExample(file) {
+  showTab('cards');
   try {
     const text = await (await fetch(`examples/${file}`)).text();
     const manifest = await (await fetch('examples/manifest.json')).json();
@@ -244,6 +261,9 @@ async function rerender() {
   updateExportButtons();
 
   const container = $('decks');
+  renderArtStatus();
+  renderData();
+  $('card-count').textContent = state.cards.length || '';
   if (!state.cards.length) {
     renderWarnings();
     return;
@@ -269,7 +289,7 @@ async function rerender() {
     for (const [i, card] of deck.cards.entries()) {
       const { layout, unknown } = resolveLayout(card);
       if (unknown) extra.push(`Row ${card.row}: unknown layout "${unknown}"; using ${layout.name}.`);
-      if (layout.elements.some((e) => e.type === 'image') && !findArt(card, state.assets)) {
+      if (needsArt(card) && !findArt(card, state.assets)) {
         if (card.art) missingArt.add(card.art);
         else if (state.assets.size) unmatched.push(card.name);
       }
@@ -303,7 +323,7 @@ async function rerender() {
   if (missingArt.size) {
     const names = [...missingArt];
     extra.push(
-      `Missing art (${names.length}): ${names.slice(0, 12).join(', ')}${names.length > 12 ? ', …' : ''}. Drop the images in step 2.`,
+      `Missing art (${names.length}): ${names.slice(0, 12).join(', ')}${names.length > 12 ? ', …' : ''}. Drop in the images named in the art column.`,
     );
   }
   if (unmatched.length) {
@@ -313,6 +333,94 @@ async function rerender() {
   }
   renderWarnings(extra);
   updateExportButtons();
+}
+
+const needsArt = (card) => resolveLayout(card).layout.elements.some((e) => e.type === 'image');
+
+// "5 images · all cards matched", so missing art shows up without opening the warnings.
+function renderArtStatus() {
+  const count = state.assets.size;
+  if (!count) {
+    $('art-status').textContent = ART_HINT;
+    return;
+  }
+  const want = state.cards.filter(needsArt);
+  const missing = want.filter((card) => !findArt(card, state.assets)).length;
+  const images = `${count} image${count === 1 ? '' : 's'}`;
+  $('art-status').textContent = !want.length
+    ? images
+    : missing
+      ? `${images} · ${missing} card${missing === 1 ? '' : 's'} without art`
+      : `${images} · all cards matched`;
+}
+
+// The spreadsheet as it was read: one row per card, every column that has a value.
+function renderData() {
+  const view = $('data-view');
+  view.replaceChildren();
+  if (!state.cards.length) {
+    const p = document.createElement('p');
+    p.className = 'empty';
+    p.textContent = 'Load a spreadsheet to see what was read from it.';
+    view.append(p);
+    return;
+  }
+  const seen = new Set();
+  const cols = state.columns
+    .map((col, i) => ({ col, header: state.headers[i] || col }))
+    .filter(({ col }) => col && !seen.has(col) && seen.add(col) && state.cards.some((c) => c.fields[col]));
+
+  const note = document.createElement('p');
+  note.className = 'hint';
+  note.textContent = `${state.sheetName}: ${state.cards.length} cards. Empty columns and rows with a count of 0 are left out. Click a row to see its card.`;
+  const wrap = document.createElement('div');
+  wrap.className = 'data-wrap';
+  const table = document.createElement('table');
+  table.className = 'data';
+  const head = table.createTHead().insertRow();
+  const th = (text, title) => {
+    const cell = document.createElement('th');
+    cell.textContent = text;
+    if (title) cell.title = title;
+    head.append(cell);
+    return cell;
+  };
+  th('Row');
+  th('Art');
+  for (const { col, header } of cols) {
+    const cell = th(header);
+    // Shows how a header was understood, e.g. "Effects" is read as the text column.
+    if (header.toLowerCase() !== col && header.toLowerCase().replace(/\s+/g, '_') !== col) {
+      const as = document.createElement('small');
+      as.textContent = col;
+      cell.append(as);
+    }
+  }
+  const body = table.createTBody();
+  for (const card of state.cards) {
+    const tr = body.insertRow();
+    tr.insertCell().textContent = card.row;
+    const art = tr.insertCell();
+    if (!needsArt(card)) art.textContent = '';
+    else if (findArt(card, state.assets)) {
+      art.textContent = '✓';
+      art.className = 'ok';
+    } else {
+      art.textContent = 'none';
+      art.className = 'missing';
+    }
+    for (const { col } of cols) {
+      const cell = tr.insertCell();
+      cell.textContent = card.fields[col] ?? '';
+      if (cell.textContent.length > 40) cell.className = 'long';
+    }
+    tr.addEventListener('click', () => {
+      const canvas = state.canvases.get(card.id);
+      if (canvas) openLightbox(canvas);
+    });
+  }
+  wrap.append(table);
+  view.append(note, wrap);
 }
 
 function drawBackPreview() {
@@ -530,7 +638,7 @@ function setupDragAndDrop() {
     e.preventDefault();
     depth = 0;
     overlay.hidden = true;
-    document.querySelectorAll('.drop.over').forEach((d) => d.classList.remove('over'));
+    document.querySelectorAll('[data-drop].over').forEach((d) => d.classList.remove('over'));
     const target = e.target.closest?.('[data-drop]')?.dataset.drop;
     await handleFiles(await filesFromDrop(e.dataTransfer), target);
   });
@@ -540,11 +648,32 @@ function setupDragAndDrop() {
   });
 }
 
-// The layout picker's description and template link follow the chosen layout.
+// The layout picker's description follows the chosen layout.
 function describeLayout() {
-  const layout = getLayout(settings.layout);
-  $('layout-desc').textContent = layout?.description || '';
-  $('download-template').textContent = `Download a blank ${layout?.name || ''} template (.csv)`;
+  $('layout-desc').textContent = getLayout(settings.layout)?.description || '';
+}
+
+// Templates & examples tab: one blank template per layout.
+function renderTemplateList() {
+  const table = $('template-list');
+  for (const layout of LAYOUTS) {
+    const tr = table.insertRow();
+    const name = document.createElement('th');
+    name.textContent = layout.name;
+    tr.append(name);
+    tr.insertCell().textContent = layout.description || '';
+    const actions = tr.insertCell();
+    actions.className = 'actions';
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'small';
+    button.dataset.template = layout.id;
+    button.textContent = 'Download template';
+    button.addEventListener('click', () =>
+      download(new Blob([templateCsv(layout)], { type: 'text/csv' }), `${layout.id}-template.csv`),
+    );
+    actions.append(button);
+  }
 }
 
 // Chooses a layout from code (no re-render; the caller renders next).
@@ -570,10 +699,7 @@ function setupControls() {
     describeLayout();
     rerender();
   });
-  $('download-template').addEventListener('click', () => {
-    const layout = getLayout(settings.layout) || LAYOUTS[0];
-    download(new Blob([templateCsv(layout)], { type: 'text/csv' }), `${layout.id}-template.csv`);
-  });
+  renderTemplateList();
   $('layout-ids').innerHTML = LAYOUTS.map((l) => `<code>${l.id}</code>`).join(', ');
 
   const sizeSelect = $('size-select');
@@ -647,17 +773,18 @@ function setupControls() {
   });
   $('clear-art').addEventListener('click', () => {
     state.assets = new AssetStore();
+    $('art-input').value = '';
+    $('art-folder-input').value = '';
     document.querySelector('[data-drop="art"]').classList.remove('loaded');
-    $('art-status').innerHTML = 'Name each image after its card, e.g. <code>Block Party Boss.png</code>';
+    $('clear-art').hidden = true;
     rerender();
   });
   document.querySelectorAll('[data-example]').forEach((button) =>
     button.addEventListener('click', () => loadExample(button.dataset.example)),
   );
-  $('show-columns').addEventListener('click', (e) => {
-    e.preventDefault();
-    $('columns').hidden = !$('columns').hidden;
-    if (!$('columns').hidden) $('columns').scrollIntoView({ behavior: 'smooth' });
+  document.querySelectorAll('[data-tab], [data-tab-link]').forEach((button) => {
+    if (button.matches('.main')) return;
+    button.addEventListener('click', () => showTab(button.dataset.tab || button.dataset.tabLink));
   });
   $('lightbox').addEventListener('click', () => ($('lightbox').hidden = true));
   document.addEventListener('keydown', (e) => e.key === 'Escape' && ($('lightbox').hidden = true));

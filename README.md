@@ -15,18 +15,20 @@ your browser: **https://sessorach.github.io/Card-Builder/**
    - **TTS deck:** a ZIP with each deck ready for Tabletop Simulator,
      including the number of copies from your spreadsheet. Unzip it into your
      TTS `Saved Objects` folder, then find it in-game under
-     *Objects → Saved Objects → Card Builder*. Step-by-step help is on the
-     page, under the download button.
+     *Objects → Saved Objects → Card Builder*. Step-by-step help is in the
+     page's **TTS export** tab.
 
-Not sure where to start? Pick a layout and download its blank CSV template
-(the link is under the layout picker), or load one of the examples on the page.
+Not sure where to start? The **Templates & examples** tab has a blank CSV
+template for each layout and example decks to load.
 
 ## Spreadsheet tips
 
 - Only `name` is required. `count` sets how many copies go in the TTS deck,
   and `deck` splits cards into separate decks.
 - Card text can use `**bold**`, `*italic*` and line breaks.
-- The **Columns** link on the page lists every column a layout uses.
+- The **Data** tab shows your spreadsheet as the page read it, and which cards
+  are missing art.
+- The column list is in the **Templates & examples** tab.
 - FlagonQuest players can drop in the techniques or items spreadsheet from
   the FlagonQuest repo as-is; the page picks the right layout by itself.
 
