@@ -4,8 +4,9 @@ import defaultLayout from './default.js';
 import fullArt from './full-art.js';
 import textOnly from './text-only.js';
 import street from './street.js';
+import flagonquestTechnique from './flagonquest-technique.js';
 
-export const LAYOUTS = [defaultLayout, fullArt, textOnly, street];
+export const LAYOUTS = [defaultLayout, fullArt, textOnly, street, flagonquestTechnique];
 
 export function getLayout(id) {
   return LAYOUTS.find((l) => l.id === id) || null;

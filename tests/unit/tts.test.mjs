@@ -128,3 +128,9 @@ test('pasted links are recognized, and Steam Cloud links are told apart', () => 
   assert.ok(!isLink('https://has space.com/a'));
   assert.ok(!isLink(''));
 });
+
+test('a layout hover list picks, labels and orders the description', () => {
+  const fields = { name: 'Brace', action: '1 AP', cost: '', text: 'Gain **3** Protected.', flavor: 'Breathe.', id: 'T001' };
+  const hover = [{ field: 'action', label: 'Action' }, { field: 'cost', label: 'Cost' }, 'text', { field: 'flavor', italic: true }];
+  assert.equal(cardDescription(fields, hover), '[b]Action:[/b] 1 AP\nGain [b]3[/b] Protected.\n[i]Breathe.[/i]');
+});

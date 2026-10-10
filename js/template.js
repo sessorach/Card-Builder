@@ -22,7 +22,9 @@ export function layoutFields(layout) {
     else if (el.field) fields.push(el.field);
   }
   // Columns that only switch elements on or off, or pick the card color.
-  for (const el of layout.elements) fields.push(...[].concat(el.when || [], el.unless || []));
+  for (const el of layout.elements) {
+    fields.push(...[].concat(el.when || [], el.unless || []), el.whenHas?.field, el.unlessHas?.field);
+  }
   if (layout.colorBy) fields.push(layout.colorBy.field);
   return [...new Set(fields.filter(Boolean))];
 }

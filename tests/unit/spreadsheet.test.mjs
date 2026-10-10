@@ -29,6 +29,12 @@ test('normalizes header aliases', () => {
   assert.equal(normalizeHeader('Power Level'), 'power_level');
   assert.equal(normalizeHeader('Tags (separate with commas)'), 'tags');
   assert.equal(normalizeHeader('Qty (copies in deck)'), 'count');
+  // FlagonQuest's own spreadsheet headers.
+  assert.equal(normalizeHeader('Description (Fluff)'), 'flavor');
+  assert.equal(normalizeHeader('Effects'), 'text');
+  assert.equal(normalizeHeader('Prereqs (Full)'), 'prereqs');
+  assert.equal(normalizeHeader('Level Min'), 'level_min');
+  assert.equal(normalizeHeader('Relevant Skills'), 'relevant_skills');
 });
 
 test('builds cards with counts, decks and warnings', () => {

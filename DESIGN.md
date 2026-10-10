@@ -79,6 +79,8 @@ ships with four layouts:
 - **Full Art:** the art covers the whole card.
 - **Text Only:** no art, for spells, events and prototypes.
 - **Street:** the first layout designed for our game (see below).
+- **FlagonQuest Technique:** reference cards for FlagonQuest techniques (see
+  below).
 
 Positions in a layout are percentages of the card rather than pixels or
 millimeters. Text sizes are percentages of the card's width. That way the same
@@ -190,6 +192,47 @@ The type-to-color map lives in the Street layout, so the spreadsheet only needs
 the `type` column. A `color` column on a card still overrides it, for one-off
 cards. The renderer supports this as a general feature: any layout can color
 cards by any column's value.
+
+### The FlagonQuest Technique layout
+
+FlagonQuest is a separate TTRPG with its own companion site (the
+`flagonquest` repository). It shows techniques (abilities) as flat tiles, but
+the game is also played in Tabletop Simulator, where it helps to have each
+technique as a physical card. This layout is that companion. No picture is
+needed: it is all game information.
+
+**It reads FlagonQuest's own spreadsheet as-is.** FlagonQuest keeps its content
+in spreadsheets (`scripts/techniques.csv`), and dropping that exact file into
+Card Builder makes a card per technique, with no reformatting. To get there
+without breaking the shared-columns rule, FlagonQuest's headers map onto the
+existing columns where they mean the same thing: "Effects" is the rules text
+and "Description (Fluff)" is flavor text, both as general header aliases. The
+FlagonQuest-only concepts get their own columns: level range, action,
+condition, target, special, prereqs and choice effects. A spreadsheet with
+FlagonQuest's columns (and no layout column) switches to this layout by
+itself, so the drop-in really is one step.
+
+**It looks like the FlagonQuest site.** The card uses the site's dark navy
+panels, warm off-white text, gold field labels and the MedievalSharp title
+font. It also borrows the tile's structure: the name with a level badge
+("Lv 1–4"), tags underneath with Buildable in purple and Duplicate in green,
+and an orange Encounter badge. Then come gold-labelled Action, Cost,
+Condition and Target lines, the effects (and choice effects, one per line),
+Special, and a Prereqs footer. Text shrinks to fit, so even the longest
+technique (Profession's ten options) fits.
+
+**Flavor text is on hover only.** Some descriptions run past a thousand
+characters, and the site's own Character Sheet leaves them out as a "lean
+reference". So the card face carries the rules, and the description appears
+in the TTS hover text, along with the labelled rules.
+
+**One accent color, not one per archetype.** Techniques often belong to
+several archetypes at once ("Duelist, Rogue, Monk"), so coloring by archetype
+wouldn't be meaningful. The card uses the site's gold throughout.
+
+Builder-only columns (prereq check syntax, feature budgets, builder notes and
+so on) are left off the card, since they drive the site's character builder
+rather than play at the table.
 
 ## Drawing on a canvas
 
@@ -406,7 +449,9 @@ Card hover descriptions in TTS include the type, subtype and tags, the cost,
 the rules text, the stats and the flavor text. Any other filled-in column is
 listed by its column name (for example "Strengf 4 · Helf 3 · Steal 2"). That
 way a layout's own stats show up on hover without the TTS export needing to
-know about them.
+know about them. A layout can instead list exactly what goes on hover, and
+with which labels. FlagonQuest techniques do this, because their spreadsheet
+has around thirty columns, most of them only for the site's character builder.
 
 ## Documentation
 

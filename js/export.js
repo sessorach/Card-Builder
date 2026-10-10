@@ -180,7 +180,7 @@ export async function buildUploadZip(files, onProgress = () => {}) {
 }
 
 // location: { mode: 'cloud', links: { hash: url } } | { mode: 'local', savedObjects } | { mode: 'web', baseUrl }
-export async function buildTtsZip({ prepared, getCanvas, location, onProgress = () => {} }) {
+export async function buildTtsZip({ prepared, getCanvas, location, describe, onProgress = () => {} }) {
   const zip = new JSZip();
   const root = zip.folder(TTS_FOLDER);
   const cloud = location.mode === 'cloud';
@@ -206,7 +206,7 @@ export async function buildTtsZip({ prepared, getCanvas, location, onProgress = 
       return { ...sheet, faceUrl: place(face, sheet) };
     });
 
-    const saved = buildSavedObject({ deck, sheets: placed, backUrl });
+    const saved = buildSavedObject({ deck, sheets: placed, backUrl, describe });
     root.file(`${base}.json`, JSON.stringify(saved, null, 2));
 
     // Thumbnail shown in TTS's Saved Objects browser.

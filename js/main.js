@@ -7,7 +7,7 @@ import { AssetStore, decodeImage, renderCard, renderBack, findArt, cardAccent } 
 import { loadFonts } from './fonts.js';
 import { buildImagesZip, buildTtsZip, prepareTtsImages, cloudFiles, buildUploadZip } from './export.js';
 import { templateCsv } from './template.js';
-import { cleanInput, savedObjectsFolder, localImagesFolder, isLink, looksLikeSteamCloud } from './tts.js';
+import { cleanInput, savedObjectsFolder, localImagesFolder, isLink, looksLikeSteamCloud, cardDescription } from './tts.js';
 
 const $ = (id) => document.getElementById(id);
 const IMAGE_EXT = /\.(png|jpe?g|webp|gif|bmp|avif)$/i;
@@ -118,7 +118,16 @@ async function loadSpreadsheet(file) {
       const text = await file.text();
       rows = parseDelimited(text, detectDelimiter(text, file.name));
     }
-    const { cards, warnings } = rowsToCards(rows);
+    const { cards, warnings, columns } = rowsToCards(rows);
+    // A spreadsheet that fits a layout's known columns (e.g. FlagonQuest's techniques
+    // sheet) picks that layout, unless it chooses layouts itself with a layout column.
+    if (!columns.includes('layout')) {
+      const match = LAYOUTS.find((l) => l.matchColumns?.every((c) => columns.includes(c)));
+      if (match && match.id !== settings.layout) {
+        setLayout(match.id);
+        setStatus(`Switched to the ${match.name} layout to match this spreadsheet.`);
+      }
+    }
     state.sheetName = file.name;
     state.cards = cards;
     state.sheetWarnings = warnings;
@@ -173,8 +182,10 @@ async function loadExample(file) {
   try {
     const text = await (await fetch(`examples/${file}`)).text();
     const manifest = await (await fetch('examples/manifest.json')).json();
+    const entry = manifest[file] || {};
+    if (entry.layout) setLayout(entry.layout);
     const art = await Promise.all(
-      (manifest[file] || []).map(async (name) => {
+      (entry.images || []).map(async (name) => {
         const res = await fetch(`examples/art/${encodeURIComponent(name)}`);
         return res.ok ? new File([await res.blob()], name) : null;
       }),
@@ -403,7 +414,8 @@ async function runExport(kind) {
         location.mode === 'cloud'
           ? state.cloudPack.prepared
           : await prepareTtsImages({ ...common, cardPx: cardPx(), quality: settings.quality });
-      const blob = await buildTtsZip({ prepared, getCanvas: common.getCanvas, location, onProgress: setStatus });
+      const describe = (card) => cardDescription(card.fields, resolveLayout(card).layout.hover);
+      const blob = await buildTtsZip({ prepared, getCanvas: common.getCanvas, location, describe, onProgress: setStatus });
       download(blob, `${base} - TTS.zip`);
       $('tts-help').open = true; // walk them through the next steps
       setStatus('Done! Check your downloads.');
@@ -528,6 +540,22 @@ function setupDragAndDrop() {
   });
 }
 
+// The layout picker's description and template link follow the chosen layout.
+function describeLayout() {
+  const layout = getLayout(settings.layout);
+  $('layout-desc').textContent = layout?.description || '';
+  $('download-template').textContent = `Download a blank ${layout?.name || ''} template (.csv)`;
+}
+
+// Chooses a layout from code (no re-render; the caller renders next).
+function setLayout(id) {
+  if (!getLayout(id)) return;
+  settings.layout = id;
+  saveSettings();
+  $('layout-select').value = id;
+  describeLayout();
+}
+
 // ---- Setup ------------------------------------------------------------------------
 
 function setupControls() {
@@ -535,16 +563,11 @@ function setupControls() {
   for (const l of LAYOUTS) layoutSelect.add(new Option(l.name, l.id));
   layoutSelect.value = getLayout(settings.layout) ? settings.layout : LAYOUTS[0].id;
   settings.layout = layoutSelect.value;
-  const describe = () => {
-    const layout = getLayout(settings.layout);
-    $('layout-desc').textContent = layout?.description || '';
-    $('download-template').textContent = `Download a blank ${layout?.name || ''} template (.csv)`;
-  };
-  describe();
+  describeLayout();
   layoutSelect.addEventListener('change', () => {
     settings.layout = layoutSelect.value;
     saveSettings();
-    describe();
+    describeLayout();
     rerender();
   });
   $('download-template').addEventListener('click', () => {

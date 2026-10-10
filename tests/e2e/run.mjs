@@ -239,6 +239,26 @@ async function run() {
     await templateDownload.saveAs(templateFile);
     assert.equal(await readFile(templateFile, 'utf8'), 'name,count,deck,cost,text,flavor,type,tags (separate with commas),strengf,helf,steal,equip_cost\r\n');
 
+    // FlagonQuest: the real techniques spreadsheet layout, picked automatically.
+    await page.selectOption('#layout-select', 'default');
+    await page.setInputFiles('#sheet-input', path.join(ROOT, 'examples/flagonquest-techniques.csv'));
+    await page.waitForFunction(() => /flagonquest-techniques\.csv: 9 cards/.test(document.getElementById('sheet-status').textContent));
+    await page.waitForFunction(() => document.querySelectorAll('.tile canvas').length === 9);
+    assert.equal(await page.inputValue('#layout-select'), 'flagonquest-technique');
+    assert.match(await page.textContent('#status'), /Switched to the FlagonQuest Technique layout/);
+    assert.equal(await page.isHidden('#warnings'), true, 'FlagonQuest example should load without warnings');
+    await page.screenshot({ path: path.join(OUT, 'preview-flagonquest.png'), fullPage: true });
+    for (const [index, name] of ['brace', 'battle-maneuver', 'lay-on-hands', 'boulder-toss', 'profession'].entries()) {
+      const at = [0, 1, 3, 4, 8][index];
+      const png = await page.evaluate((n) => document.querySelectorAll('.tile canvas')[n].toDataURL('image/png'), at);
+      await writeFile(path.join(OUT, `fq-${name}.png`), Buffer.from(png.split(',')[1], 'base64'));
+    }
+    await page.check('input[name="tts-mode"][value="local"]');
+    const fqTts = await saveDownload(page, 'export-tts');
+    const fqDeck = JSON.parse(await fqTts.zip.file('Card Builder/Deck.json').async('string')).ObjectStates[0];
+    const brace = fqDeck.ContainedObjects.find((c) => c.Nickname === 'Brace');
+    assert.equal(brace.Description, '[b]Tags:[/b] Encounter\n[b]Action:[/b] 1 AP\nYou gain 3 stacks of Protected.\n[b]Prereqs:[/b] Resilience 2\n[i]You draw a deep breath, steeling yourself for the struggle ahead.[/i]');
+
     assert.deepEqual(errors, [], 'no console errors');
     console.log('\nAll end-to-end checks passed.');
   } finally {

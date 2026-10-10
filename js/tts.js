@@ -147,7 +147,21 @@ const DESCRIBED = new Set(['name', 'count', 'deck', 'layout', 'art', 'color', 't
 
 const columnLabel = (key) => key.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase());
 
-export function cardDescription(fields) {
+// hover: a layout's own list of what to show, in order. Entries are a field name
+// or { field, label, italic, bold }; empty fields are skipped.
+export function cardDescription(fields, hover) {
+  if (hover) {
+    return hover
+      .map((entry) => (typeof entry === 'string' ? { field: entry } : entry))
+      .filter((e) => String(fields[e.field] ?? '').trim())
+      .map((e) => {
+        let text = toTtsText(String(fields[e.field]).trim());
+        if (e.italic) text = `[i]${text}[/i]`;
+        if (e.bold) text = `[b]${text}[/b]`;
+        return e.label ? `[b]${e.label}:[/b] ${text}` : text;
+      })
+      .join('\n');
+  }
   const tags = splitList(fields.tags).join(' · ');
   const typeLine = [fields.type, fields.subtype, tags].filter(Boolean).join(' — ');
   const parts = [];
@@ -199,7 +213,8 @@ function baseObject(name, nickname, description, guid) {
 // deck: { name, cards: [{ name, count, fields }] } in sheet order (the order passed to planSheets)
 // sheets: [{ start, count, cols, rows, faceUrl }]
 // Returns the full Saved Object file contents as a JS object.
-export function buildSavedObject({ deck, sheets, backUrl, rng = Math.random }) {
+// describe(card) → hover text; defaults to cardDescription without a layout's hover list.
+export function buildSavedObject({ deck, sheets, backUrl, rng = Math.random, describe = (card) => cardDescription(card.fields) }) {
   const usedKeys = new Set();
   const customDeck = {};
   const sheetKeys = sheets.map((sheet) => {
@@ -226,7 +241,7 @@ export function buildSavedObject({ deck, sheets, backUrl, rng = Math.random }) {
     const cardId = key * 100 + (i - sheets[sheetIndex].start);
     for (let copy = 0; copy < card.count; copy++) {
       cardObjects.push({
-        ...baseObject('Card', card.name, cardDescription(card.fields), randomGuid(rng)),
+        ...baseObject('Card', card.name, describe(card), randomGuid(rng)),
         CardID: cardId,
         CustomDeck: { [key]: customDeck[key] },
       });

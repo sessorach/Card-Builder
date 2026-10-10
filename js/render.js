@@ -184,6 +184,12 @@ function anyValue(card, fields) {
   return [].concat(fields).some((f) => fieldValue(card, f));
 }
 
+// `whenHas` / `unlessHas`: { field, value } — the field is a list (e.g. tags) containing value.
+function hasItem(card, { field, value }) {
+  const want = String(value).trim().toLowerCase();
+  return splitList(fieldValue(card, field)).some((item) => item.toLowerCase() === want);
+}
+
 // ---- Card rendering -----------------------------------------------------
 
 // card: { name, art, fields }, layout: see layouts/, px: { width, height }
@@ -203,6 +209,8 @@ export function renderCard(card, { layout, px, assets, canvas }) {
   for (const el of layout.elements) {
     if (el.when && !anyValue(card, el.when)) continue;
     if (el.unless && anyValue(card, el.unless)) continue;
+    if (el.whenHas && !hasItem(card, el.whenHas)) continue;
+    if (el.unlessHas && hasItem(card, el.unlessHas)) continue;
     const b = box(el);
     ctx.save();
     if (el.opacity != null) ctx.globalAlpha = el.opacity;
@@ -289,16 +297,29 @@ function drawImageElement(ctx, card, el, b, { assets, theme, s, color, fonts }) 
 
 // One field's text. entry: 'field' or { field, bold, italic, color, prefix, suffix, list, listSep }.
 // list: the cell holds comma-separated items, shown joined with listSep.
+// One field's text. entry: 'field' or { field, bold, italic, color, prefix, suffix,
+//   label, labelColor   — "Label: " before the value, bold, in its own color
+//   list, listSep, exclude, itemColors — a comma-separated cell shown as a list,
+//     leaving out `exclude` items and coloring items named in `itemColors` }.
 function entryAtoms(card, entry, base) {
   const e = typeof entry === 'string' ? { field: entry } : entry;
   const style = { bold: e.bold ?? base.bold, italic: e.italic ?? base.italic, color: e.color ?? base.color };
   const value = fieldValue(card, e.field);
   if (!value) return [];
+  let atoms;
   if (e.list) {
-    const items = splitList(value).map((item) => parseRich(affix(item, e), style));
-    return joinInline(items, e.listSep ?? ' · ', style);
+    const skip = new Set((e.exclude || []).map((x) => x.toLowerCase()));
+    const colors = Object.fromEntries(Object.entries(e.itemColors || {}).map(([k, v]) => [k.toLowerCase(), v]));
+    const items = splitList(value)
+      .filter((item) => !skip.has(item.toLowerCase()))
+      .map((item) => parseRich(affix(item, e), { ...style, color: colors[item.toLowerCase()] ?? style.color }));
+    atoms = joinInline(items, e.listSep ?? ' · ', style);
+  } else {
+    atoms = parseRich(affix(value, e), style);
   }
-  return parseRich(affix(value, e), style);
+  if (!atoms.length || !e.label) return atoms;
+  const label = parseRich(`${e.label}:`, { bold: true, italic: false, color: e.labelColor ?? style.color });
+  return [...label, { ...atoms[0], space: true }, ...atoms.slice(1)];
 }
 
 function textAtoms(card, el) {
@@ -307,7 +328,11 @@ function textAtoms(card, el) {
   if (el.parts) return joinParts(el.parts.map((p) => entryAtoms(card, p, base)));
   if (el.join) {
     const sepStyle = { ...base, color: el.sepColor };
-    return joinInline(el.join.map((p) => entryAtoms(card, p, base)), el.sep ?? ' ', sepStyle);
+    // unique: drop an entry whose value repeats the one before it ("1–1" → "1").
+    const entries = el.unique
+      ? el.join.filter((p, i, all) => i === 0 || fieldValue(card, p.field ?? p) !== fieldValue(card, all[i - 1].field ?? all[i - 1]))
+      : el.join;
+    return joinInline(entries.map((p) => entryAtoms(card, p, base)), el.sep ?? ' ', sepStyle);
   }
   return entryAtoms(card, el, base);
 }

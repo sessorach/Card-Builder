@@ -21,15 +21,18 @@ const HEADER_ALIASES = {
   'flavour text': 'flavor',
   colour: 'color',
   template: 'layout',
+  effects: 'text',
+  effect: 'text',
+  // A note in parentheses is normally ignored, but here it says what the column holds.
+  'description (fluff)': 'flavor',
+  fluff: 'flavor',
 };
 
 // Notes in parentheses are ignored, so "tags (separate with commas)" reads as "tags".
 export function normalizeHeader(header) {
-  const key = String(header ?? '')
-    .replace(/\([^)]*\)/g, '')
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, ' ');
+  const full = String(header ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
+  if (HEADER_ALIASES[full]) return HEADER_ALIASES[full];
+  const key = full.replace(/\([^)]*\)/g, '').trim().replace(/\s+/g, ' ');
   return HEADER_ALIASES[key] || key.replace(/ /g, '_');
 }
 

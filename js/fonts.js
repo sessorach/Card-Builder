@@ -22,6 +22,12 @@ export const FONT_LIBRARY = {
     google: 'Permanent+Marker',
     faces: ['400'],
   },
+  // FlagonQuest's site title font.
+  medievalsharp: {
+    stack: '"MedievalSharp", Georgia, serif',
+    google: 'MedievalSharp',
+    faces: ['400'],
+  },
   // Flavorful display faces (stat boxes and the like).
   'rubik-wet-paint': {
     stack: '"Rubik Wet Paint", Impact, sans-serif',
