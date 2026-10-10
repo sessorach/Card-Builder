@@ -1,6 +1,6 @@
-name,deck,count,layout,cost,type,tags,text,flavor,strengf,helf,steal
-Block Party Boss,Street Deck,2,street,5,Thug,"Crew, Leader","When Block Party Boss enters, your other **Thug** cards get +1 Strengf this turn.",Everybody knows whose party it is.,4,3,2
-Corner Lookout,Street Deck,3,street,2,Thug,"Crew, Lookout","**Alert.** At the start of your turn, look at the top card of any deck.",,1,2,3
-Gold Chain,Street Deck,2,street,4,Bling,Jewelry,At the start of your turn: gain $1.,Heavy is the neck.,,,
-Night Shift,Street Deck,2,street,3,Negromancy,Night,"Draw two cards. If you played a **Thug** this turn, draw three instead.",The city never sleeps. Neither do you.,,,
-Mixtape Drop,Street Deck,2,street,1,Dropped Move,"Music, Hype","Gain $2. The next **Thug** you play this turn costs $1 less.",,,,
+name,deck,count,layout,cost,type,tags,text,flavor,strengf,helf,steal,equip_cost
+Block Party Boss,Street Deck,2,street,5,Thug,"Crew, Leader","When Block Party Boss enters, your other **Thug** cards get +1 Strengf this turn.",Everybody knows whose party it is.,4,3,2,
+Corner Lookout,Street Deck,3,street,2,Thug,"Crew, Lookout","**Alert.** At the start of your turn, look at the top card of any deck.",,1,2,3,
+Gold Chain,Street Deck,2,street,4,Bling,Jewelry,At the start of your turn: gain $1.,Heavy is the neck.,,,,2
+Night Shift,Street Deck,2,street,3,Negromancy,Night,"Draw two cards. If you played a **Thug** this turn, draw three instead.",The city never sleeps. Neither do you.,,,,
+Mixtape Drop,Street Deck,2,street,1,Dropped Move,"Music, Hype",Gain $2. The next **Thug** you play this turn costs $1 less.,,,,,

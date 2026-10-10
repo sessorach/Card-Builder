@@ -28,7 +28,7 @@ Repo: `sessorach/Card-Builder` on GitHub (public, default branch `main`). GitHub
 - `js/tts.js`: sheet planning, image URLs, Saved Object JSON. Pure, Node-tested.
 - `js/export.js`: builds both zips (images, TTS). Browser-only.
 - `js/sizes.js`: card sizes (poker only for now) and DPI.
-- `layouts/*.js` + `layouts/index.js`: layout definitions and their registry: `default` (formerly `classic`), `full-art`, `text-only`, `street` (the user's game; Thug stats are `strengf`, `helf`, `steal`, spelled exactly so).
+- `layouts/*.js` + `layouts/index.js`: layout definitions and their registry: `default` (formerly `classic`), `full-art`, `text-only`, `street` (the user's game; Thug stats are `strengf`, `helf`, `steal`, spelled exactly so; Bling's `equip_cost` is a single centered stat box shown with `$`).
 - `examples/`: `example-cards.csv` (Default/Full Art/Text Only; uses an `art` column for some cards) and `street-cards.csv` (Street; no art column, every image is matched by card name). `examples/manifest.json` lists which images each example loads, so a new example image must be added there. Example art comes from `tools/make-example-art.py` (deterministic; needs Pillow; file names follow the cards; append new palettes at the end so existing images don't change).
 - `vendor/jszip.min.js`: vendored JSZip 3.10.1 (from the npm tarball).
 - `tests/unit/*.test.mjs` (node:test), `tests/e2e/run.mjs` (Playwright), `tests/fixtures/*.xlsx`.
@@ -36,7 +36,7 @@ Repo: `sessorach/Card-Builder` on GitHub (public, default branch `main`). GitHub
 ## Run and test
 - Serve: `npm run serve` (python http.server on :8000). ES modules **don't load from file://**; always serve over http.
 - Unit tests: `npm test`.
-- E2E: `npm run test:e2e`. It starts its own static server, drives Chromium, and checks both zips. Screenshots and downloads go to `test-output/` (gitignored). After visual changes, look at `preview.png`, `lightbox.png`, `fire-sheet.jpg`, `preview-street.png` and `street-*.png` (full-size Street cards, one per example card: two with stats and one of each other type). No example card has partial stats any more (faded slots), so check that case by hand if the stat row changes.
+- E2E: `npm run test:e2e`. It starts its own static server, drives Chromium, and checks both zips. Screenshots and downloads go to `test-output/` (gitignored). After visual changes, look at `preview.png`, `lightbox.png`, `fire-sheet.jpg`, `preview-street.png` and `street-*.png` (full-size Street cards, one per example card: two Thugs with stats, a Bling with an equip cost, and one of each other type). No example card has partial stats any more (faded slots), so check that case by hand if the stat row changes.
 - E2E steps share one page and run in order: the layout-selector step expects the Default example (8 cards) to be loaded, so steps that load other spreadsheets go after it.
 - In the cloud container: `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install` first; Chromium is preinstalled at /opt/pw-browsers and Playwright 1.56.1 matches it.
 - CI (`.github/workflows/test.yml`) runs unit + e2e tests on every push; keep both green before pushing.
@@ -62,7 +62,7 @@ Elements are drawn in order. `x/y/w/h` are % of card width/height; `size`, `minS
 - Pure logic goes in Node-testable modules with no DOM; add unit tests for it.
 - New third-party code is vendored into `vendor/` (with its license), never loaded from a CDN at runtime. Google Fonts is the only external load.
 - Problems with user input become warnings in the UI, not exceptions.
-- Columns keep one meaning across layouts; formatting (like Street's `$` cost) belongs in the layout via `prefix`/`suffix`, never in the data or the renderer. Shared columns so far: name, count, deck, layout, art, cost, type, subtype, tags, text, flavor, stats, strengf, helf, steal, color.
+- Columns keep one meaning across layouts; formatting (like Street's `$` cost) belongs in the layout via `prefix`/`suffix`, never in the data or the renderer. Shared columns so far: name, count, deck, layout, art, cost, type, subtype, tags, text, flavor, stats, strengf, helf, steal, equip_cost, color.
 - TTS hover descriptions (`cardDescription` in js/tts.js) list any column not in its `DESCRIBED` set as "Label value", so new stat columns need no TTS changes. A new column that *shouldn't* appear on hover must be added to `DESCRIBED`.
 - Renaming a layout id breaks spreadsheets that name it in their `layout` column (they fall back to the default, with a warning). Mention it to the user when it happens.
 

@@ -119,22 +119,27 @@ Street was specified element by element:
   commas (`Crew, Leader`). Semicolons and `|` are also accepted, but commas
   are the convention. Separate `tag1`, `tag2`, `tag3` columns were considered
   and rejected because the number of tags varies from card to card.
-- A **stat row** at the very bottom: three stats, each in its own small box.
+- A **stat row** at the very bottom, with each stat in its own small box.
 
-**Only Thug units have stats.** The three stats are **Strengf**, **Helf** and
-**Steal**, in that order from left to right. Use those spellings exactly. Each
-has its own column (`strengf`, `helf`, `steal`), named after the stat so the
-spreadsheet headers read the same as the cards. These replaced the
-placeholder columns `stat1` to `stat3` from the first draft.
+**Thugs have three stats.** They are **Strengf**, **Helf** and **Steal**, in
+that order from left to right. Use those spellings exactly. Each has its own
+column (`strengf`, `helf`, `steal`), named after the stat so the spreadsheet
+headers read the same as the cards. These replaced the placeholder columns
+`stat1` to `stat3` from the first draft.
 
-**Cards without stats keep the same shape.** Many cards aren't Thugs, so most
-cards have no stat row. For those, the type bar drops to the bottom edge and
-the rules box grows into the freed space, so all the cards still look like one
-set. The stat row appears whenever a card has any of the three stats filled
-in. It is driven by the data rather than by the word "Thug", so a new card type
-with stats would work without changing the layout. If a card has some stats
-but not others, each stat keeps its own slot and the missing ones are drawn
-faded, so a stat is always in the same place.
+**Bling cards have an equip cost,** shown in the stat row as a single
+"EQUIP COST" box in the middle slot. It goes in an `equip_cost` column and is
+shown with a `$` in front, like the card's main cost. (At first only Thugs had
+stats; the equip cost was added once it was remembered.)
+
+**Cards without stats keep the same shape.** Most cards have no stat row. For
+those, the type bar drops to the bottom edge and the rules box grows into the
+freed space, so all the cards still look like one set. The stat row appears
+whenever a card has any Thug stat or an equip cost filled in. It is driven by
+the data rather than by the card type, so a new card type with stats would
+work without changing how the row is triggered. If a Thug has some stats but
+not others, each stat keeps its own slot and the missing ones are drawn faded,
+so a stat is always in the same place.
 
 **Fonts.** The brief was a cool, urban font reminiscent of graffiti and hip hop
 culture. Six graffiti-style fonts were compared side by side (Sedgwick Ave

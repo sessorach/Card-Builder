@@ -1,10 +1,11 @@
 // Street: graffiti-style card. Name at the top over big art, a "$" cost sticker,
-// a rules box, a type bar ("TYPE — tag · tag · tag") and three stat boxes.
-// Only Thug units have stats. Every other card drops the stat row and the rules
-// box grows to fill the space, so all cards keep the same overall shape.
+// a rules box, a type bar ("TYPE — tag · tag · tag") and a stat row.
+// Thugs show three stats in the stat row; Bling shows its equip cost there.
+// Cards with neither drop the stat row and the rules box grows to fill the
+// space, so all cards keep the same overall shape.
 //
 // Columns: name, cost, art, text, flavor, type, tags (comma-separated),
-// strengf, helf, steal.
+// strengf, helf, steal, equip_cost.
 
 // The three Thug stats, left to right. Spellings are the game's own; keep them.
 const STATS = [
@@ -12,7 +13,13 @@ const STATS = [
   { field: 'helf', label: 'HELF' },
   { field: 'steal', label: 'STEAL' },
 ];
-const STAT_FIELDS = STATS.map((s) => s.field);
+const THUG_FIELDS = STATS.map((s) => s.field);
+
+// Bling's equip cost: one stat box in the middle slot, shown with "$" like the cost.
+const EQUIP = { field: 'equip_cost', label: 'EQUIP COST', prefix: '$' };
+
+// Any of these filled in → the card gets a stat row.
+const STAT_FIELDS = [...THUG_FIELDS, EQUIP.field];
 
 const INK = '#16151a';
 const PANEL = '#24222b';
@@ -45,28 +52,39 @@ function bottomSection(hasStats) {
   ];
 }
 
+const ROW = { y: 87.6, h: 9.4, w: 29, gap: 2.5 };
+const slotX = (i) => 4 + i * (ROW.w + ROW.gap);
+
 function statBoxes() {
-  const y = 87.6;
-  const h = 9.4;
-  const w = 29;
-  const gap = 2.5;
+  const { y, h, w } = ROW;
   return STATS.flatMap((stat, i) => {
-    const x = 4 + i * (w + gap);
+    const x = slotX(i);
     return [
       // Box: full strength when the card has this stat, faded when it doesn't.
       { when: stat.field, type: 'rect', x, y, w, h, fill: PANEL, stroke: 'accent', strokeWidth: 0.6, radius: 1.6 },
-      { when: STAT_FIELDS, unless: stat.field, type: 'rect', x, y, w, h, fill: PANEL, stroke: 'accent', strokeWidth: 0.4, radius: 1.6, opacity: 0.35 },
+      { when: THUG_FIELDS, unless: stat.field, type: 'rect', x, y, w, h, fill: PANEL, stroke: 'accent', strokeWidth: 0.4, radius: 1.6, opacity: 0.35 },
       { when: stat.field, type: 'text', text: stat.label, x, y: y + 0.5, w, h: 3.2, font: 'label', size: 3.6, minSize: 2.4, color: 'accent', align: 'center', valign: 'middle', baseline: 0.36 },
-      { when: STAT_FIELDS, unless: stat.field, type: 'text', text: stat.label, x, y: y + 0.5, w, h: 3.2, font: 'label', size: 3.6, minSize: 2.4, color: 'accent', align: 'center', valign: 'middle', baseline: 0.36, opacity: 0.35 },
+      { when: THUG_FIELDS, unless: stat.field, type: 'text', text: stat.label, x, y: y + 0.5, w, h: 3.2, font: 'label', size: 3.6, minSize: 2.4, color: 'accent', align: 'center', valign: 'middle', baseline: 0.36, opacity: 0.35 },
       { when: stat.field, type: 'text', field: stat.field, x, y: y + 3.2, w, h: 6, font: 'label', size: 9, minSize: 4, color: WHITE, align: 'center', valign: 'middle', baseline: 0.36 },
     ];
   });
 }
 
+function equipBox() {
+  const { y, h, w } = ROW;
+  const x = slotX(1);
+  const when = EQUIP.field;
+  return [
+    { when, type: 'rect', x, y, w, h, fill: PANEL, stroke: 'accent', strokeWidth: 0.6, radius: 1.6 },
+    { when, type: 'text', text: EQUIP.label, x, y: y + 0.5, w, h: 3.2, font: 'label', size: 3.6, minSize: 2.4, color: 'accent', align: 'center', valign: 'middle', baseline: 0.36 },
+    { when, type: 'text', field: EQUIP.field, prefix: EQUIP.prefix, x, y: y + 3.2, w, h: 6, font: 'label', size: 9, minSize: 4, color: WHITE, align: 'center', valign: 'middle', baseline: 0.36 },
+  ];
+}
+
 export default {
   id: 'street',
   name: 'Street',
-  description: 'Graffiti style: big art, $ cost, type bar with tags, three stat boxes.',
+  description: 'Graffiti style: big art, $ cost, type bar with tags, stat row for Thugs and Bling.',
   defaultColor: '#ffcc1a',
   // Card color comes from the type (a `color` column on a card still overrides it).
   colorBy: {
@@ -107,5 +125,6 @@ export default {
     ...bottomSection(true),
     ...bottomSection(false),
     ...statBoxes(),
+    ...equipBox(),
   ],
 };

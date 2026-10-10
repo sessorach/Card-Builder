@@ -159,6 +159,8 @@ async function run() {
     assert.equal(street.ObjectStates[0].ContainedObjects.length, 11);
     assert.match(street.ObjectStates[0].ContainedObjects[0].Description, /Cost: 5/);
     assert.match(street.ObjectStates[0].ContainedObjects[0].Description, /Strengf 4 · Helf 3 · Steal 2/);
+    const goldChain = street.ObjectStates[0].ContainedObjects.find((c) => c.Nickname === 'Gold Chain');
+    assert.match(goldChain.Description, /Equip cost 2/);
 
     // .xlsx files: inline strings (openpyxl) and shared strings (Excel).
     await page.setInputFiles('#sheet-input', path.join(ROOT, 'tests/fixtures/cards.xlsx'));
@@ -181,7 +183,7 @@ async function run() {
     assert.equal(templateDownload.suggestedFilename(), 'street-template.csv');
     const templateFile = path.join(OUT, 'street-template.csv');
     await templateDownload.saveAs(templateFile);
-    assert.equal(await readFile(templateFile, 'utf8'), 'name,count,deck,cost,text,flavor,type,tags (separate with commas),strengf,helf,steal\r\n');
+    assert.equal(await readFile(templateFile, 'utf8'), 'name,count,deck,cost,text,flavor,type,tags (separate with commas),strengf,helf,steal,equip_cost\r\n');
 
     assert.deepEqual(errors, [], 'no console errors');
     console.log('\nAll end-to-end checks passed.');
