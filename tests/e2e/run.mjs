@@ -131,7 +131,7 @@ async function run() {
     await page.waitForFunction(() => document.querySelectorAll('.tile canvas').length === 8);
     await page.screenshot({ path: path.join(OUT, 'preview-full-art.png'), fullPage: true });
 
-    // Street example: graffiti layout, cards with all, no, and some stats.
+    // Street example: graffiti layout; only Thugs have stats.
     await page.click('[data-example="street-cards.csv"] >> nth=0');
     await page.waitForFunction(() => document.querySelectorAll('.tile canvas').length === 5);
     assert.match(await page.textContent('#sheet-status'), /street-cards\.csv: 5 cards/);
@@ -146,6 +146,7 @@ async function run() {
     const street = JSON.parse(await streetTts.zip.file('Card Builder/Street Deck.json').async('string'));
     assert.equal(street.ObjectStates[0].ContainedObjects.length, 10);
     assert.match(street.ObjectStates[0].ContainedObjects[0].Description, /Cost: 5/);
+    assert.match(street.ObjectStates[0].ContainedObjects[0].Description, /Strengf 4 · Helf 3 · Steal 2/);
 
     // .xlsx files: inline strings (openpyxl) and shared strings (Excel).
     await page.setInputFiles('#sheet-input', path.join(ROOT, 'tests/fixtures/cards.xlsx'));

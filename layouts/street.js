@@ -1,16 +1,16 @@
 // Street: graffiti-style card. Name at the top over big art, a "$" cost sticker,
 // a rules box, a type bar ("TYPE — tag · tag · tag") and three stat boxes.
-// Cards with no stats drop the stat row; the rules box grows to fill the space,
-// so every card keeps the same overall shape.
+// Only Thug units have stats. Every other card drops the stat row and the rules
+// box grows to fill the space, so all cards keep the same overall shape.
 //
-// Columns: name, cost, art, text, flavor, type, tags (comma-separated), stat1–stat3.
+// Columns: name, cost, art, text, flavor, type, tags (comma-separated),
+// strengf, helf, steal.
 
-// The three stats, left to right. Rename the labels here (and the fields, if
-// the spreadsheet columns get different names).
+// The three Thug stats, left to right. Spellings are the game's own; keep them.
 const STATS = [
-  { field: 'stat1', label: 'STAT 1' },
-  { field: 'stat2', label: 'STAT 2' },
-  { field: 'stat3', label: 'STAT 3' },
+  { field: 'strengf', label: 'STRENGF' },
+  { field: 'helf', label: 'HELF' },
+  { field: 'steal', label: 'STEAL' },
 ];
 const STAT_FIELDS = STATS.map((s) => s.field);
 

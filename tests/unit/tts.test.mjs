@@ -78,9 +78,10 @@ test('saved object: a single card is a Card, not a deck', () => {
   assert.equal(saved.ObjectStates[0].Nickname, 'Solo');
 });
 
-test('card descriptions include tags and numbered stats', () => {
+test('card descriptions include tags and any extra columns, labelled', () => {
   assert.equal(
-    cardDescription({ type: 'Crew', tags: 'Leader, Hustler', cost: '5', text: '**Go.**', stat1: '4', stat3: '2', flavor: 'Yo' }),
-    '[b]Crew — Leader · Hustler[/b]\nCost: 5\n[b]Go.[/b]\n[b]4 / – / 2[/b]\n[i]Yo[/i]',
+    cardDescription({ name: 'X', art: 'x.png', type: 'Thug', tags: 'Crew, Leader', cost: '5', text: '**Go.**', strengf: '4', helf: '', steal: '2', street_cred: '1', flavor: 'Yo' }),
+    '[b]Thug — Crew · Leader[/b]\nCost: 5\n[b]Go.[/b]\n[b]Strengf 4 · Steal 2 · Street cred 1[/b]\n[i]Yo[/i]',
   );
+  assert.equal(cardDescription({ name: 'Plain', type: 'Event', text: 'Hi' }), '[b]Event[/b]\nHi');
 });

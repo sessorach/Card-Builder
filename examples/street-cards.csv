@@ -1,6 +1,6 @@
-name,deck,count,layout,cost,type,tags,text,flavor,stat1,stat2,stat3,color,art
-Block Party Boss,Street Deck,2,street,5,Crew,"Leader, Hustler","When Block Party Boss enters, your other **Crew** cards get +1 to every stat this turn.",Everybody knows whose party it is.,4,3,2,#ffcc1a,neon.jpg
-Corner Lookout,Street Deck,3,street,2,Crew,Lookout,"**Alert.** At the start of your turn, look at the top card of any deck.",,1,2,3,#3ec1d3,alley.jpg
-Night Shift,Street Deck,2,street,3,Event,"Night, Hustle","Draw two cards. If you played a **Crew** card this turn, draw three instead.",The city never sleeps. Neither do you.,,,,#8a5cf5,night.jpg
-Mixtape Drop,Street Deck,2,street,1,Event,"Music, Hype, Promo","Gain $2. The next **Crew** card you play this turn costs $1 less.",,,,,#ff3d6e,gold.jpg
-Corner Store,Street Deck,1,street,4,Spot,Business,At the start of your turn: gain $1.,Open 24 hours. Mostly.,,,5,#6cc24a,
+name,deck,count,layout,cost,type,tags,text,flavor,strengf,helf,steal,color,art
+Block Party Boss,Street Deck,2,street,5,Thug,"Crew, Leader","When Block Party Boss enters, your other **Thug** cards get +1 Strengf this turn.",Everybody knows whose party it is.,4,3,2,#ffcc1a,neon.jpg
+Corner Lookout,Street Deck,3,street,2,Thug,"Crew, Lookout","**Alert.** At the start of your turn, look at the top card of any deck.",,1,2,3,#3ec1d3,alley.jpg
+Night Shift,Street Deck,2,street,3,Event,"Night, Hustle","Draw two cards. If you played a **Thug** this turn, draw three instead.",The city never sleeps. Neither do you.,,,,#8a5cf5,night.jpg
+Mixtape Drop,Street Deck,2,street,1,Event,"Music, Hype, Promo","Gain $2. The next **Thug** you play this turn costs $1 less.",,,,,#ff3d6e,gold.jpg
+Corner Store,Street Deck,1,street,4,Spot,Business,At the start of your turn: gain $1.,Open 24 hours. Mostly.,,,,#6cc24a,

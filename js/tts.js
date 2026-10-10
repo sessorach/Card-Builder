@@ -71,7 +71,10 @@ export function imageUrl(fileName, location) {
   return `file://${folder}/${fileName}`;
 }
 
-const NUMBERED_STATS = ['stat1', 'stat2', 'stat3'];
+// Columns the description handles itself (or that aren't card text at all).
+const DESCRIBED = new Set(['name', 'count', 'deck', 'layout', 'art', 'color', 'type', 'subtype', 'tags', 'cost', 'text', 'flavor', 'stats']);
+
+const columnLabel = (key) => key.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase());
 
 export function cardDescription(fields) {
   const tags = splitList(fields.tags).join(' · ');
@@ -81,9 +84,9 @@ export function cardDescription(fields) {
   if (fields.cost) parts.push(`Cost: ${fields.cost}`);
   if (fields.text) parts.push(toTtsText(fields.text));
   if (fields.stats) parts.push(`[b]${fields.stats}[/b]`);
-  if (NUMBERED_STATS.some((f) => fields[f])) {
-    parts.push(`[b]${NUMBERED_STATS.map((f) => fields[f] || '–').join(' / ')}[/b]`);
-  }
+  // Any other filled-in columns (e.g. a layout's stats), labelled by column name.
+  const extra = Object.entries(fields).filter(([key, value]) => !DESCRIBED.has(key) && String(value).trim());
+  if (extra.length) parts.push(`[b]${extra.map(([key, value]) => `${columnLabel(key)} ${value}`).join(' · ')}[/b]`);
   if (fields.flavor) parts.push(`[i]${toTtsText(fields.flavor)}[/i]`);
   return parts.join('\n');
 }

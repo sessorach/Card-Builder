@@ -36,7 +36,7 @@ Only `name` is required.
 | `text` | Rules text |
 | `flavor` | Italic flavor text |
 | `stats` | Default, Full Art, Text Only: one badge, e.g. `3 / 2` |
-| `stat1`, `stat2`, `stat3` | Street: three stat boxes (all empty → bigger rules box) |
+| `strengf`, `helf`, `steal` | Street: the three Thug stats, each in its own box (leave empty on other cards for a bigger rules box) |
 | `color` | Card color: a name (`crimson`) or hex (`#3b5b7a`) |
 | `layout` | `default`, `full-art`, `text-only` or `street` |
 

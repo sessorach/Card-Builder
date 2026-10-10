@@ -73,6 +73,10 @@ ships with four layouts:
 - **Text Only:** no art, for spells, events and prototypes.
 - **Street:** the first layout designed for our game (see below).
 
+Positions in a layout are percentages of the card rather than pixels or
+millimeters. Text sizes are percentages of the card's width. That way the same
+layout works at any resolution, and at other card sizes later.
+
 ### Columns are shared; each layout shows them its own way
 
 Different layouts (or "formats") need different elements, but there is a lot
@@ -80,7 +84,7 @@ of overlap. So a column means the same thing in every layout (`name`, `cost`,
 `art`, `text`, `type` and so on), and each layout decides which columns to show
 and how to present them. For example, `cost` is a plain number in a badge on
 Default but is shown as `$3` on Street. Default shows one `stats` column in a
-single badge, while Street uses three stat columns in separate boxes.
+single badge, while Street uses three named stat columns in separate boxes.
 
 **Standing rule:** a column keeps its meaning across layouts. Presentation
 belongs to the layout. The cell holds the value (`3`), and the layout adds any
@@ -104,21 +108,25 @@ Street was specified element by element:
 - The **art** as big as possible: it takes up more than half the card.
 - A smaller **rules box** for the card's text and effect.
 - A **type bar** at the bottom with the card's type followed by its tags:
-  "CREW — LEADER · HUSTLER". Tags go in one `tags` column, separated by
+  "THUG — CREW · LEADER". Tags go in one `tags` column, separated by
   commas. Separate `tag1`, `tag2`, `tag3` columns were considered and rejected
   because the number of tags varies from card to card.
 - A **stat row** at the very bottom: three stats, each in its own small box.
 
-**Cards without stats keep the same shape.** Some card types have no stats.
-For those, the stat row disappears, the type bar drops to the bottom edge, and
-the rules box grows into the freed space, so all the cards still look like one
-set. When a card has some stats but not others, each stat keeps its own slot
-and the missing ones are drawn faded. That way a stat is always in the same
-place, and players can learn where to look.
+**Only Thug units have stats.** The three stats are **Strengf**, **Helf** and
+**Steal**, in that order from left to right. Use those spellings exactly. Each
+has its own column (`strengf`, `helf`, `steal`), named after the stat so the
+spreadsheet headers read the same as the cards. These replaced the
+placeholder columns `stat1` to `stat3` from the first draft.
 
-The three stats live in columns `stat1`, `stat2` and `stat3`, with placeholder
-labels ("STAT 1" and so on) until the game's stat names are settled. Renaming
-them is a one-line change at the top of `layouts/street.js`.
+**Cards without stats keep the same shape.** Many cards aren't Thugs, so most
+cards have no stat row. For those, the type bar drops to the bottom edge and
+the rules box grows into the freed space, so all the cards still look like one
+set. The stat row appears whenever a card has any of the three stats filled
+in. It is driven by the data rather than by the word "Thug", so a new card type
+with stats would work without changing the layout. If a card has some stats
+but not others, each stat keeps its own slot and the missing ones are drawn
+faded, so a stat is always in the same place.
 
 **Fonts.** The brief was a cool, urban font reminiscent of graffiti and hip hop
 culture. Names and cost use **Sedgwick Ave Display**, a graffiti handstyle
@@ -128,10 +136,6 @@ street signage and stays readable small. Rules text uses **Barlow**, because
 graffiti lettering becomes hard to read at rules-text size. Permanent Marker,
 Rubik Spray Paint, Rubik Wet Paint, Knewave and Bungee were also tried for
 names, and switching to any of them is a one-word change in the layout.
-
-Positions in a layout are percentages of the card rather than pixels or
-millimeters. Text sizes are percentages of the card's width. That way the same
-layout works at any resolution, and at other card sizes later.
 
 ## Drawing on a canvas
 
@@ -240,9 +244,11 @@ live:
 - **A website:** the player gives a web address and uploads the images there.
   This works for online play. GitHub Pages works for this.
 
-Card hover descriptions in TTS include the type, subtype and tags, the
-cost, the rules text, the stats (`stats`, or the three numbered stats with "–"
-for missing ones) and the flavor text.
+Card hover descriptions in TTS include the type, subtype and tags, the cost,
+the rules text, the stats and the flavor text. Any other filled-in column is
+listed by its column name (for example "Strengf 4 · Helf 3 · Steal 2"). That
+way a layout's own stats show up on hover without the TTS export needing to
+know about them.
 
 ## Visual style
 
