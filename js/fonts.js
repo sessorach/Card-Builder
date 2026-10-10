@@ -22,6 +22,37 @@ export const FONT_LIBRARY = {
     google: 'Permanent+Marker',
     faces: ['400'],
   },
+  // Flavorful display faces (stat boxes and the like).
+  'rubik-wet-paint': {
+    stack: '"Rubik Wet Paint", Impact, sans-serif',
+    google: 'Rubik+Wet+Paint',
+    faces: ['400'],
+  },
+  'rubik-spray-paint': {
+    stack: '"Rubik Spray Paint", Impact, sans-serif',
+    google: 'Rubik+Spray+Paint',
+    faces: ['400'],
+  },
+  'rubik-dirt': {
+    stack: '"Rubik Dirt", Impact, sans-serif',
+    google: 'Rubik+Dirt',
+    faces: ['400'],
+  },
+  knewave: {
+    stack: '"Knewave", Impact, sans-serif',
+    google: 'Knewave',
+    faces: ['400'],
+  },
+  'bungee-shade': {
+    stack: '"Bungee Shade", Impact, sans-serif',
+    google: 'Bungee+Shade',
+    faces: ['400'],
+  },
+  lacquer: {
+    stack: '"Lacquer", Impact, sans-serif',
+    google: 'Lacquer',
+    faces: ['400'],
+  },
   bebas: {
     stack: '"Bebas Neue", Impact, "Arial Narrow", sans-serif',
     google: 'Bebas+Neue',

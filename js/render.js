@@ -2,6 +2,7 @@
 // particular game: layouts name the fields, this just draws them.
 import { parseRich, joinParts, joinInline, splitList, affix, fitRich, textHeight, ICON_SCALE } from './richtext.js';
 import { FONT_LIBRARY, DEFAULT_FONTS } from './fonts.js';
+import { applyTexture } from './textures.js';
 
 // fonts: a layout's role → { font, weight, boldWeight } map; role: e.g. 'title'.
 function fontString(fonts, role, style, px) {
@@ -39,14 +40,15 @@ export class AssetStore {
       .replace(/[^a-z0-9]/g, '');
   }
 
+  // A later file with the same name replaces the earlier one (e.g. re-dropping fixed art).
   add(name, image) {
     const key = AssetStore.key(name);
     this.images.set(key, image);
     const stem = key.replace(/\.[^.]+$/, '');
-    if (!this.images.has(stem)) this.images.set(stem, image);
+    this.images.set(stem, image);
     const loose = AssetStore.loose(stem);
-    if (loose && !this.byName.has(loose)) this.byName.set(loose, image);
-    this.names.push(name);
+    if (loose) this.byName.set(loose, image);
+    if (!this.names.some((n) => AssetStore.key(n) === key)) this.names.push(name);
   }
 
   get(name) {
@@ -128,6 +130,30 @@ function drawCover(ctx, image, x, y, w, h) {
   ctx.drawImage(image, (image.width - sw) / 2, (image.height - sh) / 2, sw, sh, x, y, w, h);
 }
 
+// The whole image, scaled to fit inside the box and centered (nothing cropped).
+function drawContain(ctx, image, x, y, w, h) {
+  const scale = Math.min(w / image.width, h / image.height);
+  const dw = image.width * scale;
+  const dh = image.height * scale;
+  ctx.drawImage(image, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+}
+
+// A raised edge: a light line along the top of a box fading to a dark line at the bottom.
+function drawBevel(ctx, b, radius, width, strength = 1) {
+  const g = ctx.createLinearGradient(0, b.y, 0, b.y + b.h);
+  g.addColorStop(0, `rgba(255, 255, 255, ${0.45 * strength})`);
+  g.addColorStop(0.5, 'rgba(255, 255, 255, 0)');
+  g.addColorStop(1, `rgba(0, 0, 0, ${0.5 * strength})`);
+  ctx.save();
+  roundRectPath(ctx, b.x, b.y, b.w, b.h, radius);
+  ctx.clip();
+  roundRectPath(ctx, b.x + width / 2, b.y + width / 2, b.w - width, b.h - width, Math.max(0, radius - width / 2));
+  ctx.strokeStyle = g;
+  ctx.lineWidth = width;
+  ctx.stroke();
+  ctx.restore();
+}
+
 function fieldValue(card, field) {
   return String(card.fields[field] ?? '').trim();
 }
@@ -194,6 +220,14 @@ export function renderCard(card, { layout, px, assets, canvas }) {
         ctx.fillStyle = color(el.fill);
         ctx.fill();
       }
+      if (el.texture) {
+        ctx.save();
+        ctx.clip();
+        applyTexture(ctx, el.texture, b, { strength: el.textureStrength ?? 1, unit: s(1) });
+        ctx.restore();
+      }
+      if (el.bevel) drawBevel(ctx, b, s(el.radius || 0), s(el.bevel === true ? 0.7 : el.bevel));
+      roundRectPath(ctx, b.x, b.y, b.w, b.h, s(el.radius || 0));
       if (el.stroke) {
         ctx.strokeStyle = color(el.stroke);
         ctx.lineWidth = s(el.strokeWidth || 0.3);
@@ -215,7 +249,15 @@ function drawImageElement(ctx, card, el, b, { assets, theme, s, color, fonts }) 
   ctx.save();
   roundRectPath(ctx, b.x, b.y, b.w, b.h, s(el.radius || 0));
   ctx.clip();
-  if (image) {
+  if (image && el.fit === 'contain') {
+    // Letterbox: background (and texture) behind the whole, uncropped image.
+    if (el.background) {
+      ctx.fillStyle = color(el.background);
+      ctx.fillRect(b.x, b.y, b.w, b.h);
+    }
+    if (el.texture) applyTexture(ctx, el.texture, b, { strength: el.textureStrength ?? 1, unit: s(1) });
+    drawContain(ctx, image, b.x, b.y, b.w, b.h);
+  } else if (image) {
     drawCover(ctx, image, b.x, b.y, b.w, b.h);
   } else {
     // Placeholder: accent gradient + a big initial, plus the missing file name.

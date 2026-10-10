@@ -23,6 +23,7 @@ Repo: `sessorach/Card-Builder` on GitHub (public, default branch `main`). GitHub
 - `js/xlsx.js`: minimal .xlsx reader (JSZip + DOMParser). Browser-only; covered by e2e.
 - `js/richtext.js`: text markup (`**bold**`, `*italic*`, `{icon}`, `\n`), word wrap, shrink-to-fit, TTS BBCode. Pure; measuring is injected.
 - `js/render.js`: canvas renderer, `AssetStore` (images by file name or loosely by card name), `findArt` (art column → card name fallback), `cardAccent` (color column → layout `colorBy` → default), generated backs. It must stay importable in Node (no DOM use at module top level) so these helpers stay unit-tested in `tests/unit/render.test.mjs`.
+- `js/textures.js`: procedural surface textures for rects and letterboxed images (`paper`, `grit`), from seeded noise tiles, so renders are deterministic. Browser-only at call time but importable in Node (no top-level DOM).
 - `js/fonts.js`: font library (Google Fonts specs + faces to preload), `DEFAULT_FONTS`, and `loadFonts()`, which injects the card-fonts stylesheet. `index.html` only links the UI font.
 - `js/template.js`: blank CSV templates derived from a layout's elements (`templateColumns`, `templateCsv`). Columns a layout shows with `list: true` get a `(separate with commas)` header note; `normalizeHeader` in spreadsheet.js strips any `(…)` so notes are harmless. Pure, Node-tested (`tests/unit/template.test.mjs` pins the Street and Default column lists, so update those when a layout's fields change). The download link sits under the layout picker.
 - `js/tts.js`: sheet planning, image URLs, Saved Object JSON. Pure, Node-tested.
@@ -43,10 +44,10 @@ Repo: `sessorach/Card-Builder` on GitHub (public, default branch `main`). GitHub
 
 ## Layout format (quick reference)
 Layout files are JS modules, so they can use helper functions and constants to build elements (see `layouts/street.js`, which generates its with-stats and no-stats variants from one function).
-Top-level: `id`, `name`, `description`, `defaultColor`, `elements`, optional `colorBy: { field, colors: { value: color } }` (case-insensitive value → accent; a card's `color` column still wins), and optional `fonts`: role → `{ font: <FONT_LIBRARY key>, weight, boldWeight }`. Roles default to `title` = cinzel and `body` = crimson; layouts may add roles (Street adds `cost` and `label`).
+Top-level: `id`, `name`, `description`, `defaultColor`, `elements`, optional `colorBy: { field, colors: { value: color } }` (case-insensitive value → accent; a card's `color` column still wins), and optional `fonts`: role → `{ font: <FONT_LIBRARY key>, weight, boldWeight }`. Roles default to `title` = cinzel and `body` = crimson; layouts may add roles (Street adds `cost`, `label` and `stat`).
 Elements are drawn in order. `x/y/w/h` are % of card width/height; `size`, `minSize`, `radius` and `strokeWidth` are % of card **width**.
-- `rect`: `fill`, `stroke`, `strokeWidth`, `radius`
-- `image`: `field` (default `art`), `radius`, `stroke`. Finds the file named in `field`, else an image named after the card; otherwise draws a placeholder.
+- `rect`: `fill`, `stroke`, `strokeWidth`, `radius`, `texture` (`'paper'` for light panels, `'grit'` for colored/dark ones), `textureStrength` (default 1), `bevel` (`true` or a width in % of card width).
+- `image`: `field` (default `art`), `radius`, `stroke`. Finds the file named in `field`, else an image named after the card; otherwise draws a placeholder. `fit: 'contain'` shows the whole image (letterboxed) over `background` + optional `texture`; the default crops to fill (cover).
 - `text` content, one of:
   - `text: 'LABEL'` (fixed text)
   - `field` (plus `prefix`/`suffix`, added only if the value doesn't already have it; `list: true` + `listSep` splits a comma/semicolon/pipe-separated cell)
@@ -75,4 +76,7 @@ Elements are drawn in order. `x/y/w/h` are % of card width/height; `size`, `minS
 - Local-mode image paths are plain OS paths (`C:\…\Card Builder\images\x.jpg`, or `/Users/…` on Mac), built by `imageUrl`/`localImagesFolder` in js/tts.js. Don't go back to `file:///` URLs: the user's first TTS test with them failed ("unsupported file format", no cards). The plain-path form matches TTS's docs but wasn't yet confirmed in TTS when it was made, so ask how it went if the user tests TTS again.
 - I can't run TTS in the container. Anything about TTS behavior is from docs and forum reports; say so when it matters, and ask the user for exact error text.
 - Canvas only draws fonts that have already loaded; `loadFonts()` (js/fonts.js) preloads every face listed in `FONT_LIBRARY`. A new font, or a new weight/italic of an existing one, needs its face added there, or it silently renders in the fallback font.
-- To compare fonts quickly, render an HTML sample page with Playwright (scratchpad) rather than editing layouts back and forth.
+- To compare fonts quickly, render an HTML sample page with Playwright (scratchpad) rather than editing layouts back and forth. The library already holds the display faces compared for Street (rubik-wet-paint, rubik-spray-paint, rubik-dirt, knewave, bungee-shade, lacquer), so swapping between them is one word.
+- Street must never crop art (`fit: 'contain'`). To check fit after layout changes, render cards with red-bordered very tall and very wide test images (a scratch Playwright script) and confirm all four red edges show.
+- Text in a box shrinks to fit its *height* too (size × lineHeight), so a big single number needs `lineHeight` < 1 or a taller box, or it silently renders smaller than `size`. Drippy/tall display fonts also need `baseline` tuned so they clear labels above and the box edge below.
+- `AssetStore.add` lets a later file with the same name replace an earlier one (re-dropping fixed art must take effect).

@@ -16,6 +16,16 @@ test('images match card names regardless of case, spacing and punctuation', () =
   assert.equal(assets.forName(''), null);
 });
 
+test('dropping a file again replaces the old image', () => {
+  const assets = new AssetStore();
+  assets.add('Boss.png', 'old');
+  assets.add('folder/Boss.png', 'new');
+  assets.add('boss.jpg', 'newest');
+  assert.equal(assets.get('Boss.png'), 'new');
+  assert.equal(assets.forName('Boss'), 'newest');
+  assert.equal(assets.size, 2);
+});
+
 test('the art column wins over the card name, and falls back to it', () => {
   const assets = new AssetStore();
   assets.add('shared.png', 'shared');
