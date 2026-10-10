@@ -24,6 +24,7 @@ Repo: `sessorach/Card-Builder` on GitHub (public, default branch `main`). GitHub
 - `js/richtext.js`: text markup (`**bold**`, `*italic*`, `{icon}`, `\n`), word wrap, shrink-to-fit, TTS BBCode. Pure; measuring is injected.
 - `js/render.js`: canvas renderer, `AssetStore` (images by file name or loosely by card name), `findArt` (art column → card name fallback), `cardAccent` (color column → layout `colorBy` → default), generated backs. It must stay importable in Node (no DOM use at module top level) so these helpers stay unit-tested in `tests/unit/render.test.mjs`.
 - `js/fonts.js`: font library (Google Fonts specs + faces to preload), `DEFAULT_FONTS`, and `loadFonts()`, which injects the card-fonts stylesheet. `index.html` only links the UI font.
+- `js/template.js`: blank CSV templates derived from a layout's elements (`templateColumns`, `templateCsv`). Pure, Node-tested (`tests/unit/template.test.mjs` pins the Street and Default column lists, so update those when a layout's fields change). The download link sits under the layout picker.
 - `js/tts.js`: sheet planning, image URLs, Saved Object JSON. Pure, Node-tested.
 - `js/export.js`: builds both zips (images, TTS). Browser-only.
 - `js/sizes.js`: card sizes (poker only for now) and DPI.

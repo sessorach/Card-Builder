@@ -238,6 +238,17 @@ already needed for the downloads.
 Old-style `.xls` files are not supported. Saving as `.xlsx` or `.csv` works
 around it.
 
+**Blank templates.** Under the layout picker there is a link to download a
+blank CSV template for the chosen layout. The template's columns are worked out
+from the layout itself, in the order the layout draws them, so every layout
+(including new ones) gets an up-to-date template with no extra work.
+Hand-written template files per layout were rejected because they would drift
+out of date whenever a layout changed. Templates hold the header row only,
+because a sample card could too easily end up in someone's deck; the example
+spreadsheets show filled-in cards instead. The `art` column is left out, since
+images match cards by name. `color` is included only for layouts that don't
+color cards by type.
+
 Problems in the spreadsheet show up as warnings above the preview, and the
 rest of the cards still render. Examples include an unknown layout name, a
 count that isn't a number, or art that wasn't uploaded.

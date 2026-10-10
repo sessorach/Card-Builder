@@ -17,8 +17,8 @@ your browser: **https://sessorach.github.io/Card-Builder/**
      TTS `Saved Objects` folder, then find it in-game under
      *Objects → Saved Objects → Card Builder*.
 
-Not sure where to start? Load one of the examples on the page, or download an
-example spreadsheet and edit it.
+Not sure where to start? Pick a layout and download its blank CSV template
+(the link is under the layout picker), or load one of the examples on the page.
 
 ## Spreadsheet tips
 

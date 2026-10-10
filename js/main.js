@@ -6,6 +6,7 @@ import { CARD_SIZES, DEFAULT_SIZE_ID, getSize, sizePx } from './sizes.js';
 import { AssetStore, decodeImage, renderCard, renderBack, findArt, cardAccent } from './render.js';
 import { loadFonts } from './fonts.js';
 import { buildImagesZip, buildTtsZip } from './export.js';
+import { templateCsv } from './template.js';
 
 const $ = (id) => document.getElementById(id);
 const IMAGE_EXT = /\.(png|jpe?g|webp|gif|bmp|avif)$/i;
@@ -430,13 +431,21 @@ function setupControls() {
   for (const l of LAYOUTS) layoutSelect.add(new Option(l.name, l.id));
   layoutSelect.value = getLayout(settings.layout) ? settings.layout : LAYOUTS[0].id;
   settings.layout = layoutSelect.value;
-  const describe = () => ($('layout-desc').textContent = getLayout(settings.layout)?.description || '');
+  const describe = () => {
+    const layout = getLayout(settings.layout);
+    $('layout-desc').textContent = layout?.description || '';
+    $('download-template').textContent = `Download a blank ${layout?.name || ''} template (.csv)`;
+  };
   describe();
   layoutSelect.addEventListener('change', () => {
     settings.layout = layoutSelect.value;
     saveSettings();
     describe();
     rerender();
+  });
+  $('download-template').addEventListener('click', () => {
+    const layout = getLayout(settings.layout) || LAYOUTS[0];
+    download(new Blob([templateCsv(layout)], { type: 'text/csv' }), `${layout.id}-template.csv`);
   });
   $('layout-ids').innerHTML = LAYOUTS.map((l) => `<code>${l.id}</code>`).join(', ');
 

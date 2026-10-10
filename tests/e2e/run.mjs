@@ -162,6 +162,15 @@ async function run() {
     assert.match(warnings, /Missing art \(1\): ghost\.png/);
     assert.match(warnings, /No image found for 1 card: Lonely Card\. Name each image after its card/);
 
+    // Blank CSV template follows the selected layout.
+    await page.selectOption('#layout-select', 'street');
+    assert.equal(await page.textContent('#download-template'), 'Download a blank Street template (.csv)');
+    const [templateDownload] = await Promise.all([page.waitForEvent('download'), page.click('#download-template')]);
+    assert.equal(templateDownload.suggestedFilename(), 'street-template.csv');
+    const templateFile = path.join(OUT, 'street-template.csv');
+    await templateDownload.saveAs(templateFile);
+    assert.equal(await readFile(templateFile, 'utf8'), 'name,count,deck,cost,text,flavor,type,tags,strengf,helf,steal\r\n');
+
     assert.deepEqual(errors, [], 'no console errors');
     console.log('\nAll end-to-end checks passed.');
   } finally {
