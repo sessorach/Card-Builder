@@ -64,8 +64,70 @@ box") rather than a special case for that design.
 
 The page has a layout selector that sets the default. A `layout` column in the
 spreadsheet overrides it for individual cards, so one deck can mix designs. It
-ships with three layouts: Classic (framed, with an art window), Full Art (art
-covers the card) and Text Only (no art).
+ships with four layouts:
+
+- **Default:** a framed card with an art window. This was the first layout,
+  originally called Classic. It was renamed Default to serve as the general
+  starting point, while more specific layouts are designed alongside it.
+- **Full Art:** the art covers the whole card.
+- **Text Only:** no art, for spells, events and prototypes.
+- **Street:** the first layout designed for our game (see below).
+
+### Columns are shared; each layout shows them its own way
+
+Different layouts (or "formats") need different elements, but there is a lot
+of overlap. So a column means the same thing in every layout (`name`, `cost`,
+`art`, `text`, `type` and so on), and each layout decides which columns to show
+and how to present them. For example, `cost` is a plain number in a badge on
+Default but is shown as `$3` on Street. Default shows one `stats` column in a
+single badge, while Street uses three stat columns in separate boxes.
+
+**Standing rule:** a column keeps its meaning across layouts. Presentation
+belongs to the layout. The cell holds the value (`3`), and the layout adds any
+decoration (the `$`). A layout adds a new column only for something no existing
+column covers.
+
+Layouts also choose their own fonts from a shared font library
+(`js/fonts.js`), so a design can look completely different without changing
+the renderer.
+
+### The Street layout
+
+Street was specified element by element:
+
+- The **name** at the top, in a graffiti font. It sits over the top edge of the
+  art with a dark band behind it, a black outline, and a hard drop shadow in
+  the card's color, like spray paint.
+- The **cost** as a number with a dollar sign in front (`$3`), on a tilted
+  sticker in the top corner. Cells can hold just the number; a `$` already
+  typed in the cell isn't doubled.
+- The **art** as big as possible: it takes up more than half the card.
+- A smaller **rules box** for the card's text and effect.
+- A **type bar** at the bottom with the card's type followed by its tags:
+  "CREW — LEADER · HUSTLER". Tags go in one `tags` column, separated by
+  commas. Separate `tag1`, `tag2`, `tag3` columns were considered and rejected
+  because the number of tags varies from card to card.
+- A **stat row** at the very bottom: three stats, each in its own small box.
+
+**Cards without stats keep the same shape.** Some card types have no stats.
+For those, the stat row disappears, the type bar drops to the bottom edge, and
+the rules box grows into the freed space, so all the cards still look like one
+set. When a card has some stats but not others, each stat keeps its own slot
+and the missing ones are drawn faded. That way a stat is always in the same
+place, and players can learn where to look.
+
+The three stats live in columns `stat1`, `stat2` and `stat3`, with placeholder
+labels ("STAT 1" and so on) until the game's stat names are settled. Renaming
+them is a one-line change at the top of `layouts/street.js`.
+
+**Fonts.** The brief was a cool, urban font reminiscent of graffiti and hip hop
+culture. Names and cost use **Sedgwick Ave Display**, a graffiti handstyle
+named after 1520 Sedgwick Avenue in the Bronx, the birthplace of hip hop. The
+type bar and stats use **Bebas Neue**, a condensed poster face that suits
+street signage and stays readable small. Rules text uses **Barlow**, because
+graffiti lettering becomes hard to read at rules-text size. Permanent Marker,
+Rubik Spray Paint, Rubik Wet Paint, Knewave and Bungee were also tried for
+names, and switching to any of them is a one-word change in the layout.
 
 Positions in a layout are percentages of the card rather than pixels or
 millimeters. Text sizes are percentages of the card's width. That way the same
@@ -108,8 +170,10 @@ There is a separate place to upload a card back, and the uploaded back is used
 for every deck. Without an upload, each deck gets a generated back in its own
 color with the deck name on it, so the tool works with no art at all.
 
-Per-deck back uploads were considered and left out for now to keep the page
-simple. A `back` column would be the natural way to add them.
+Per-deck back uploads were left out to keep the page simple, and we confirmed
+that one shared back is fine for now. We will probably want a different back
+for some decks eventually. A `back` column would be the natural way to add
+that.
 
 ## Spreadsheets
 
@@ -176,8 +240,16 @@ live:
 - **A website:** the player gives a web address and uploads the images there.
   This works for online play. GitHub Pages works for this.
 
+Card hover descriptions in TTS include the type, subtype and tags, the
+cost, the rules text, the stats (`stats`, or the three numbered stats with "–"
+for missing ones) and the flavor text.
+
 ## Visual style
 
 The page uses the dark brown and copper look of the Flagon sites, with Cinzel
-for titles. Card text uses Cinzel for names and Crimson Pro for body text, both
-from Google Fonts. Text falls back to Georgia if the fonts can't load.
+for titles.
+
+Each layout picks its card fonts from the font library. Default, Full Art and
+Text Only use Cinzel for names and Crimson Pro for body text. Street uses the
+fonts described above. All card fonts come from Google Fonts, and each has a
+fallback (Georgia, Impact or Arial) if they can't load.

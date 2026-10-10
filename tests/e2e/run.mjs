@@ -67,7 +67,7 @@ async function run() {
     await page.waitForSelector('body[data-ready="true"]');
 
     // Example deck: 8 unique cards in two decks, art loaded.
-    await page.click('#load-example');
+    await page.click('[data-example="example-cards.csv"] >> nth=0');
     await page.waitForFunction(() => document.querySelectorAll('.tile canvas').length === 8);
     assert.match(await page.textContent('#sheet-status'), /8 cards \(22 with copies\)/);
     assert.match(await page.textContent('#art-status'), /4 images/);
@@ -130,6 +130,22 @@ async function run() {
     await page.selectOption('#layout-select', 'full-art');
     await page.waitForFunction(() => document.querySelectorAll('.tile canvas').length === 8);
     await page.screenshot({ path: path.join(OUT, 'preview-full-art.png'), fullPage: true });
+
+    // Street example: graffiti layout, cards with all, no, and some stats.
+    await page.click('[data-example="street-cards.csv"] >> nth=0');
+    await page.waitForFunction(() => document.querySelectorAll('.tile canvas').length === 5);
+    assert.match(await page.textContent('#sheet-status'), /street-cards\.csv: 5 cards/);
+    assert.equal(await page.isHidden('#warnings'), true, 'street example should load without warnings');
+    await page.screenshot({ path: path.join(OUT, 'preview-street.png'), fullPage: true });
+    for (const [i, name] of ['block-party-boss', 'night-shift', 'corner-store'].entries()) {
+      const index = [0, 2, 4][i];
+      const png = await page.evaluate((n) => document.querySelectorAll('.tile canvas')[n].toDataURL('image/png'), index);
+      await writeFile(path.join(OUT, `street-${name}.png`), Buffer.from(png.split(',')[1], 'base64'));
+    }
+    const streetTts = await saveDownload(page, 'export-tts');
+    const street = JSON.parse(await streetTts.zip.file('Card Builder/Street Deck.json').async('string'));
+    assert.equal(street.ObjectStates[0].ContainedObjects.length, 10);
+    assert.match(street.ObjectStates[0].ContainedObjects[0].Description, /Cost: 5/);
 
     // .xlsx files: inline strings (openpyxl) and shared strings (Excel).
     await page.setInputFiles('#sheet-input', path.join(ROOT, 'tests/fixtures/cards.xlsx'));

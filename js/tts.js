@@ -4,7 +4,7 @@
 // How TTS custom decks work: a deck's faces come from one or more "sheet"
 // images, each a grid of up to 10 × 7 cards. Every card names its sheet and
 // slot with CardID = sheetKey * 100 + slotIndex. One back image is shared.
-import { toTtsText } from './richtext.js';
+import { toTtsText, splitList } from './richtext.js';
 
 export const MAX_COLUMNS = 10;
 export const MAX_ROWS = 7;
@@ -71,13 +71,19 @@ export function imageUrl(fileName, location) {
   return `file://${folder}/${fileName}`;
 }
 
+const NUMBERED_STATS = ['stat1', 'stat2', 'stat3'];
+
 export function cardDescription(fields) {
-  const typeLine = [fields.type, fields.subtype].filter(Boolean).join(' — ');
+  const tags = splitList(fields.tags).join(' · ');
+  const typeLine = [fields.type, fields.subtype, tags].filter(Boolean).join(' — ');
   const parts = [];
   if (typeLine) parts.push(`[b]${typeLine}[/b]`);
   if (fields.cost) parts.push(`Cost: ${fields.cost}`);
   if (fields.text) parts.push(toTtsText(fields.text));
   if (fields.stats) parts.push(`[b]${fields.stats}[/b]`);
+  if (NUMBERED_STATS.some((f) => fields[f])) {
+    parts.push(`[b]${NUMBERED_STATS.map((f) => fields[f] || '–').join(' / ')}[/b]`);
+  }
   if (fields.flavor) parts.push(`[i]${toTtsText(fields.flavor)}[/i]`);
   return parts.join('\n');
 }

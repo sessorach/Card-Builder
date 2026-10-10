@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseRich, layoutRich, fitRich, joinParts, toTtsText, textHeight, PARAGRAPH_GAP } from '../../js/richtext.js';
+import { parseRich, layoutRich, fitRich, joinParts, joinInline, splitList, affix, toTtsText, textHeight, PARAGRAPH_GAP } from '../../js/richtext.js';
 
 // Monospace fake: every character is 0.5em wide.
 const measure = (text, style, size) => text.length * size * 0.5;
@@ -57,4 +57,34 @@ test('paragraph gaps between parts add height', () => {
   const { lines } = layoutRich(atoms, { maxWidth: 1000, size: 10, measure });
   assert.deepEqual(lines.map((l) => l.gap), [0, PARAGRAPH_GAP]);
   assert.equal(textHeight(lines, 10, 1), 10 + 10 * (1 + PARAGRAPH_GAP));
+});
+
+test('color passes through to every atom', () => {
+  const atoms = parseRich('a **b** {x}', { color: 'accent' });
+  assert.ok(atoms.every((a) => a.color === 'accent'));
+  assert.equal(parseRich('a')[0].color, undefined);
+});
+
+test('joinInline joins chunks with a separator and keeps wrap points', () => {
+  const atoms = joinInline([parseRich('Crew', { bold: true }), [], parseRich('Hustler'), parseRich('Night Shift')], ' · ');
+  assert.deepEqual(
+    atoms.map((a) => `${a.space ? '_' : ''}${a.bold ? 'B:' : ''}${a.text}`),
+    ['B:Crew', '_·', '_Hustler', '_·', '_Night', '_Shift'],
+  );
+  const glued = joinInline([parseRich('a'), parseRich('b')], '/');
+  assert.deepEqual(glued.map((a) => [a.text, a.space]), [['a', false], ['/', false], ['b', false]]);
+  const spaced = joinInline([parseRich('a'), parseRich('b')], ' ');
+  assert.deepEqual(spaced.map((a) => [a.text, a.space]), [['a', false], ['b', true]]);
+});
+
+test('splitList splits on commas, semicolons and pipes', () => {
+  assert.deepEqual(splitList(' Crew, Hustler;Night Shift | , '), ['Crew', 'Hustler', 'Night Shift']);
+  assert.deepEqual(splitList(''), []);
+});
+
+test('affix adds a prefix or suffix only when missing', () => {
+  assert.equal(affix('3', { prefix: '$' }), '$3');
+  assert.equal(affix('$3', { prefix: '$' }), '$3');
+  assert.equal(affix('', { prefix: '$' }), '');
+  assert.equal(affix('5', { suffix: '%' }), '5%');
 });

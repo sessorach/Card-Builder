@@ -1,30 +1,18 @@
 // Draws cards onto canvases from a layout definition. Knows nothing about any
 // particular game: layouts name the fields, this just draws them.
-import { parseRich, joinParts, fitRich, textHeight, ICON_SCALE } from './richtext.js';
+import { parseRich, joinParts, joinInline, splitList, affix, fitRich, textHeight, ICON_SCALE } from './richtext.js';
+import { FONT_LIBRARY, DEFAULT_FONTS } from './fonts.js';
 
-export const FONTS = {
-  title: { family: '"Cinzel", Georgia, serif', weight: 700, boldWeight: 700 },
-  body: { family: '"Crimson Pro", Georgia, serif', weight: 400, boldWeight: 700 },
-};
-
-// Canvas only draws fonts that have already loaded, so wait for them up front.
-export async function loadFonts() {
-  if (!document.fonts) return;
-  const specs = [
-    '700 40px "Cinzel"',
-    '400 40px "Crimson Pro"',
-    '700 40px "Crimson Pro"',
-    'italic 400 40px "Crimson Pro"',
-    'italic 700 40px "Crimson Pro"',
-  ];
-  const timeout = new Promise((resolve) => setTimeout(resolve, 4000));
-  await Promise.race([Promise.allSettled(specs.map((s) => document.fonts.load(s))), timeout]);
+// fonts: a layout's role → { font, weight, boldWeight } map; role: e.g. 'title'.
+function fontString(fonts, role, style, px) {
+  const spec = fonts[role] || fonts.body || DEFAULT_FONTS.body;
+  const lib = FONT_LIBRARY[spec.font] || FONT_LIBRARY.crimson;
+  const weight = style.bold ? spec.boldWeight ?? spec.weight ?? 700 : spec.weight ?? 400;
+  return `${style.italic ? 'italic ' : ''}${weight} ${px.toFixed(2)}px ${lib.stack}`;
 }
 
-function fontString(fontKey, style, px) {
-  const font = FONTS[fontKey] || FONTS.body;
-  const weight = style.bold ? font.boldWeight : font.weight;
-  return `${style.italic ? 'italic ' : ''}${weight} ${px.toFixed(2)}px ${font.family}`;
+export function layoutFonts(layout) {
+  return { ...DEFAULT_FONTS, ...(layout?.fonts || {}) };
 }
 
 // ---- Images ---------------------------------------------------------------
@@ -89,8 +77,10 @@ const rgb = (c) => `rgb(${c.join(', ')})`;
 
 export function makeTheme(color, fallback = '#8a5a2b') {
   const base = parseColor(color) || parseColor(fallback);
+  const luminance = 0.299 * base[0] + 0.587 * base[1] + 0.114 * base[2];
   return {
     accent: rgb(base),
+    onAccent: luminance > 150 ? '#141414' : '#ffffff', // readable text on an accent fill
     accentDark: rgb(mix(base, [0, 0, 0], 0.45)),
     accentLight: rgb(mix(base, [255, 255, 255], 0.55)),
     ink: '#231a12',
@@ -123,6 +113,11 @@ function fieldValue(card, field) {
   return String(card.fields[field] ?? '').trim();
 }
 
+// `when`/`unless` name one field or a list of fields; a list matches if any field has a value.
+function anyValue(card, fields) {
+  return [].concat(fields).some((f) => fieldValue(card, f));
+}
+
 // ---- Card rendering -----------------------------------------------------
 
 // card: { name, art, fields }, layout: see layouts/, px: { width, height }
@@ -132,6 +127,7 @@ export function renderCard(card, { layout, px, assets, canvas }) {
   canvas.height = px.height;
   const ctx = canvas.getContext('2d');
   const theme = makeTheme(card.fields.color, layout.defaultColor);
+  const fonts = layoutFonts(layout);
   const W = px.width;
   const H = px.height;
   const box = (el) => ({ x: (el.x / 100) * W, y: (el.y / 100) * H, w: (el.w / 100) * W, h: (el.h / 100) * H });
@@ -139,11 +135,18 @@ export function renderCard(card, { layout, px, assets, canvas }) {
   const color = (c) => theme[c] || c;
 
   for (const el of layout.elements) {
-    if (el.when && !fieldValue(card, el.when)) continue;
-    if (el.unless && fieldValue(card, el.unless)) continue;
+    if (el.when && !anyValue(card, el.when)) continue;
+    if (el.unless && anyValue(card, el.unless)) continue;
     const b = box(el);
     ctx.save();
     if (el.opacity != null) ctx.globalAlpha = el.opacity;
+    if (el.rotate) {
+      const cx = b.x + b.w / 2;
+      const cy = b.y + b.h / 2;
+      ctx.translate(cx, cy);
+      ctx.rotate((el.rotate * Math.PI) / 180);
+      ctx.translate(-cx, -cy);
+    }
 
     if (el.type === 'rect') {
       roundRectPath(ctx, b.x, b.y, b.w, b.h, s(el.radius || 0));
@@ -157,16 +160,16 @@ export function renderCard(card, { layout, px, assets, canvas }) {
         ctx.stroke();
       }
     } else if (el.type === 'image') {
-      drawImageElement(ctx, card, el, b, { assets, theme, s, color });
+      drawImageElement(ctx, card, el, b, { assets, theme, s, color, fonts });
     } else if (el.type === 'text') {
-      drawTextElement(ctx, card, el, b, { assets, s, color });
+      drawTextElement(ctx, card, el, b, { assets, s, color, fonts });
     }
     ctx.restore();
   }
   return canvas;
 }
 
-function drawImageElement(ctx, card, el, b, { assets, theme, s, color }) {
+function drawImageElement(ctx, card, el, b, { assets, theme, s, color, fonts }) {
   const name = fieldValue(card, el.field || 'art');
   const image = assets?.get(name);
   ctx.save();
@@ -183,12 +186,12 @@ function drawImageElement(ctx, card, el, b, { assets, theme, s, color }) {
     ctx.fillRect(b.x, b.y, b.w, b.h);
     const big = Math.min(b.w, b.h) * 0.45;
     ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-    ctx.font = fontString('title', {}, big);
+    ctx.font = fontString(fonts, 'title', {}, big);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText((card.name || '?').trim().charAt(0).toUpperCase(), b.x + b.w / 2, b.y + b.h / 2);
     if (name) {
-      ctx.font = fontString('body', { italic: true }, s(3.4));
+      ctx.font = fontString(fonts, 'body', {}, s(3.4));
       ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
       ctx.fillText(`missing art: ${name}`, b.x + b.w / 2, b.y + b.h * 0.88, b.w * 0.9);
     }
@@ -202,33 +205,48 @@ function drawImageElement(ctx, card, el, b, { assets, theme, s, color }) {
   }
 }
 
-function textAtoms(card, el) {
-  const base = { bold: el.weight === 'bold', italic: !!el.italic };
-  if (el.parts) {
-    return joinParts(
-      el.parts.map((p) => {
-        const part = typeof p === 'string' ? { field: p } : p;
-        return parseRich(fieldValue(card, part.field), {
-          bold: part.bold ?? base.bold,
-          italic: part.italic ?? base.italic,
-        });
-      }),
-    );
+// One field's text. entry: 'field' or { field, bold, italic, color, prefix, suffix, list, listSep }.
+// list: the cell holds comma-separated items, shown joined with listSep.
+function entryAtoms(card, entry, base) {
+  const e = typeof entry === 'string' ? { field: entry } : entry;
+  const style = { bold: e.bold ?? base.bold, italic: e.italic ?? base.italic, color: e.color ?? base.color };
+  const value = fieldValue(card, e.field);
+  if (!value) return [];
+  if (e.list) {
+    const items = splitList(value).map((item) => parseRich(affix(item, e), style));
+    return joinInline(items, e.listSep ?? ' · ', style);
   }
-  if (el.join) {
-    const values = el.join.map((f) => fieldValue(card, f)).filter(Boolean);
-    return parseRich(values.join(el.sep ?? ' '), base);
-  }
-  return parseRich(fieldValue(card, el.field), base);
+  return parseRich(affix(value, e), style);
 }
 
-function drawTextElement(ctx, card, el, b, { assets, s, color }) {
+function textAtoms(card, el) {
+  const base = { bold: el.weight === 'bold', italic: !!el.italic };
+  if (el.text != null) return parseRich(el.text, base); // fixed text, e.g. a label
+  if (el.parts) return joinParts(el.parts.map((p) => entryAtoms(card, p, base)));
+  if (el.join) {
+    const sepStyle = { ...base, color: el.sepColor };
+    return joinInline(el.join.map((p) => entryAtoms(card, p, base)), el.sep ?? ' ', sepStyle);
+  }
+  return entryAtoms(card, el, base);
+}
+
+// shadow: true (soft glow) or { color, x, y, blur } with offsets in ems of the font size.
+function applyShadow(ctx, shadow, size, color) {
+  if (!shadow) return;
+  const sh = shadow === true ? { color: 'rgba(0, 0, 0, 0.75)', x: 0, y: 0.04, blur: 0.18 } : shadow;
+  ctx.shadowColor = color(sh.color || '#000');
+  ctx.shadowOffsetX = (sh.x || 0) * size;
+  ctx.shadowOffsetY = (sh.y || 0) * size;
+  ctx.shadowBlur = (sh.blur || 0) * size;
+}
+
+function drawTextElement(ctx, card, el, b, { assets, s, color, fonts }) {
   const atoms = textAtoms(card, el);
   if (!atoms.length) return;
 
   const cache = new Map();
   const measure = (text, style, px) => {
-    const font = fontString(el.font, style, px);
+    const font = fontString(fonts, el.font, style, px);
     const key = `${font}|${text}`;
     if (!cache.has(key)) {
       ctx.font = font;
@@ -258,36 +276,53 @@ function drawTextElement(ctx, card, el, b, { assets, s, color }) {
   const fill = color(el.color || 'ink');
   ctx.textBaseline = 'alphabetic';
   ctx.textAlign = 'left';
-  if (el.shadow) {
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.75)';
-    ctx.shadowBlur = size * 0.18;
-    ctx.shadowOffsetY = size * 0.04;
-  }
 
+  // Position every atom first, so outlines can all be drawn before any fill.
+  const placed = [];
   let y = top;
   for (const line of fit.lines) {
     y += line.gap * size;
     const center = y + lineH / 2;
     y += lineH;
-    const baseline = center + size * 0.32;
     let left = b.x;
     if (el.align === 'center') left = b.x + (b.w - line.width) / 2;
     else if (el.align === 'right') left = b.x + b.w - line.width;
-
     for (const item of line.items) {
-      const { atom } = item;
-      if (atom.kind === 'icon') {
-        drawIcon(ctx, atom.name, left + item.x, center, size, fill, assets);
-      } else {
-        ctx.font = fontString(el.font, atom, size);
-        ctx.fillStyle = fill;
-        ctx.fillText(atom.text, left + item.x, baseline);
-      }
+      placed.push({ atom: item.atom, x: left + item.x, center, baseline: center + size * (el.baseline ?? 0.32) });
+    }
+  }
+
+  // Outline pass (carries the shadow), then fill pass. Without an outline the fill carries it.
+  if (el.outline) {
+    ctx.save();
+    applyShadow(ctx, el.shadow, size, color);
+    ctx.lineJoin = 'round';
+    ctx.miterLimit = 2;
+    ctx.lineWidth = size * (el.outlineWidth ?? 0.12) * 2;
+    ctx.strokeStyle = color(el.outline);
+    for (const p of placed) {
+      if (p.atom.kind !== 'text') continue;
+      ctx.font = fontString(fonts, el.font, p.atom, size);
+      ctx.strokeText(p.atom.text, p.x, p.baseline);
+    }
+    ctx.restore();
+  } else {
+    applyShadow(ctx, el.shadow, size, color);
+  }
+
+  for (const p of placed) {
+    const atomFill = p.atom.color ? color(p.atom.color) : fill;
+    if (p.atom.kind === 'icon') {
+      drawIcon(ctx, p.atom.name, p.x, p.center, size, atomFill, assets, fonts);
+    } else {
+      ctx.font = fontString(fonts, el.font, p.atom, size);
+      ctx.fillStyle = atomFill;
+      ctx.fillText(p.atom.text, p.x, p.baseline);
     }
   }
 }
 
-function drawIcon(ctx, name, x, center, size, fill, assets) {
+function drawIcon(ctx, name, x, center, size, fill, assets, fonts) {
   const d = size * ICON_SCALE * 0.92;
   const cx = x + (size * ICON_SCALE) / 2;
   const image = assets?.icon(name);
@@ -307,7 +342,7 @@ function drawIcon(ctx, name, x, center, size, fill, assets) {
   ctx.lineWidth = Math.max(1, size * 0.07);
   ctx.stroke();
   ctx.fillStyle = fill;
-  ctx.font = fontString('title', {}, d * 0.6);
+  ctx.font = fontString(fonts, 'title', {}, d * 0.6);
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(name.charAt(0).toUpperCase(), cx, center + d * 0.04);
@@ -368,11 +403,11 @@ export function renderBack({ image, px, title, color }) {
   const label = String(title || '').trim();
   if (label) {
     let size = W * 0.075;
-    ctx.font = fontString('title', {}, size);
+    ctx.font = fontString(DEFAULT_FONTS, 'title', {}, size);
     const max = ovalW * 0.8;
     const width = ctx.measureText(label).width;
     if (width > max) size *= max / width;
-    ctx.font = fontString('title', {}, size);
+    ctx.font = fontString(DEFAULT_FONTS, 'title', {}, size);
     ctx.fillStyle = theme.paper;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';

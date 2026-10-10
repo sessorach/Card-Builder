@@ -1,9 +1,9 @@
-// Classic: framed card with a title bar, art window, type line, rules box and
+// Default: framed card with a title bar, art window, type line, rules box and
 // a stats badge. Coordinates are percentages of the card (x/w of its width,
 // y/h of its height); sizes, radii and stroke widths are percentages of its width.
 export default {
-  id: 'classic',
-  name: 'Classic',
+  id: 'default',
+  name: 'Default',
   description: 'Framed card: title bar, art window, type line, rules box, stats badge.',
   defaultColor: '#8a5a2b',
   elements: [

@@ -3,7 +3,8 @@ import { parseDelimited, detectDelimiter, rowsToCards, groupByDeck } from './spr
 import { readXlsx } from './xlsx.js';
 import { LAYOUTS, getLayout } from '../layouts/index.js';
 import { CARD_SIZES, DEFAULT_SIZE_ID, getSize, sizePx } from './sizes.js';
-import { AssetStore, decodeImage, loadFonts, renderCard, renderBack } from './render.js';
+import { AssetStore, decodeImage, renderCard, renderBack } from './render.js';
+import { loadFonts } from './fonts.js';
 import { buildImagesZip, buildTtsZip } from './export.js';
 
 const $ = (id) => document.getElementById(id);
@@ -33,7 +34,7 @@ function loadSettings() {
   }
 }
 const settings = {
-  layout: 'classic',
+  layout: 'default',
   size: DEFAULT_SIZE_ID,
   ttsMode: 'local',
   savedObjects: '',
@@ -146,9 +147,9 @@ async function setBack(file) {
   await rerender();
 }
 
-async function loadExample() {
+async function loadExample(file) {
   try {
-    const text = await (await fetch('examples/example-cards.csv')).text();
+    const text = await (await fetch(`examples/${file}`)).text();
     const { cards } = rowsToCards(parseDelimited(text));
     const artNames = [...new Set(cards.map((c) => c.art).filter(Boolean))];
     const art = await Promise.all(
@@ -158,7 +159,7 @@ async function loadExample() {
       }),
     );
     await addArt(art.filter(Boolean));
-    await loadSpreadsheet(new File([text], 'example-cards.csv', { type: 'text/csv' }));
+    await loadSpreadsheet(new File([text], file, { type: 'text/csv' }));
   } catch (err) {
     console.error(err);
     setStatus(`Couldn't load the example: ${err.message}`);
@@ -485,8 +486,9 @@ function setupControls() {
     $('art-status').innerHTML = 'Matched to the <code>art</code> column by file name';
     rerender();
   });
-  $('load-example').addEventListener('click', loadExample);
-  $('load-example-2').addEventListener('click', loadExample);
+  document.querySelectorAll('[data-example]').forEach((button) =>
+    button.addEventListener('click', () => loadExample(button.dataset.example)),
+  );
   $('show-columns').addEventListener('click', (e) => {
     e.preventDefault();
     $('columns').hidden = !$('columns').hidden;

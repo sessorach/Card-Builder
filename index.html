@@ -8,7 +8,8 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='7' y='3' width='18' height='26' rx='3' fill='%23191410' stroke='%23c9752f' stroke-width='2'/%3E%3Crect x='10' y='7' width='12' height='9' rx='1' fill='%23e8d9c4'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Crimson+Pro:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <!-- Page UI font only; card fonts are loaded by js/fonts.js. -->
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <script src="vendor/jszip.min.js"></script>
   <script type="module" src="js/main.js"></script>
@@ -29,8 +30,12 @@
           <span class="drop-sub" id="sheet-status">or click to choose a file</span>
         </label>
         <p class="hint">
-          <button type="button" class="link" id="load-example">Try the example deck</button> ·
-          <a href="examples/example-cards.csv" download>Download the example spreadsheet</a> ·
+          Try an example:
+          <button type="button" class="link" data-example="example-cards.csv">Default</button> ·
+          <button type="button" class="link" data-example="street-cards.csv">Street</button>
+          <br>Example spreadsheets:
+          <a href="examples/example-cards.csv" download>Default</a> ·
+          <a href="examples/street-cards.csv" download>Street</a> ·
           <a href="#columns" id="show-columns">Columns</a>
         </p>
       </section>
@@ -121,7 +126,7 @@
       <div id="warnings" class="warnings" hidden></div>
       <div id="decks">
         <div class="empty">
-          <p>Drop a spreadsheet anywhere on the page to get started, or <button type="button" class="link" id="load-example-2">try the example deck</button>.</p>
+          <p>Drop a spreadsheet anywhere on the page to get started, or try an example deck: <button type="button" class="link" data-example="example-cards.csv">Default</button> · <button type="button" class="link" data-example="street-cards.csv">Street</button>.</p>
         </div>
       </div>
 
@@ -133,11 +138,13 @@
           <tr><th>count</th><td>Copies in the deck (default 1; 0 leaves the card out).</td></tr>
           <tr><th>deck</th><td>Which deck the card belongs to. Each deck becomes its own TTS object.</td></tr>
           <tr><th>art</th><td>Image file name, e.g. <code>flame-imp.png</code> (the extension is optional).</td></tr>
-          <tr><th>cost</th><td>Shown in a badge in the corner.</td></tr>
+          <tr><th>cost</th><td>Shown in a badge in the corner (Street shows it as <code>$3</code>).</td></tr>
           <tr><th>type, subtype</th><td>Type line, e.g. “Creature — Imp”.</td></tr>
+          <tr><th>tags</th><td>Street: comma-separated tags after the type, e.g. <code>Leader, Hustler</code>.</td></tr>
           <tr><th>text</th><td>Rules text. Supports <code>**bold**</code>, <code>*italic*</code>, <code>{icon}</code> and line breaks.</td></tr>
           <tr><th>flavor</th><td>Italic flavor text under the rules.</td></tr>
-          <tr><th>stats</th><td>Shown in a badge, e.g. <code>3 / 2</code>.</td></tr>
+          <tr><th>stats</th><td>Default, Full Art, Text Only: one badge, e.g. <code>3 / 2</code>.</td></tr>
+          <tr><th>stat1, stat2, stat3</th><td>Street: three stat boxes. Leave all three empty and the rules box grows to fill the space.</td></tr>
           <tr><th>color</th><td>Card color: a name (<code>crimson</code>) or hex (<code>#3b5b7a</code>).</td></tr>
           <tr><th>layout</th><td>Override the layout for this card: <span id="layout-ids"></span>.</td></tr>
         </table>

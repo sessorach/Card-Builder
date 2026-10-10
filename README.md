@@ -6,13 +6,14 @@ and ready-to-load **Tabletop Simulator** decks, all in your browser.
 ## Using it
 
 1. **Spreadsheet:** drop a `.csv` or `.xlsx` file onto the page. Each row is a
-   card. Click *Try the example deck* to see how it works, or download the
-   example spreadsheet as a starting point.
+   card. Click an example (*Default* or *Street*) to see how it works, or
+   download an example spreadsheet as a starting point.
 2. **Card art:** drop your images (or a whole folder). They're matched to the
    `art` column by file name.
 3. **Card back** (optional): drop one image to use as the back. Without one,
    each deck gets a generated back.
-4. **Style:** pick a layout. A `layout` column can override it per card.
+4. **Style:** pick a layout: Default, Full Art, Text Only or Street. A
+   `layout` column can override it per card.
 5. **Export:**
    - **Download TTS deck:** unzip into your Tabletop Simulator `Saved Objects`
      folder, then spawn each deck from *Objects → Saved Objects → Card Builder*.
@@ -29,13 +30,15 @@ Only `name` is required.
 | `count` | Copies in the deck (default 1; 0 leaves the card out) |
 | `deck` | Which deck the card belongs to. Each deck becomes its own TTS object |
 | `art` | Image file name, e.g. `flame-imp.png` |
-| `cost` | Badge in the corner |
+| `cost` | Badge in the corner (Street shows it as `$3`) |
 | `type`, `subtype` | Type line, e.g. "Creature — Imp" |
+| `tags` | Street: comma-separated tags shown after the type |
 | `text` | Rules text |
 | `flavor` | Italic flavor text |
-| `stats` | Badge, e.g. `3 / 2` |
+| `stats` | Default, Full Art, Text Only: one badge, e.g. `3 / 2` |
+| `stat1`, `stat2`, `stat3` | Street: three stat boxes (all empty → bigger rules box) |
 | `color` | Card color: a name (`crimson`) or hex (`#3b5b7a`) |
-| `layout` | `classic`, `full-art` or `text-only` |
+| `layout` | `default`, `full-art`, `text-only` or `street` |
 
 Text can use `**bold**`, `*italic*`, line breaks (Alt+Enter in the cell, or
 `\n`), and icons like `{fire}`. An icon draws an uploaded image named

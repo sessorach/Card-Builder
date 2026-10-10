@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { planSheets, sheetCardPx, buildSavedObject, imageUrl, slug, MAX_PER_SHEET } from '../../js/tts.js';
+import { planSheets, sheetCardPx, buildSavedObject, imageUrl, slug, cardDescription, MAX_PER_SHEET } from '../../js/tts.js';
 
 const seeded = (seed = 1) => () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
 
@@ -76,4 +76,11 @@ test('saved object: a single card is a Card, not a deck', () => {
   const saved = buildSavedObject({ deck: { name: 'One', cards: [{ name: 'Solo', count: 1, fields: {} }] }, sheets, backUrl: 'b', rng: seeded() });
   assert.equal(saved.ObjectStates[0].Name, 'Card');
   assert.equal(saved.ObjectStates[0].Nickname, 'Solo');
+});
+
+test('card descriptions include tags and numbered stats', () => {
+  assert.equal(
+    cardDescription({ type: 'Crew', tags: 'Leader, Hustler', cost: '5', text: '**Go.**', stat1: '4', stat3: '2', flavor: 'Yo' }),
+    '[b]Crew — Leader · Hustler[/b]\nCost: 5\n[b]Go.[/b]\n[b]4 / – / 2[/b]\n[i]Yo[/i]',
+  );
 });

@@ -5,10 +5,11 @@
 //   **bold**   *italic*   {icon}   line breaks (Alt+Enter in the sheet, or a literal \n)
 //   A backslash escapes the next * { } or \ character.
 
-// Atoms: { kind: 'text', text, bold, italic, space }
-//        { kind: 'icon', name, bold, italic, space }
+// Atoms: { kind: 'text', text, bold, italic, color?, space }
+//        { kind: 'icon', name, bold, italic, color?, space }
 //        { kind: 'break', gap? }   gap: extra space above the next line, in ems
 // `space` means whitespace came before the atom, i.e. the line may wrap there.
+// base: starting style { bold, italic, color }; color is passed through to every atom.
 export function parseRich(input, base = {}) {
   const str = String(input ?? '').replace(/\\n/g, '\n');
   const atoms = [];
@@ -16,9 +17,10 @@ export function parseRich(input, base = {}) {
   let italic = !!base.italic;
   let word = '';
   let space = false;
+  const color = base.color ? { color: base.color } : {};
 
   const flush = () => {
-    if (word) atoms.push({ kind: 'text', text: word, bold, italic, space });
+    if (word) atoms.push({ kind: 'text', text: word, bold, italic, ...color, space });
     if (word) space = false;
     word = '';
   };
@@ -46,7 +48,7 @@ export function parseRich(input, base = {}) {
       const name = end > i ? str.slice(i + 1, end).trim() : '';
       if (/^[\w-]+$/.test(name)) {
         flush();
-        atoms.push({ kind: 'icon', name: name.toLowerCase(), bold, italic, space });
+        atoms.push({ kind: 'icon', name: name.toLowerCase(), bold, italic, ...color, space });
         space = false;
         i = end;
       } else {
@@ -70,6 +72,43 @@ export function joinParts(parts) {
     atoms.push(...part);
   }
   return atoms;
+}
+
+// Joins chunks on one line with a separator string (e.g. ' — ' or ' · ').
+// Whitespace at either end of the separator becomes a wrap point.
+export function joinInline(chunks, sep = ' ', sepStyle = {}) {
+  const sepAtoms = parseRich(sep, sepStyle);
+  const spaceBefore = /^\s/.test(sep);
+  const spaceAfter = sepAtoms.length ? /\s$/.test(sep) : /\s/.test(sep);
+  const out = [];
+  for (const chunk of chunks) {
+    if (!chunk.length) continue;
+    const [first, ...rest] = chunk;
+    if (out.length) {
+      sepAtoms.forEach((a, i) => out.push(i === 0 ? { ...a, space: spaceBefore } : a));
+      out.push({ ...first, space: spaceAfter }, ...rest);
+    } else {
+      out.push(first, ...rest);
+    }
+  }
+  return out;
+}
+
+// Splits a list cell like "Crew, Hustler; Night Shift" into its items.
+export function splitList(value) {
+  return String(value ?? '')
+    .split(/\s*[,;|]\s*/)
+    .map((v) => v.trim())
+    .filter(Boolean);
+}
+
+// Adds a prefix/suffix unless the value already has it ("3" → "$3", "$3" stays "$3").
+export function affix(value, { prefix = '', suffix = '' } = {}) {
+  let out = String(value ?? '');
+  if (!out) return out;
+  if (prefix && !out.startsWith(prefix)) out = prefix + out;
+  if (suffix && !out.endsWith(suffix)) out += suffix;
+  return out;
 }
 
 export const ICON_SCALE = 1.0; // icon width as a multiple of the font size
