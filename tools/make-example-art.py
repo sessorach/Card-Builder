@@ -1,4 +1,7 @@
-"""Generates the abstract placeholder art in examples/art (run: python3 tools/make-example-art.py).
+"""Generates the abstract placeholder art in examples/art. Files are named after
+the example cards, since images match cards by name.
+
+Run: python3 tools/make-example-art.py
 
 Needs Pillow. Output is deterministic (seeded), so re-running produces the same files.
 """
@@ -16,10 +19,13 @@ PALETTES = {
     "cinder.jpg": [(25, 20, 18), (90, 40, 30), (200, 80, 30), (120, 110, 100)],
     "tide.jpg": [(5, 20, 45), (20, 80, 130), (60, 160, 190), (200, 240, 250)],
     "coral.jpg": [(10, 40, 50), (40, 120, 130), (230, 120, 110), (250, 200, 170)],
-    "neon.jpg": [(20, 5, 35), (150, 20, 120), (255, 60, 160), (255, 220, 80)],
-    "alley.jpg": [(15, 18, 22), (50, 60, 70), (40, 190, 200), (230, 230, 220)],
-    "night.jpg": [(8, 6, 30), (50, 30, 120), (120, 90, 240), (255, 200, 120)],
-    "gold.jpg": [(30, 18, 5), (130, 80, 10), (250, 190, 40), (255, 245, 200)],
+    "block-party-boss.jpg": [(20, 5, 35), (150, 20, 120), (255, 60, 160), (255, 220, 80)],
+    "corner-lookout.jpg": [(15, 18, 22), (50, 60, 70), (40, 190, 200), (230, 230, 220)],
+    "night-shift.jpg": [(8, 6, 30), (50, 30, 120), (120, 90, 240), (255, 200, 120)],
+    "gold-chain.jpg": [(30, 18, 5), (130, 80, 10), (250, 190, 40), (255, 245, 200)],
+    "kindling.jpg": [(35, 15, 8), (120, 60, 30), (230, 140, 60), (250, 220, 170)],
+    "still-waters.jpg": [(10, 25, 40), (40, 90, 120), (120, 170, 200), (220, 240, 245)],
+    "mixtape-drop.jpg": [(10, 30, 15), (30, 110, 60), (110, 210, 90), (240, 250, 200)],
 }
 
 

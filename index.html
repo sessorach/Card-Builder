@@ -45,7 +45,7 @@
         <label class="drop" data-drop="art">
           <input type="file" id="art-input" accept="image/*" multiple hidden>
           <span class="drop-title">Drop images or a folder</span>
-          <span class="drop-sub" id="art-status">Matched to the <code>art</code> column by file name</span>
+          <span class="drop-sub" id="art-status">Name each image after its card, e.g. <code>Block Party Boss.png</code></span>
         </label>
         <p class="hint"><label class="link"><input type="file" id="art-folder-input" webkitdirectory hidden>Choose a folder</label> · <button type="button" class="link" id="clear-art">Clear art</button></p>
       </section>
@@ -137,7 +137,7 @@
           <tr><th>name</th><td>Card name.</td></tr>
           <tr><th>count</th><td>Copies in the deck (default 1; 0 leaves the card out).</td></tr>
           <tr><th>deck</th><td>Which deck the card belongs to. Each deck becomes its own TTS object.</td></tr>
-          <tr><th>art</th><td>Image file name, e.g. <code>flame-imp.png</code> (the extension is optional).</td></tr>
+          <tr><th>art</th><td>Optional. Images match cards by name; use this to pick a different file, e.g. <code>shared-art.png</code>.</td></tr>
           <tr><th>cost</th><td>Shown in a badge in the corner (Street shows it as <code>$3</code>).</td></tr>
           <tr><th>type, subtype</th><td>Type line, e.g. “Creature — Imp”.</td></tr>
           <tr><th>tags</th><td>Street: comma-separated tags after the type, e.g. <code>Leader, Hustler</code>.</td></tr>
@@ -145,7 +145,7 @@
           <tr><th>flavor</th><td>Italic flavor text under the rules.</td></tr>
           <tr><th>stats</th><td>Default, Full Art, Text Only: one badge, e.g. <code>3 / 2</code>.</td></tr>
           <tr><th>strengf, helf, steal</th><td>Street: the three Thug stats, each in its own box. Leave them empty on other cards and the rules box grows to fill the space.</td></tr>
-          <tr><th>color</th><td>Card color: a name (<code>crimson</code>) or hex (<code>#3b5b7a</code>).</td></tr>
+          <tr><th>color</th><td>Optional card color: a name (<code>crimson</code>) or hex (<code>#3b5b7a</code>). Street colors cards by type unless this is set.</td></tr>
           <tr><th>layout</th><td>Override the layout for this card: <span id="layout-ids"></span>.</td></tr>
         </table>
         <p><b>Icons:</b> <code>{fire}</code> in text draws an uploaded image named <code>fire.png</code> or <code>icon-fire.png</code>. Without one, it draws a ringed letter.</p>

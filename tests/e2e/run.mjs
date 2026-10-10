@@ -70,7 +70,7 @@ async function run() {
     await page.click('[data-example="example-cards.csv"] >> nth=0');
     await page.waitForFunction(() => document.querySelectorAll('.tile canvas').length === 8);
     assert.match(await page.textContent('#sheet-status'), /8 cards \(22 with copies\)/);
-    assert.match(await page.textContent('#art-status'), /4 images/);
+    assert.match(await page.textContent('#art-status'), /6 images/);
     assert.equal(await page.isHidden('#warnings'), true, 'example should load without warnings');
     await page.screenshot({ path: path.join(OUT, 'preview.png'), fullPage: true });
 
@@ -137,14 +137,14 @@ async function run() {
     assert.match(await page.textContent('#sheet-status'), /street-cards\.csv: 5 cards/);
     assert.equal(await page.isHidden('#warnings'), true, 'street example should load without warnings');
     await page.screenshot({ path: path.join(OUT, 'preview-street.png'), fullPage: true });
-    for (const [i, name] of ['block-party-boss', 'night-shift', 'corner-store'].entries()) {
-      const index = [0, 2, 4][i];
+    // Street art has no art column: every image is matched by card name.
+    for (const [index, name] of ['block-party-boss', 'corner-lookout', 'gold-chain', 'night-shift', 'mixtape-drop'].entries()) {
       const png = await page.evaluate((n) => document.querySelectorAll('.tile canvas')[n].toDataURL('image/png'), index);
       await writeFile(path.join(OUT, `street-${name}.png`), Buffer.from(png.split(',')[1], 'base64'));
     }
     const streetTts = await saveDownload(page, 'export-tts');
     const street = JSON.parse(await streetTts.zip.file('Card Builder/Street Deck.json').async('string'));
-    assert.equal(street.ObjectStates[0].ContainedObjects.length, 10);
+    assert.equal(street.ObjectStates[0].ContainedObjects.length, 11);
     assert.match(street.ObjectStates[0].ContainedObjects[0].Description, /Cost: 5/);
     assert.match(street.ObjectStates[0].ContainedObjects[0].Description, /Strengf 4 · Helf 3 · Steal 2/);
 
@@ -155,11 +155,12 @@ async function run() {
     await page.waitForFunction(() => /shared-strings\.xlsx: 2 cards \(5 with copies\)/.test(document.getElementById('sheet-status').textContent));
 
     // Bad input surfaces warnings instead of failing.
-    await page.setInputFiles('#sheet-input', { name: 'bad.csv', mimeType: 'text/csv', buffer: Buffer.from('name,layout,art\nOdd,nope,ghost.png\n') });
+    await page.setInputFiles('#sheet-input', { name: 'bad.csv', mimeType: 'text/csv', buffer: Buffer.from('name,layout,art\nOdd,nope,ghost.png\nLonely Card,,\n') });
     await page.waitForSelector('#warnings:not([hidden])');
     const warnings = await page.textContent('#warnings');
     assert.match(warnings, /unknown layout "nope"/);
     assert.match(warnings, /Missing art \(1\): ghost\.png/);
+    assert.match(warnings, /No image found for 1 card: Lonely Card\. Name each image after its card/);
 
     assert.deepEqual(errors, [], 'no console errors');
     console.log('\nAll end-to-end checks passed.');

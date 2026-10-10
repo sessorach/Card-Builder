@@ -3,7 +3,7 @@ import { parseDelimited, detectDelimiter, rowsToCards, groupByDeck } from './spr
 import { readXlsx } from './xlsx.js';
 import { LAYOUTS, getLayout } from '../layouts/index.js';
 import { CARD_SIZES, DEFAULT_SIZE_ID, getSize, sizePx } from './sizes.js';
-import { AssetStore, decodeImage, renderCard, renderBack } from './render.js';
+import { AssetStore, decodeImage, renderCard, renderBack, findArt, cardAccent } from './render.js';
 import { loadFonts } from './fonts.js';
 import { buildImagesZip, buildTtsZip } from './export.js';
 
@@ -150,10 +150,9 @@ async function setBack(file) {
 async function loadExample(file) {
   try {
     const text = await (await fetch(`examples/${file}`)).text();
-    const { cards } = rowsToCards(parseDelimited(text));
-    const artNames = [...new Set(cards.map((c) => c.art).filter(Boolean))];
+    const manifest = await (await fetch('examples/manifest.json')).json();
     const art = await Promise.all(
-      artNames.map(async (name) => {
+      (manifest[file] || []).map(async (name) => {
         const res = await fetch(`examples/art/${encodeURIComponent(name)}`);
         return res.ok ? new File([await res.blob()], name) : null;
       }),
@@ -169,7 +168,11 @@ async function loadExample(file) {
 // ---- Rendering ------------------------------------------------------------------
 
 function deckColor(deck) {
-  return deck.cards.find((c) => c.fields.color)?.fields.color;
+  for (const card of deck.cards) {
+    const accent = cardAccent(card, resolveLayout(card).layout);
+    if (accent) return accent;
+  }
+  return undefined;
 }
 
 function getBack(deck) {
@@ -215,7 +218,8 @@ async function rerender() {
   container.replaceChildren();
   const px = cardPx();
   const extra = [];
-  const missingArt = new Set();
+  const missingArt = new Set(); // art-column files that weren't uploaded
+  const unmatched = []; // cards with no art column and no image named after them
 
   for (const deck of decks()) {
     const section = document.createElement('section');
@@ -232,7 +236,10 @@ async function rerender() {
     for (const [i, card] of deck.cards.entries()) {
       const { layout, unknown } = resolveLayout(card);
       if (unknown) extra.push(`Row ${card.row}: unknown layout "${unknown}"; using ${layout.name}.`);
-      if (card.art && !state.assets.get(card.art)) missingArt.add(card.art);
+      if (layout.elements.some((e) => e.type === 'image') && !findArt(card, state.assets)) {
+        if (card.art) missingArt.add(card.art);
+        else if (state.assets.size) unmatched.push(card.name);
+      }
       const canvas = renderCard(card, { layout, px, assets: state.assets });
       state.canvases.set(card.id, canvas);
 
@@ -264,6 +271,11 @@ async function rerender() {
     const names = [...missingArt];
     extra.push(
       `Missing art (${names.length}): ${names.slice(0, 12).join(', ')}${names.length > 12 ? ', …' : ''}. Drop the images in step 2.`,
+    );
+  }
+  if (unmatched.length) {
+    extra.push(
+      `No image found for ${unmatched.length} card${unmatched.length === 1 ? '' : 's'}: ${unmatched.slice(0, 12).join(', ')}${unmatched.length > 12 ? ', …' : ''}. Name each image after its card, e.g. "${unmatched[0]}.png".`,
     );
   }
   renderWarnings(extra);
@@ -483,7 +495,7 @@ function setupControls() {
   $('clear-art').addEventListener('click', () => {
     state.assets = new AssetStore();
     document.querySelector('[data-drop="art"]').classList.remove('loaded');
-    $('art-status').innerHTML = 'Matched to the <code>art</code> column by file name';
+    $('art-status').innerHTML = 'Name each image after its card, e.g. <code>Block Party Boss.png</code>';
     rerender();
   });
   document.querySelectorAll('[data-example]').forEach((button) =>

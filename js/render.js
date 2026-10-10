@@ -17,10 +17,12 @@ export function layoutFonts(layout) {
 
 // ---- Images ---------------------------------------------------------------
 
-// Uploaded images, looked up by file name (case-insensitive, extension optional).
+// Uploaded images, looked up by file name (case-insensitive, extension optional),
+// or by card name: "Block Party Boss" finds block-party-boss.png, Block_Party_Boss.jpg, …
 export class AssetStore {
   constructor() {
     this.images = new Map();
+    this.byName = new Map();
     this.names = [];
   }
 
@@ -28,11 +30,22 @@ export class AssetStore {
     return String(name || '').trim().split(/[\\/]/).pop().toLowerCase();
   }
 
+  // Letters and digits only, so spaces, dashes, punctuation and accents don't matter.
+  static loose(text) {
+    return String(text || '')
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '');
+  }
+
   add(name, image) {
     const key = AssetStore.key(name);
     this.images.set(key, image);
     const stem = key.replace(/\.[^.]+$/, '');
     if (!this.images.has(stem)) this.images.set(stem, image);
+    const loose = AssetStore.loose(stem);
+    if (loose && !this.byName.has(loose)) this.byName.set(loose, image);
     this.names.push(name);
   }
 
@@ -40,6 +53,12 @@ export class AssetStore {
     const key = AssetStore.key(name);
     if (!key) return null;
     return this.images.get(key) || this.images.get(key.replace(/\.[^.]+$/, '')) || null;
+  }
+
+  // An image whose file name matches a card name (not a file name: no extension stripping).
+  forName(cardName) {
+    const loose = AssetStore.loose(cardName);
+    return (loose && this.byName.get(loose)) || null;
   }
 
   icon(name) {
@@ -113,6 +132,27 @@ function fieldValue(card, field) {
   return String(card.fields[field] ?? '').trim();
 }
 
+// A card's image: the file named in `field` (the art column) if given and found,
+// otherwise an image named after the card.
+export function findArt(card, assets, field = 'art') {
+  if (!assets) return null;
+  const named = fieldValue(card, field);
+  return (named && assets.get(named)) || assets.forName(card.name) || null;
+}
+
+// The card's accent color: its own `color` column, else the layout's `colorBy`
+// map ({ field: 'type', colors: { thug: '#8a5cf5' } }, case-insensitive), else
+// the layout's defaultColor (applied by makeTheme).
+export function cardAccent(card, layout) {
+  const own = fieldValue(card, 'color');
+  if (own) return own;
+  const by = layout?.colorBy;
+  if (!by) return '';
+  const value = fieldValue(card, by.field).toLowerCase().replace(/\s+/g, ' ');
+  const match = Object.entries(by.colors).find(([k]) => k.toLowerCase().replace(/\s+/g, ' ') === value);
+  return match ? match[1] : '';
+}
+
 // `when`/`unless` name one field or a list of fields; a list matches if any field has a value.
 function anyValue(card, fields) {
   return [].concat(fields).some((f) => fieldValue(card, f));
@@ -126,7 +166,7 @@ export function renderCard(card, { layout, px, assets, canvas }) {
   canvas.width = px.width;
   canvas.height = px.height;
   const ctx = canvas.getContext('2d');
-  const theme = makeTheme(card.fields.color, layout.defaultColor);
+  const theme = makeTheme(cardAccent(card, layout), layout.defaultColor);
   const fonts = layoutFonts(layout);
   const W = px.width;
   const H = px.height;
@@ -171,7 +211,7 @@ export function renderCard(card, { layout, px, assets, canvas }) {
 
 function drawImageElement(ctx, card, el, b, { assets, theme, s, color, fonts }) {
   const name = fieldValue(card, el.field || 'art');
-  const image = assets?.get(name);
+  const image = findArt(card, assets, el.field || 'art');
   ctx.save();
   roundRectPath(ctx, b.x, b.y, b.w, b.h, s(el.radius || 0));
   ctx.clip();

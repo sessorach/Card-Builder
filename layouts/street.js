@@ -68,8 +68,19 @@ export default {
   name: 'Street',
   description: 'Graffiti style: big art, $ cost, type bar with tags, three stat boxes.',
   defaultColor: '#ffcc1a',
+  // Card color comes from the type (a `color` column on a card still overrides it).
+  colorBy: {
+    field: 'type',
+    colors: {
+      Thug: '#8a5cf5', // funky purple
+      Bling: '#d4a72c', // gold
+      Negromancy: '#34323b', // dusky black: dark gray, so the frame still reads
+      'Dropped Move': '#6cc24a', // green
+    },
+  },
   fonts: {
-    title: { font: 'sedgwick', weight: 400, boldWeight: 400 },
+    title: { font: 'permanent-marker', weight: 400, boldWeight: 400 },
+    cost: { font: 'sedgwick', weight: 400, boldWeight: 400 },
     body: { font: 'barlow', weight: 500, boldWeight: 700 },
     label: { font: 'bebas', weight: 400, boldWeight: 400 },
   },
@@ -90,7 +101,7 @@ export default {
     { when: 'cost', type: 'rect', x: 76.5, y: 4.2, w: 17, h: 8.2, rotate: 6, fill: 'accent', stroke: '#000', strokeWidth: 0.8, radius: 1.8 },
     {
       when: 'cost', type: 'text', field: 'cost', prefix: '$', x: 76.5, y: 4.2, w: 17, h: 8.2, rotate: 6,
-      font: 'title', size: 8, minSize: 4, color: 'onAccent', align: 'center', valign: 'middle',
+      font: 'cost', size: 8, minSize: 4, color: 'onAccent', align: 'center', valign: 'middle',
     },
 
     ...bottomSection(true),

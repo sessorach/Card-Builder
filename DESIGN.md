@@ -16,7 +16,14 @@ card pictures out.
 matters too, but when a trade-off has to be made, the TTS output wins.
 
 The tool should stay lightweight: a single page, a handful of layouts with a
-selector, and two downloads (an archive of card images, and a TTS deck).
+selector, and two downloads. The flow is:
+
+1. Drop in a spreadsheet with the card information.
+2. Drop in an image for each card.
+3. Optionally, drop in a card back.
+4. Choose what comes out: **either** a ZIP of individual card pictures (one per
+   card), **or** a TTS deck containing the number of copies of each card given
+   in the spreadsheet.
 
 ## Separate repository
 
@@ -129,13 +136,31 @@ but not others, each stat keeps its own slot and the missing ones are drawn
 faded, so a stat is always in the same place.
 
 **Fonts.** The brief was a cool, urban font reminiscent of graffiti and hip hop
-culture. Names and cost use **Sedgwick Ave Display**, a graffiti handstyle
-named after 1520 Sedgwick Avenue in the Bronx, the birthplace of hip hop. The
+culture. Six graffiti-style fonts were compared side by side (Sedgwick Ave
+Display, Permanent Marker, Rubik Spray Paint, Rubik Wet Paint, Knewave and
+Bungee). **Permanent Marker** was chosen for card names, for now. The cost
+sticker stays in **Sedgwick Ave Display**, a graffiti handstyle named after
+1520 Sedgwick Avenue in the Bronx, the birthplace of hip hop. Only the names
+were asked to change, and the rest of the card was approved as it was. The
 type bar and stats use **Bebas Neue**, a condensed poster face that suits
 street signage and stays readable small. Rules text uses **Barlow**, because
-graffiti lettering becomes hard to read at rules-text size. Permanent Marker,
-Rubik Spray Paint, Rubik Wet Paint, Knewave and Bungee were also tried for
-names, and switching to any of them is a one-word change in the layout.
+graffiti lettering becomes hard to read at rules-text size. Switching any of
+these is a one-word change in the layout.
+
+**Card types set the colors.** The game has four card types, and each has its
+own color for the frame, cost sticker, type bar and stat boxes:
+
+- **Thug:** funky purple.
+- **Bling:** gold.
+- **Negromancy:** dusky black. This is a dark gray that reads as black rather
+  than true black, because a pitch-black frame would vanish into the card's
+  dark background and look odd.
+- **Dropped Move:** green.
+
+The type-to-color map lives in the Street layout, so the spreadsheet only needs
+the `type` column. A `color` column on a card still overrides it, for one-off
+cards. The renderer supports this as a general feature: any layout can color
+cards by any column's value.
 
 ## Drawing on a canvas
 
@@ -178,6 +203,22 @@ Per-deck back uploads were left out to keep the page simple, and we confirmed
 that one shared back is fine for now. We will probably want a different back
 for some decks eventually. A `back` column would be the natural way to add
 that.
+
+## Card images
+
+Images are matched to cards **by name**: an image named after its card
+(`Block Party Boss.png`) goes on that card. This was chosen because it's how
+people naturally name their art files. It also means the spreadsheet doesn't
+need an extra column just to point at files. Matching ignores capitals,
+spaces, dashes, underscores and punctuation, so `block-party-boss.jpg` and
+`Block_Party_Boss.PNG` both match "Block Party Boss".
+
+An optional `art` column can still name a specific file. This is useful when
+several cards share one picture, or a file can't be named after its card. If
+the named file is missing, the card falls back to an image named after it.
+
+When images have been dropped in but a card that shows art has none, the page
+lists those cards so typos in file names are easy to spot.
 
 ## Spreadsheets
 
@@ -249,6 +290,14 @@ the rules text, the stats and the flavor text. Any other filled-in column is
 listed by its column name (for example "Strengf 4 · Helf 3 · Steal 2"). That
 way a layout's own stats show up on hover without the TTS export needing to
 know about them.
+
+## Documentation
+
+Outward-facing writing stays short and is about using the tool, not about how
+it was built. The README is a concise how-to for people making cards, with no
+change notes or development process. Commit messages describe the work in
+general terms ("layout work", "font testing") rather than listing
+layout-specific details. The detailed reasoning lives here in DESIGN.md.
 
 ## Visual style
 
