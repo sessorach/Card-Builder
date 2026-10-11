@@ -13,6 +13,14 @@
 //   Weapon line     WEAPON_INFO_FIELDS (+ Parry)  →  WEAPON
 // Things the sheet hides (flavor text, prereqs, item cost, materials) go in the
 // TTS hover text instead (`hover` below).
+//
+// CARDS FOR ONE CHARACTER: the site's Character Sheet sends its cards here (see
+// js/handoff.js) with the same columns, already resolved for that character (built
+// level, only the picked choice effects, skill totals filled in), plus three columns
+// only it fills, as ready-made text with **bold** names:
+//   built_features  a built technique's Features, one per line ("**Lunging ×2** — …")
+//   picks           a technique's per-copy pick ("**School:** Fire"), as on the sheet
+//   powers          Masterwork powers attached to a custom item, with their effects
 
 // ---- The site's palette -----------------------------------------------------------
 const PAGE = '#0a0e18'; // around the card
@@ -111,7 +119,10 @@ export default {
     ...BONUSES.map(hoverOf),
     'text',
     'choice_effects',
+    'built_features',
+    'picks',
     labelled('special', 'Special'),
+    'powers',
     labelled('value_per_level', 'Value per Level'),
     labelled('main_materials', 'Materials'),
     labelled('material_types', 'Material Types'),
@@ -152,6 +163,8 @@ export default {
         labelled('target', 'Target'),
         'text',
         'choice_effects',
+        'built_features',
+        'picks',
         labelled('special', 'Special'),
       ],
     },
@@ -165,6 +178,7 @@ export default {
         { join: WEAPON, sep: '  ·  ', color: FAINT },
         { join: BONUSES, sep: ' ' },
         { field: 'material_types', list: true, chip: STAT_BADGE, bold: true, color: STAT_BADGE.color },
+        'powers',
       ],
     },
   ],

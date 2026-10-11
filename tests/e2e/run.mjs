@@ -7,6 +7,7 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
+import { encodeHandoff } from '../../js/handoff.js';
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
 const OUT = path.join(ROOT, 'test-output');
@@ -315,6 +316,43 @@ async function run() {
     const armor = items.find((c) => c.Nickname === 'Medium Armor');
     assert.match(armor.Description, /\[b\]Physical Resist:\[\/b\] 2/);
     assert.match(armor.Description, /\[b\]Might Req:\[\/b\] 5/);
+
+    // Cards sent in the link (FlagonQuest's Character Sheet): picked layout, decks and counts.
+    const sent = await encodeHandoff({
+      title: 'Aria',
+      layout: 'flagonquest',
+      columns: ['name', 'count', 'deck', 'level_min', 'level_max', 'tags', 'action', 'text', 'built_features', 'picks', 'category', 'slot', 'physical_resist', 'powers'],
+      rows: [
+        ['Shield Bash', 2, 'Aria: Techniques', 2, 2, 'Martial, Buildable, Encounter', '2 AP', 'Make a weapon attack.',
+          '**Lunging ×2** — Up to 2 times, you may Shift up to 2 meters in a single direction, each either before or after the attack.\n**Wind Slash** — For the attack the chosen weapon\'s range is increased by 2.', '', '', '', '', ''],
+        ['Artisanal Training', 1, 'Aria: Techniques', 1, 1, 'Duplicate', 'Passive', 'You have Good Luck on crafting flips for the chosen School.', '', '**School:** Smithing', '', '', '', ''],
+        ['Grandpa\'s Coat', 1, 'Aria: Items', '', '', '', '', 'Smells of pipe smoke.', '', '', 'Custom', 'Torso', 1,
+          '**Cowl of Tranquility** (Lv 2)\nYou cannot gain stacks of Taunted or Frightened.'],
+      ],
+    });
+    await page.goto(base + sent);
+    await page.waitForSelector('body[data-ready="true"]');
+    await page.waitForFunction(() => document.querySelectorAll('.tile canvas').length === 3);
+    assert.equal(await page.inputValue('#layout-select'), 'flagonquest');
+    assert.equal(await page.textContent('#sheet-status'), 'Aria · 3 cards (4 with copies)');
+    assert.match(await page.textContent('#status'), /Loaded 3 cards for Aria/);
+    assert.deepEqual(await page.$$eval('.deck h2 > span:first-child', (els) => els.map((e) => e.textContent)), ['Aria: Techniques', 'Aria: Items']);
+    assert.equal(await page.isHidden('#warnings'), true, 'sent cards should load without warnings');
+    await page.screenshot({ path: path.join(OUT, 'preview-sent.png'), fullPage: true });
+    for (const [i, name] of ['shield-bash', 'artisanal-training', 'custom-coat'].entries()) {
+      const png = await page.evaluate((n) => document.querySelectorAll('.tile canvas')[n].toDataURL('image/png'), i);
+      await writeFile(path.join(OUT, `sent-${name}.png`), Buffer.from(png.split(',')[1], 'base64'));
+    }
+    // Sending again reuses the tab: only the "#" part changes.
+    const again = await encodeHandoff({ title: 'Brom', layout: 'flagonquest', columns: ['name', 'level_min', 'text'], rows: [['Brace', 1, 'You gain 3 stacks of Protected.']] });
+    await page.evaluate((h) => (location.hash = h), again);
+    await page.waitForFunction(() => document.querySelectorAll('.tile canvas').length === 1);
+    assert.equal(await page.textContent('#sheet-status'), 'Brom · 1 card (1 with copies)');
+    // A damaged link shows a warning instead of failing.
+    await page.evaluate(() => (location.hash = '#import=garbage'));
+    await page.waitForSelector('#warnings:not([hidden])');
+    assert.match(await page.textContent('#warnings'), /damaged or incomplete/);
+    errors.splice(0, errors.length, ...errors.filter((e) => !/damaged|DecompressionStream|incorrect header|invalid/i.test(e)));
 
     assert.deepEqual(errors, [], 'no console errors');
     console.log('\nAll end-to-end checks passed.');

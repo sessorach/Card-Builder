@@ -7,6 +7,7 @@ import { AssetStore, decodeImage, renderCard, renderBack, findArt, cardAccent } 
 import { loadFonts } from './fonts.js';
 import { buildImagesZip, buildTtsZip, prepareTtsImages, cloudFiles, buildUploadZip } from './export.js';
 import { templateCsv } from './template.js';
+import { handoffData, decodeHandoff } from './handoff.js';
 import { cleanInput, savedObjectsFolder, localImagesFolder, isLink, looksLikeSteamCloud, cardDescription } from './tts.js';
 
 const $ = (id) => document.getElementById(id);
@@ -131,29 +132,51 @@ async function loadSpreadsheet(file) {
       const text = await file.text();
       rows = parseDelimited(text, detectDelimiter(text, file.name));
     }
-    const { cards, warnings, columns, headers } = rowsToCards(rows);
-    // A spreadsheet that fits a layout's known columns (e.g. FlagonQuest's techniques
-    // sheet) picks that layout, unless it chooses layouts itself with a layout column.
-    if (!columns.includes('layout')) {
-      const match = LAYOUTS.find((l) => matchesColumns(l, columns));
-      if (match && match.id !== settings.layout) {
-        setLayout(match.id);
-        setStatus(`Switched to the ${match.name} layout to match this spreadsheet.`);
-      }
-    }
-    state.sheetName = file.name;
-    state.cards = cards;
-    state.columns = columns;
-    state.headers = headers;
-    state.sheetWarnings = warnings;
-    document.querySelector('[data-drop="sheet"]').classList.toggle('loaded', cards.length > 0);
-    const total = cards.reduce((n, c) => n + c.count, 0);
-    $('sheet-status').textContent = `${file.name} · ${cards.length} cards (${total} with copies)`;
-    if (currentTab() !== 'data') showTab('cards');
-    await rerender();
+    await applyRows(rows, file.name);
   } catch (err) {
     console.error(err);
     state.sheetWarnings = [`Couldn't read ${file.name}: ${err.message}`];
+    renderWarnings();
+  }
+}
+
+// Shows a spreadsheet's rows (header row first) as cards. `name` labels them in the page.
+async function applyRows(rows, name, { layoutChosen = false } = {}) {
+  const { cards, warnings, columns, headers } = rowsToCards(rows);
+  // A spreadsheet that fits a layout's known columns (e.g. FlagonQuest's techniques
+  // sheet) picks that layout, unless it chooses layouts itself with a layout column.
+  if (!columns.includes('layout') && !layoutChosen) {
+    const match = LAYOUTS.find((l) => matchesColumns(l, columns));
+    if (match && match.id !== settings.layout) {
+      setLayout(match.id);
+      setStatus(`Switched to the ${match.name} layout to match this spreadsheet.`);
+    }
+  }
+  state.sheetName = name;
+  state.cards = cards;
+  state.columns = columns;
+  state.headers = headers;
+  state.sheetWarnings = warnings;
+  document.querySelector('[data-drop="sheet"]').classList.toggle('loaded', cards.length > 0);
+  const total = cards.reduce((n, c) => n + c.count, 0);
+  $('sheet-status').textContent = `${name} · ${cards.length} card${cards.length === 1 ? '' : 's'} (${total} with copies)`;
+  if (currentTab() !== 'data') showTab('cards');
+  await rerender();
+}
+
+// Cards sent from another site in the link (see js/handoff.js), e.g. FlagonQuest's Character Sheet.
+async function loadHandoff() {
+  const data = handoffData(location.hash);
+  if (!data) return;
+  try {
+    const { title, layout, rows } = await decodeHandoff(data);
+    const chosen = getLayout(layout);
+    if (chosen) setLayout(chosen.id);
+    await applyRows(rows, title || 'Sent cards', { layoutChosen: !!chosen });
+    setStatus(`Loaded ${state.cards.length} cards${title ? ` for ${title}` : ''}.`);
+  } catch (err) {
+    console.error(err);
+    state.sheetWarnings = [err.message];
     renderWarnings();
   }
 }
@@ -499,7 +522,7 @@ async function runExport(kind) {
       getBack,
       onProgress: setStatus,
     };
-    const base = (state.sheetName || 'cards').replace(/\.[^.]+$/, '');
+    const base = (state.sheetName || 'cards').replace(/\.(csv|tsv|txt|xlsx)$/i, '');
     if (kind === 'images') {
       const blob = await buildImagesZip(common);
       download(blob, `${base} - card images.zip`);
@@ -800,6 +823,9 @@ async function init() {
   setupDragAndDrop();
   await loadFonts();
   drawBackPreview();
+  await loadHandoff();
+  // The sending site reuses this tab for the next batch, which only changes the link's "#" part.
+  window.addEventListener('hashchange', loadHandoff);
   document.body.dataset.ready = 'true';
 }
 

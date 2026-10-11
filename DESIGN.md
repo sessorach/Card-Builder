@@ -258,6 +258,36 @@ that loads its libraries from the web at run time and lays out HTML, while
 Card Builder draws on a canvas with no outside code, so the two can't share
 drawing code.
 
+**Cards for one character come from the site.** The user wants a player to
+turn their own character into cards, including built techniques (a Battle
+Maneuver built at Level 2 with Lunging ×2 and Wind Slash), with as little
+added to the FlagonQuest site as possible. So the site's Character Sheet gets a
+small button that sends that character's cards to Card Builder, and Card
+Builder does the drawing, image downloads and TTS decks as it does for a
+spreadsheet. The site works out everything that depends on the character,
+because it already does for the sheet: the built level and Features (with X
+filled in), the picked choice effects only, per-copy picks, skill totals as
+numbers, renamed builds, item quantities as copy counts, and combined item
+bonuses. Card Builder only adds three text columns it shows as given: built
+features, picks, and the powers on a custom item. Techniques and items go in
+separate decks named after the character.
+
+The cards travel in the link itself (see "Cards sent in a link" below), so
+nothing is uploaded anywhere and no server is involved.
+
+- **Rejected: drawing the cards inside the FlagonQuest site.** It would add
+  around two thousand lines (the card drawing, the zip and TTS deck building,
+  the Steam Cloud steps) to a site that is already one large page, and leave
+  two copies to keep in step. It also would not avoid the Steam Cloud upload
+  step, which is a limit of TTS, and the pasted links would be remembered
+  separately on each site.
+- **Rejected: capturing the sheet's HTML tiles as pictures.** The tiles grow
+  with their text, so they don't fit a fixed card shape, and page capture
+  struggles with web fonts and the sheet's zoom.
+- **Rejected: Card Builder reading the site's character save file.** Card
+  Builder would need its own copy of FlagonQuest's rules for builds, picks and
+  bonuses, which would drift from the site.
+
 **One accent color, not one per archetype.** Techniques often belong to
 several archetypes at once ("Duelist, Rogue, Monk"), so coloring by archetype
 wouldn't be meaningful. The frame uses the site's gold throughout.
@@ -287,6 +317,24 @@ file instead of failing.
 
 Cards are drawn as full rectangles with no transparent corners. TTS rounds card
 corners itself, and square corners suit printing.
+
+## Cards sent in a link
+
+Another site can open Card Builder with cards already loaded, by putting them
+in the link after `#import=`. The data is a small table (column names and
+rows, like a spreadsheet), compressed and encoded to fit in a link, plus an
+optional title and layout. Browsers never send the part of a link after `#` to
+the server, so the cards stay on the player's computer. A whole character is
+a few kilobytes, well within what links can hold. When the sending site sends
+again into the same tab, Card Builder loads the new cards. A damaged link, or
+one from a newer version of the sending site, shows a warning instead of
+failing. The FlagonQuest site is the first sender.
+
+- **Rejected: sharing browser storage between the sites.** They are on
+  different web addresses, so browsers keep their storage apart.
+- **Rejected: messages between open tabs.** It needs both pages open and
+  waiting for each other, which is more fragile than a link that simply works
+  when opened.
 
 ## Card size
 
