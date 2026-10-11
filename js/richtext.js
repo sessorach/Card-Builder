@@ -7,6 +7,8 @@
 
 // Atoms: { kind: 'text', text, bold, italic, color?, space }
 //        { kind: 'icon', name, bold, italic, color?, space }
+//        { kind: 'chip', atoms, fill?, stroke?, space }: inner atoms drawn in a small
+//          rounded box (a badge); never wrapped inside
 //        { kind: 'break', gap? }   gap: extra space above the next line, in ems
 // `space` means whitespace came before the atom, i.e. the line may wrap there.
 // base: starting style { bold, italic, color }; color is passed through to every atom.
@@ -120,9 +122,24 @@ export function affix(value, { prefix = '', suffix = '' } = {}) {
 }
 
 export const ICON_SCALE = 1.0; // icon width as a multiple of the font size
+export const CHIP_PAD = 0.35; // space inside a chip on each side, in ems
+
+// A chip's inner atoms laid out on one line: [{ atom, x, width }] and the total width.
+export function chipLayout(chip, size, measure) {
+  const items = [];
+  let x = size * CHIP_PAD;
+  chip.atoms.forEach((atom, i) => {
+    if (i > 0 && atom.space) x += measure(' ', atom, size);
+    const width = atomWidth(atom, size, measure);
+    items.push({ atom, x, width });
+    x += width;
+  });
+  return { items, width: x + size * CHIP_PAD };
+}
 
 function atomWidth(atom, size, measure) {
   if (atom.kind === 'icon') return size * ICON_SCALE;
+  if (atom.kind === 'chip') return chipLayout(atom, size, measure).width;
   return measure(atom.text, atom, size);
 }
 

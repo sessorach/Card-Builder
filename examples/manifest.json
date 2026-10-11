@@ -20,11 +20,11 @@
     ]
   },
   "flagonquest-techniques.csv": {
-    "layout": "flagonquest-technique",
+    "layout": "flagonquest",
     "images": []
   },
   "flagonquest-items.csv": {
-    "layout": "flagonquest-item",
+    "layout": "flagonquest",
     "images": []
   }
 }

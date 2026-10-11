@@ -153,7 +153,7 @@ export function cardDescription(fields, hover) {
   if (hover) {
     return hover
       .map((entry) => (typeof entry === 'string' ? { field: entry } : entry))
-      .filter((e) => String(fields[e.field] ?? '').trim())
+      .filter((e) => String(fields[e.field] ?? '').trim() && !(e.hideZero && Number(fields[e.field]) === 0))
       .map((e) => {
         let text = toTtsText(String(fields[e.field]).trim());
         if (e.italic) text = `[i]${text}[/i]`;

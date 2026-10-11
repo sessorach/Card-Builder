@@ -79,8 +79,8 @@ ships with four layouts:
 - **Full Art:** the art covers the whole card.
 - **Text Only:** no art, for spells, events and prototypes.
 - **Street:** the first layout designed for our game (see below).
-- **FlagonQuest Technique** and **FlagonQuest Item:** reference cards for
-  FlagonQuest techniques and items (see below).
+- **FlagonQuest:** reference cards for FlagonQuest techniques and items (see
+  below).
 
 Positions in a layout are percentages of the card rather than pixels or
 millimeters. Text sizes are percentages of the card's width. That way the same
@@ -193,70 +193,79 @@ the `type` column. A `color` column on a card still overrides it, for one-off
 cards. The renderer supports this as a general feature: any layout can color
 cards by any column's value.
 
-### The FlagonQuest Technique layout
+### The FlagonQuest layout
 
 FlagonQuest is a separate TTRPG with its own companion site (the
-`flagonquest` repository). It shows techniques (abilities) as flat tiles, but
-the game is also played in Tabletop Simulator, where it helps to have each
-technique as a physical card. This layout is that companion. No picture is
-needed: it is all game information.
+`flagonquest` repository). The game is also played in Tabletop Simulator,
+where it helps to have each technique (ability) and item as a physical card.
+This layout is that companion. No picture is needed: it is all game
+information.
 
-**It reads FlagonQuest's own spreadsheet as-is.** FlagonQuest keeps its content
-in spreadsheets (`scripts/techniques.csv`), and dropping that exact file into
-Card Builder makes a card per technique, with no reformatting. To get there
-without breaking the shared-columns rule, FlagonQuest's headers map onto the
-existing columns where they mean the same thing: "Effects" is the rules text
-and "Description (Fluff)" is flavor text, both as general header aliases. The
-FlagonQuest-only concepts get their own columns: level range, action,
-condition, target, special, prereqs and choice effects. A spreadsheet with
-FlagonQuest's columns (and no layout column) switches to this layout by
-itself, so the drop-in really is one step.
+**One layout for techniques and items.** There used to be two layouts, one
+for each. The user asked for a single one that adjusts to the kind of card, so
+there is now one FlagonQuest layout: a row with a Category is an item, and any
+other row is a technique. Both share the header and frame; the second row and
+the body change with the kind of card. The old layout names still work in a
+spreadsheet's `layout` column.
 
-**It looks like the FlagonQuest site.** The card uses the site's dark navy
-panels, warm off-white text, gold field labels and the MedievalSharp title
-font. It also borrows the tile's structure: the name with a level badge
-("Lv 1–4"), tags underneath with Buildable in purple and Duplicate in green,
-and an orange Encounter badge. Then come gold-labelled Action, Cost,
-Condition and Target lines, the effects (and choice effects, one per line),
-Special, and a Prereqs footer. Text shrinks to fit, so even the longest
-technique (Profession's ten options) fits.
+**It reads FlagonQuest's own spreadsheets as-is.** FlagonQuest keeps its
+content in spreadsheets (`scripts/techniques.csv` and `scripts/items.csv`),
+and dropping either file into Card Builder makes a card per row, with no
+reformatting. To get there without breaking the shared-columns rule,
+FlagonQuest's headers map onto the existing columns where they mean the same
+thing: "Effects" is the rules text and "Description (Fluff)" is flavor text,
+both as general header aliases. The FlagonQuest-only concepts get their own
+columns. A spreadsheet with either file's columns (and no layout column)
+switches to this layout by itself, so the drop-in really is one step.
 
-**Flavor text is on hover only.** Some descriptions run past a thousand
-characters, and the site's own Character Sheet leaves them out as a "lean
-reference". So the card face carries the rules, and the description appears
-in the TTS hover text, along with the labelled rules.
+**The card shows what the Character Sheet shows.** The user wants the cards
+to look like the site's Character Sheet, so they can be kept in sync when the
+site changes. The card content mirrors the sheet's technique and item tiles:
+
+- Techniques: the name, with an orange Encounter badge and a level badge
+  ("Lv 1–4", or "Draft") in the corner; the other tags as small chips, with
+  Buildable in purple and Duplicate in green; then gold-labelled Condition,
+  Action, Cost and Target lines, the effects, the choice effects (one per
+  line) and Special.
+- Items: the name; a "Category · Slot" chip, plus a level chip for Masterwork
+  and Material items; then the effects, the weapon line in faint text
+  ("Accuracy +1 · Damage 3 + [Cunning] · Range 19 · Skill Archery · Parry +0 ·
+  Might Req 4"), the flat bonuses as amber badges ("Physical Resist +2"), and a
+  material's types as amber badges.
+
+What the sheet leaves out stays off the card face too: flavor text, prereqs,
+an item's cost, value per level and crafting materials, and the number of
+hands a weapon takes. All of it is in the TTS hover text instead, so it's one
+mouse-over away in a game. (Item flavor text used to stay on the card face,
+because for plain weapons and armor it is the only text. The user chose to
+match the sheet instead.) The sheet's own interactive parts (the quantity,
+Equipped and Expended boxes, choice pickers) have no place on a card. A
+technique with choice effects, like Profession, lists every option, because a
+card has no pick to narrow it down.
+
+**Inside a card frame.** The sheet's tiles are flat. The card keeps its own
+gold frame and the slightly textured navy panel, so it still reads as a
+physical card on the table; everything inside follows the sheet's colors,
+fonts (MedievalSharp names), chips and badges. The user chose this over a
+flat tile.
+
+**Keeping it in sync.** The layout file starts with a map from each part of
+the site's code to the part of the layout that copies it (the color constants,
+the technique tile, the item tile, the bonus list and the weapon line). When
+the site changes, those are the places to update. Automatic syncing (drawing
+the cards with the site's own code) was rejected: the site is a React page
+that loads its libraries from the web at run time and lays out HTML, while
+Card Builder draws on a canvas with no outside code, so the two can't share
+drawing code.
 
 **One accent color, not one per archetype.** Techniques often belong to
 several archetypes at once ("Duelist, Rogue, Monk"), so coloring by archetype
-wouldn't be meaningful. The card uses the site's gold throughout.
+wouldn't be meaningful. The frame uses the site's gold throughout.
 
-Builder-only columns (prereq check syntax, feature budgets, builder notes and
-so on) are left off the card, since they drive the site's character builder
-rather than play at the table.
-
-### The FlagonQuest Item layout
-
-The companion to the technique card, for FlagonQuest's items. It follows the
-same rules: it reads FlagonQuest's own `scripts/items.csv` as-is and is picked
-automatically when a spreadsheet has its columns. It shares the technique
-card's frame, colors and fonts (kept in one shared file, so the two can't drift
-apart), and mirrors the site's item tiles:
-
-- The name and a level badge; "Category · Slot · Tags" underneath, with the
-  cost in gold on the right.
-- A weapon line, worded like the site's: "Accuracy +1 · Damage 3 + [Cunning]
-  · Range 19 · Skill Archery · Hands 2". Armor shows its Might Req here too.
-- Flat bonuses in gold, like the site's stat badges: "Physical Resist +2 ·
-  Dodge Defense −1". Zero bonuses are left out, as on the site.
-- The effects, then a material's value per level, then the flavor text in
-  muted italics. Unlike techniques, item flavor stays on the card face: it
-  often says what the item actually is ("a mace, shortsword, or similar"),
-  which plain weapons and armor have no other text for. It fits alongside the
-  effects for nearly every item.
-- A footer with the crafting materials.
-
-Crafting bookkeeping (base item options, which are item IDs, and crafting
-notes) is left off, like the builder-only technique columns.
+Builder-only columns (prereq check syntax, feature budgets, builder notes,
+base item options, crafting notes and so on) are left off the card and the
+hover text, since they drive the site's character builder rather than play at
+the table.
 
 ## Drawing on a canvas
 

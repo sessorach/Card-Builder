@@ -1,6 +1,6 @@
 // Draws cards onto canvases from a layout definition. Knows nothing about any
 // particular game: layouts name the fields, this just draws them.
-import { parseRich, joinParts, joinInline, splitList, affix, signed, fitRich, textHeight, ICON_SCALE } from './richtext.js';
+import { parseRich, joinParts, joinInline, splitList, affix, signed, fitRich, textHeight, chipLayout, ICON_SCALE } from './richtext.js';
 import { FONT_LIBRARY, DEFAULT_FONTS } from './fonts.js';
 import { applyTexture } from './textures.js';
 
@@ -185,9 +185,10 @@ function anyValue(card, fields) {
 }
 
 // `whenHas` / `unlessHas`: { field, value } — the field is a list (e.g. tags) containing value.
+// value can be a list: true when the cell holds any of them.
 function hasItem(card, { field, value }) {
-  const want = String(value).trim().toLowerCase();
-  return splitList(fieldValue(card, field)).some((item) => item.toLowerCase() === want);
+  const want = [].concat(value).map((v) => String(v).trim().toLowerCase());
+  return splitList(fieldValue(card, field)).some((item) => want.includes(item.toLowerCase()));
 }
 
 // ---- Card rendering -----------------------------------------------------
@@ -298,14 +299,21 @@ function drawImageElement(ctx, card, el, b, { assets, theme, s, color, fonts }) 
 // One field's text. entry: 'field' or { field, bold, italic, color, prefix, suffix, list, listSep }.
 // list: the cell holds comma-separated items, shown joined with listSep.
 // One field's text. entry: 'field' or { field, bold, italic, color, prefix, suffix,
-//   label, labelColor, labelSep — "Label: " before the value, bold, in its own color
+//   label, labelColor, labelSep, labelBold — "Label: " before the value, bold (unless
+//     labelBold is false), in its own color
 //     (labelSep replaces the ":", e.g. '' for "Physical Resist +2")
 //   signed — show a plain number with its sign ("1" → "+1"); hideZero — skip a value of 0
 //   list, listSep, exclude, itemColors — a comma-separated cell shown as a list,
-//     leaving out `exclude` items and coloring items named in `itemColors` }.
+//     leaving out `exclude` items and coloring items named in `itemColors`
+//   chip: { fill, stroke } — draw the value (each item, for a list) in a small box, like a badge
+//   join, sep — an inline group of entries instead of one field (can be a chip too) }.
 function entryAtoms(card, entry, base) {
   const e = typeof entry === 'string' ? { field: entry } : entry;
   const style = { bold: e.bold ?? base.bold, italic: e.italic ?? base.italic, color: e.color ?? base.color };
+  if (e.join) {
+    const group = joinAtoms(card, e, style);
+    return e.chip && group.length ? [chipAtom(group, e.chip)] : group;
+  }
   const raw = fieldValue(card, e.field);
   if (!raw || (e.hideZero && Number(raw) === 0)) return [];
   const value = e.signed ? signed(raw) : raw;
@@ -315,27 +323,35 @@ function entryAtoms(card, entry, base) {
     const colors = Object.fromEntries(Object.entries(e.itemColors || {}).map(([k, v]) => [k.toLowerCase(), v]));
     const items = splitList(value)
       .filter((item) => !skip.has(item.toLowerCase()))
-      .map((item) => parseRich(affix(item, e), { ...style, color: colors[item.toLowerCase()] ?? style.color }));
-    atoms = joinInline(items, e.listSep ?? ' · ', style);
+      .map((item) => parseRich(affix(item, e), { ...style, color: colors[item.toLowerCase()] ?? style.color }))
+      .map((item) => (e.chip && item.length ? [chipAtom(item, e.chip)] : item));
+    atoms = joinInline(items, e.listSep ?? (e.chip ? ' ' : ' · '), style);
+    if (e.chip) return atoms;
   } else {
     atoms = parseRich(affix(value, e), style);
   }
-  if (!atoms.length || !e.label) return atoms;
-  const label = parseRich(`${e.label}${e.labelSep ?? ':'}`, { bold: true, italic: false, color: e.labelColor ?? style.color });
-  return [...label, { ...atoms[0], space: true }, ...atoms.slice(1)];
+  if (atoms.length && e.label) {
+    const label = parseRich(`${e.label}${e.labelSep ?? ':'}`, { bold: e.labelBold ?? true, italic: false, color: e.labelColor ?? style.color });
+    atoms = [...label, { ...atoms[0], space: true }, ...atoms.slice(1)];
+  }
+  return e.chip && atoms.length ? [chipAtom(atoms, e.chip)] : atoms;
+}
+
+function chipAtom(atoms, { fill, stroke } = {}) {
+  return { kind: 'chip', atoms: [{ ...atoms[0], space: false }, ...atoms.slice(1)], fill, stroke, space: false };
 }
 
 function textAtoms(card, el) {
   const base = { bold: el.weight === 'bold', italic: !!el.italic };
   if (el.text != null) return parseRich(el.text, base); // fixed text, e.g. a label
   // A paragraph in `parts` can itself be an inline group: { join: [...], sep }.
-  if (el.parts) return joinParts(el.parts.map((p) => (p?.join ? joinAtoms(card, p, base) : entryAtoms(card, p, base))));
+  if (el.parts) return joinParts(el.parts.map((p) => entryAtoms(card, p, base)));
   if (el.join) return joinAtoms(card, el, base);
   return entryAtoms(card, el, base);
 }
 
 function joinAtoms(card, el, base) {
-  const sepStyle = { ...base, color: el.sepColor };
+  const sepStyle = { ...base, color: el.sepColor ?? base.color };
   // unique: drop an entry whose value repeats the one before it ("1–1" → "1").
   const entries = el.unique
     ? el.join.filter((p, i, all) => i === 0 || fieldValue(card, p.field ?? p) !== fieldValue(card, all[i - 1].field ?? all[i - 1]))
@@ -401,7 +417,24 @@ function drawTextElement(ctx, card, el, b, { assets, s, color, fonts }) {
     if (el.align === 'center') left = b.x + (b.w - line.width) / 2;
     else if (el.align === 'right') left = b.x + b.w - line.width;
     for (const item of line.items) {
-      placed.push({ atom: item.atom, x: left + item.x, center, baseline: center + size * (el.baseline ?? 0.32) });
+      const baseline = center + size * (el.baseline ?? 0.32);
+      if (item.atom.kind !== 'chip') {
+        placed.push({ atom: item.atom, x: left + item.x, center, baseline });
+        continue;
+      }
+      // A chip: its box now, its text with the rest below.
+      const chip = chipLayout(item.atom, size, measure);
+      roundRectPath(ctx, left + item.x, center - size * 0.6, chip.width, size * 1.2, size * 0.22);
+      if (item.atom.fill) {
+        ctx.fillStyle = color(item.atom.fill);
+        ctx.fill();
+      }
+      if (item.atom.stroke) {
+        ctx.strokeStyle = color(item.atom.stroke);
+        ctx.lineWidth = Math.max(1, size * 0.06);
+        ctx.stroke();
+      }
+      for (const inner of chip.items) placed.push({ atom: inner.atom, x: left + item.x + inner.x, center, baseline });
     }
   }
 

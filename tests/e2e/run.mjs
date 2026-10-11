@@ -283,8 +283,8 @@ async function run() {
     await page.setInputFiles('#sheet-input', path.join(ROOT, 'examples/flagonquest-techniques.csv'));
     await page.waitForFunction(() => /flagonquest-techniques\.csv · 9 cards/.test(document.getElementById('sheet-status').textContent));
     await page.waitForFunction(() => document.querySelectorAll('.tile canvas').length === 9);
-    assert.equal(await page.inputValue('#layout-select'), 'flagonquest-technique');
-    assert.match(await page.textContent('#status'), /Switched to the FlagonQuest Technique layout/);
+    assert.equal(await page.inputValue('#layout-select'), 'flagonquest');
+    assert.match(await page.textContent('#status'), /Switched to the FlagonQuest layout/);
     assert.equal(await page.isHidden('#warnings'), true, 'FlagonQuest example should load without warnings');
     await page.screenshot({ path: path.join(OUT, 'preview-flagonquest.png'), fullPage: true });
     for (const [index, name] of ['brace', 'battle-maneuver', 'lay-on-hands', 'boulder-toss', 'profession'].entries()) {
@@ -297,13 +297,13 @@ async function run() {
     const fqTts = await saveDownload(page, 'export-tts');
     const fqDeck = JSON.parse(await fqTts.zip.file('Card Builder/Deck.json').async('string')).ObjectStates[0];
     const brace = fqDeck.ContainedObjects.find((c) => c.Nickname === 'Brace');
-    assert.equal(brace.Description, '[b]Tags:[/b] Encounter\n[b]Action:[/b] 1 AP\nYou gain 3 stacks of Protected.\n[b]Prereqs:[/b] Resilience 2\n[i]You draw a deep breath, steeling yourself for the struggle ahead.[/i]');
+    assert.equal(brace.Description, '[b]Tags:[/b] Encounter\n[b]Action:[/b] 1 AP\n[b]Skills:[/b] Resilience\nYou gain 3 stacks of Protected.\n[b]Prereqs:[/b] Resilience 2\n[i]You draw a deep breath, steeling yourself for the struggle ahead.[/i]');
 
     // FlagonQuest items: the real items spreadsheet, its layout picked automatically.
     await page.setInputFiles('#sheet-input', path.join(ROOT, 'examples/flagonquest-items.csv'));
     await page.waitForFunction(() => /flagonquest-items\.csv · 9 cards/.test(document.getElementById('sheet-status').textContent));
     await page.waitForFunction(() => document.querySelectorAll('.tile canvas').length === 9);
-    assert.equal(await page.inputValue('#layout-select'), 'flagonquest-item');
+    assert.equal(await page.inputValue('#layout-select'), 'flagonquest');
     assert.equal(await page.isHidden('#warnings'), true, 'FlagonQuest items example should load without warnings');
     for (let i = 0; i < 9; i++) {
       const png = await page.evaluate((n) => document.querySelectorAll('.tile canvas')[n].toDataURL('image/png'), i);

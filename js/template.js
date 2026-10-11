@@ -6,6 +6,9 @@ const ALWAYS = ['name', 'count', 'deck'];
 const LEFT_OUT = new Set(['art']);
 
 const entryField = (entry) => (typeof entry === 'string' ? entry : entry?.field);
+// A text element's entries, with inline groups ({ join: [...] }, nestable) flattened.
+const flatEntries = (list) => (list || []).flatMap((e) => (e?.join ? flatEntries(e.join) : [e]));
+const elementEntries = (el) => (el.parts ? flatEntries(el.parts) : el.join ? flatEntries(el.join) : [el]);
 
 // Header notes for list columns (one cell, several items). The page ignores
 // anything in parentheses when it reads a header, so the note is safe to keep.
@@ -17,9 +20,7 @@ export function layoutFields(layout) {
   for (const el of layout.elements) {
     if (el.type === 'image') fields.push(el.field || 'art');
     if (el.type !== 'text' || el.text != null) continue;
-    if (el.parts) fields.push(...el.parts.flatMap((p) => (p?.join ? p.join.map(entryField) : [entryField(p)])));
-    else if (el.join) fields.push(...el.join.map(entryField));
-    else if (el.field) fields.push(el.field);
+    fields.push(...elementEntries(el).map(entryField));
   }
   // Columns that only switch elements on or off, or pick the card color.
   for (const el of layout.elements) {
@@ -34,8 +35,7 @@ export function listFields(layout) {
   const fields = new Set();
   for (const el of layout.elements) {
     if (el.type !== 'text') continue;
-    const entries = [el, ...(el.parts || []), ...(el.join || [])];
-    for (const entry of entries) if (entry?.list && entryField(entry)) fields.add(entryField(entry));
+    for (const entry of elementEntries(el)) if (entry?.list && entryField(entry)) fields.add(entryField(entry));
   }
   return fields;
 }

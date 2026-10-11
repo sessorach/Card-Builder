@@ -30,7 +30,7 @@ template for each layout and example decks to load.
   are missing art.
 - The column list is in the **Templates & examples** tab.
 - FlagonQuest players can drop in the techniques or items spreadsheet from
-  the FlagonQuest repo as-is; the page picks the right layout by itself.
+  the FlagonQuest repo as-is; the page picks the FlagonQuest layout by itself.
 
 ## Playing with friends
 

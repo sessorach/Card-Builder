@@ -1,7 +1,7 @@
 // Page wiring: inputs → state → preview → exports.
 import { parseDelimited, detectDelimiter, rowsToCards, groupByDeck } from './spreadsheet.js';
 import { readXlsx } from './xlsx.js';
-import { LAYOUTS, getLayout } from '../layouts/index.js';
+import { LAYOUTS, getLayout, matchesColumns } from '../layouts/index.js';
 import { CARD_SIZES, DEFAULT_SIZE_ID, getSize, sizePx } from './sizes.js';
 import { AssetStore, decodeImage, renderCard, renderBack, findArt, cardAccent } from './render.js';
 import { loadFonts } from './fonts.js';
@@ -84,7 +84,7 @@ const norm = (s) => String(s || '').trim().toLowerCase().replace(/[\s_]+/g, '-')
 function resolveLayout(card) {
   if (card.layout) {
     const want = norm(card.layout);
-    const found = LAYOUTS.find((l) => l.id === want || norm(l.name) === want);
+    const found = getLayout(want) || LAYOUTS.find((l) => norm(l.name) === want);
     if (found) return { layout: found };
     return { layout: getLayout(settings.layout) || LAYOUTS[0], unknown: card.layout };
   }
@@ -135,7 +135,7 @@ async function loadSpreadsheet(file) {
     // A spreadsheet that fits a layout's known columns (e.g. FlagonQuest's techniques
     // sheet) picks that layout, unless it chooses layouts itself with a layout column.
     if (!columns.includes('layout')) {
-      const match = LAYOUTS.find((l) => l.matchColumns?.every((c) => columns.includes(c)));
+      const match = LAYOUTS.find((l) => matchesColumns(l, columns));
       if (match && match.id !== settings.layout) {
         setLayout(match.id);
         setStatus(`Switched to the ${match.name} layout to match this spreadsheet.`);
@@ -678,10 +678,11 @@ function renderTemplateList() {
 
 // Chooses a layout from code (no re-render; the caller renders next).
 function setLayout(id) {
-  if (!getLayout(id)) return;
-  settings.layout = id;
+  const layout = getLayout(id);
+  if (!layout) return;
+  settings.layout = layout.id;
   saveSettings();
-  $('layout-select').value = id;
+  $('layout-select').value = layout.id;
   describeLayout();
 }
 
@@ -690,7 +691,7 @@ function setLayout(id) {
 function setupControls() {
   const layoutSelect = $('layout-select');
   for (const l of LAYOUTS) layoutSelect.add(new Option(l.name, l.id));
-  layoutSelect.value = getLayout(settings.layout) ? settings.layout : LAYOUTS[0].id;
+  layoutSelect.value = (getLayout(settings.layout) || LAYOUTS[0]).id;
   settings.layout = layoutSelect.value;
   describeLayout();
   layoutSelect.addEventListener('change', () => {
