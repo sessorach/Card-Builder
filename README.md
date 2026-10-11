@@ -31,6 +31,8 @@ template for each layout and example decks to load.
 - The column list is in the **Templates & examples** tab.
 - FlagonQuest players can drop in the techniques or items spreadsheet from
   the FlagonQuest repo as-is; the page picks the FlagonQuest layout by itself.
+  To make cards for one character, use **Make cards** on the FlagonQuest
+  Character Sheet: it opens this page with that character's cards loaded.
 
 ## Playing with friends
 
