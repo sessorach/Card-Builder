@@ -455,24 +455,24 @@ function cloudPackStale() {
 function ttsLocation() {
   if (settings.ttsMode === 'cloud') {
     const pack = state.cloudPack;
-    if (!pack) return { error: 'Step 1: download the images to upload.' };
+    if (!pack) return { error: 'Start with step 1: download the pictures to upload.' };
     if (cloudPackStale()) {
-      return { error: 'Your cards changed since you downloaded the images. Download them again; links for images that didn\'t change fill in by themselves.' };
+      return { error: 'Your cards changed since you downloaded the pictures. Do step 1 again; links for pictures that didn\'t change fill in by themselves.' };
     }
     const missing = pack.files.filter((f) => !isLink(cloudLinks[f.hash] || ''));
     if (missing.length) {
-      return { error: `Paste the Steam Cloud link for ${missing.length} more image${missing.length === 1 ? '' : 's'}.` };
+      return { error: `Step 3: paste the Steam Cloud link for ${missing.length} more picture${missing.length === 1 ? '' : 's'}.` };
     }
     const links = Object.fromEntries(pack.files.map((f) => [f.hash, cleanInput(cloudLinks[f.hash])]));
     return { location: { mode: 'cloud', links } };
   }
   if (settings.ttsMode === 'web') {
     const url = cleanInput(settings.baseUrl);
-    if (!/^https?:\/\/\S+/i.test(url)) return { error: 'Enter the web address (starting with https://) the images will be uploaded to.' };
+    if (!/^https?:\/\/\S+/i.test(url)) return { error: 'Enter the web address (starting with https://) the pictures will be uploaded to.' };
     return { location: { mode: 'web', baseUrl: url } };
   }
   const folder = cleanInput(settings.savedObjects);
-  if (!folder) return { error: 'Enter your Saved Objects folder so TTS can find the images.' };
+  if (!folder) return { error: 'Enter your Saved Objects folder above so TTS can find the pictures.' };
   if (folder.startsWith('~')) return { error: 'Use the full folder path; TTS doesn\'t understand "~".' };
   return { location: { mode: 'local', savedObjects: folder } };
 }
@@ -513,8 +513,8 @@ async function runExport(kind) {
       const todo = files.filter((f) => !isLink(cloudLinks[f.hash] || '')).length;
       setStatus(
         todo
-          ? `Upload ${todo === files.length ? 'these' : `the ${todo} new`} image${todo === 1 ? '' : 's'} in TTS, then paste the links below.`
-          : 'All links are already filled in from last time. Download the TTS deck.',
+          ? `Now upload ${todo === files.length ? 'the' : `the ${todo} new`} picture${todo === 1 ? '' : 's'} in TTS (step 2), then paste the links (step 3).`
+          : 'All links are already filled in from last time. Download the TTS deck (step 4).',
       );
     } else {
       const { location } = ttsLocation();
@@ -525,7 +525,7 @@ async function runExport(kind) {
       const describe = (card) => cardDescription(card.fields, resolveLayout(card).layout.hover);
       const blob = await buildTtsZip({ prepared, getCanvas: common.getCanvas, location, describe, onProgress: setStatus });
       download(blob, `${base} - TTS.zip`);
-      $('tts-help').open = true; // walk them through the next steps
+      $('tts-load').scrollIntoView({ behavior: 'smooth' }); // walk them through the next steps
       setStatus('Done! Check your downloads.');
     }
   } catch (err) {
@@ -728,7 +728,7 @@ function setupControls() {
     $('tts-cloud').hidden = settings.ttsMode !== 'cloud';
     $('tts-local').hidden = settings.ttsMode !== 'local';
     $('tts-web').hidden = settings.ttsMode !== 'web';
-    document.querySelectorAll('[data-help-mode]').forEach((el) => (el.hidden = el.dataset.helpMode !== settings.ttsMode));
+    document.querySelectorAll('[data-help-mode]').forEach((el) => (el.hidden = !el.dataset.helpMode.split(' ').includes(settings.ttsMode)));
     fillHelp();
     updateExportButtons();
   };

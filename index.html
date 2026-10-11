@@ -118,48 +118,63 @@
 
       <div class="tab-panel sheet" data-panel="tts" role="tabpanel" hidden>
         <h2>Tabletop Simulator deck</h2>
-        <p class="lead">A deck for each <code>deck</code> in your spreadsheet, with the right number of copies.</p>
+        <p class="lead">You'll download a folder of ready-made decks, one for each <code>deck</code> in your spreadsheet, with the right number of copies of every card. You put that folder where TTS keeps its saved objects, and the decks show up in TTS's Objects menu.</p>
 
         <fieldset class="field">
-          <legend>How will TTS get the card images?</legend>
+          <legend>First: where should TTS get the card pictures from?</legend>
           <div class="modes">
-            <label class="mode"><input type="radio" name="tts-mode" value="cloud" checked><span><b>Steam Cloud</b> <span class="badge">recommended</span><small>Everyone in your game sees the cards. Nothing to set up or host.</small></span></label>
-            <label class="mode"><input type="radio" name="tts-mode" value="local"><span><b>This computer only</b><small>Quickest to try. Only you see the cards.</small></span></label>
-            <label class="mode"><input type="radio" name="tts-mode" value="web"><span><b>My own website</b><small>For people who already host files online.</small></span></label>
+            <label class="mode"><input type="radio" name="tts-mode" value="cloud" checked><span><b>Steam Cloud</b> <span class="badge">recommended</span><small>Everyone in your game sees the cards. Takes a few extra minutes: you upload the pictures in TTS and paste their links here.</small></span></label>
+            <label class="mode"><input type="radio" name="tts-mode" value="local"><span><b>This computer only</b><small>Quickest to try. Only you see the cards, and they only work on this computer.</small></span></label>
+            <label class="mode"><input type="radio" name="tts-mode" value="web"><span><b>My own website</b><small>For people who already have somewhere online to put files.</small></span></label>
           </div>
         </fieldset>
 
         <div class="field field-inline">
-          <label for="tts-quality">Sheet resolution</label>
+          <label for="tts-quality">Picture quality</label>
           <select id="tts-quality">
             <option value="high">High: full-resolution cards</option>
-            <option value="compatible">Compatible: max 4096 px sheets (older PCs)</option>
+            <option value="compatible">Compatible: smaller pictures for older PCs</option>
           </select>
         </div>
 
         <div id="tts-cloud">
-          <ol class="cloud-steps">
+          <ol class="guide">
             <li>
-              <b>Download the images to upload.</b> Unzip them anywhere, like your Downloads folder.
-              <button type="button" class="secondary" id="cloud-pack" disabled>Download images to upload (.zip)</button>
+              <h3>Download the pictures to upload</h3>
+              <p>This gives you a ZIP with a few pictures: each one holds all of a deck's cards on one big sheet, plus one for the card back. Unzip it somewhere easy to find, like your Downloads folder.</p>
+              <button type="button" class="secondary" id="cloud-pack" disabled>Download the pictures to upload (.zip)</button>
             </li>
             <li>
-              <b>Upload them in TTS.</b> Start any game, open the <b>Cloud Manager</b> from the menu bar at the top
-              (under <i>Modding</i> or <i>Upload</i>, depending on your TTS version), click the <b>folder icon</b>
-              next to its search bar, and pick the images.
+              <h3>Upload them to your Steam Cloud, inside TTS</h3>
+              <ul>
+                <li>Open Tabletop Simulator and start any game. Singleplayer is fine.</li>
+                <li>In the menu bar along the top of the screen, click <b>Upload</b>, then <b>Cloud Manager</b>.</li>
+                <li>Click the <b>folder icon</b> to the left of the Cloud Manager's search bar, and pick one of the pictures you unzipped.</li>
+                <li>Do the same for each of the other pictures.</li>
+              </ul>
+              <p class="help-note">Your Steam Cloud is free storage that comes with your Steam account. Pictures stay there until you delete them.</p>
             </li>
             <li>
-              <b>Copy each link back here.</b> Click an uploaded image in the Cloud Manager to copy its link,
-              then paste it next to the same file name below.
+              <h3>Copy each picture's link back here</h3>
+              <ul>
+                <li>In the Cloud Manager, click one of the pictures you uploaded. That copies its link (nothing seems to happen, but it's copied).</li>
+                <li>Paste the link into the box below that has the same file name. A green bar means it worked.</li>
+                <li>Repeat for each picture.</li>
+              </ul>
+              <p class="help-note">This page remembers the links. Next time, only pictures that changed need uploading and pasting again.</p>
+              <div id="cloud-links" class="cloud-links"><p class="hint">The boxes for the links appear here after step 1.</p></div>
             </li>
-            <li><b>Download the TTS deck</b> with the button below.</li>
+            <li>
+              <h3>Download the TTS deck</h3>
+              <p>Use the button below, then follow “Put the deck into TTS”.</p>
+            </li>
           </ol>
-          <div id="cloud-links" class="cloud-links"></div>
         </div>
 
         <div class="field" id="tts-local">
           <label for="tts-folder">Your TTS “Saved Objects” folder</label>
           <input type="text" id="tts-folder" spellcheck="false" placeholder="C:\Users\you\Documents\My Games\Tabletop Simulator\Saves\Saved Objects">
+          <p class="hint">The deck looks for its pictures in this folder, so it has to be exact. Copy it from your file manager's address bar.</p>
           <details class="hint">
             <summary>Where is it?</summary>
             <p><b>Windows:</b> C:\Users\<i>you</i>\Documents\My Games\Tabletop Simulator\Saves\Saved Objects</p>
@@ -169,59 +184,64 @@
         </div>
 
         <div class="field" id="tts-web" hidden>
-          <label for="tts-url">Web address the images will be uploaded to</label>
+          <label for="tts-url">Web address the pictures will be uploaded to</label>
           <input type="url" id="tts-url" spellcheck="false" placeholder="https://you.github.io/my-decks/">
-          <p class="hint">After downloading, upload the files from <code>images/</code> to this address.</p>
+          <p class="hint">After downloading, you'll upload the pictures from the <code>images</code> folder to this address.</p>
         </div>
 
         <button type="button" class="primary wide" id="export-tts" disabled>Download TTS deck (.zip)</button>
         <p class="hint" id="tts-reason"></p>
         <p class="status" data-status aria-hidden="true"></p>
 
-        <details class="help" id="tts-help">
-          <summary>How to load your deck into TTS</summary>
-
-          <ol data-help-mode="cloud">
-            <li><b>Follow steps 1–4 above</b> to upload the images and download the TTS deck.</li>
-            <li><b>Unzip the deck.</b> Inside is a folder called <code>Card Builder</code>.</li>
-            <li><b>Move the <code>Card Builder</code> folder into your TTS Saved Objects folder.</b>
-              <span class="help-sub">Windows: Documents\My Games\Tabletop Simulator\Saves\Saved Objects<br>Mac: ~/Library/Tabletop Simulator/Saves/Saved Objects<br>Linux: ~/.local/share/Tabletop Simulator/Saves/Saved Objects</span></li>
-            <li><b>Open TTS</b>, click <b>Objects</b> in the top menu, then <b>Saved Objects → Card Builder</b>, and click a deck to put it on the table.</li>
+        <section class="load" id="tts-load">
+          <h2>Put the deck into TTS</h2>
+          <ol class="guide">
+            <li>
+              <h3>Unzip the deck</h3>
+              <p>Inside is a folder called <code>Card Builder</code>. <span data-help-mode="local web">It holds your decks and an <code>images</code> folder with the card pictures.</span><span data-help-mode="cloud">It holds your decks. The pictures stay in your Steam Cloud.</span></p>
+            </li>
+            <li data-help-mode="web">
+              <h3>Upload the pictures to your website</h3>
+              <p>Upload the files inside <code>Card Builder/images</code> to
+                <code class="path" data-fill="baseUrl" data-empty="(enter the address above)"></code>
+                Check one: it should open in your browser at that address followed by its file name.</p>
+            </li>
+            <li>
+              <h3>Move the whole <code>Card Builder</code> folder into your Saved Objects folder</h3>
+              <p data-help-mode="local">It must go in exactly this folder, because that's where the deck looks for its pictures:
+                <code class="path" data-fill="savedObjects" data-empty="(enter it above)"></code></p>
+              <p data-help-mode="cloud web">That's TTS's own folder for saved objects:</p>
+              <p class="help-sub" data-help-mode="cloud web">Windows: Documents\My Games\Tabletop Simulator\Saves\Saved Objects<br>Mac: ~/Library/Tabletop Simulator/Saves/Saved Objects<br>Linux: ~/.local/share/Tabletop Simulator/Saves/Saved Objects</p>
+              <p class="help-note">Afterwards, <code>Saved Objects</code> should contain <code>Card Builder</code> directly. If you see <code>Card Builder</code> inside another <code>Card Builder</code>, move the inner one up.</p>
+            </li>
+            <li>
+              <h3>Put a deck on the table</h3>
+              <p>In TTS, click <b>Objects</b> in the top menu, then <b>Saved Objects</b>, open the <b>Card Builder</b> folder, and click a deck.</p>
+              <p class="help-note" data-help-mode="cloud web">Everyone in your game sees the cards. Only the person putting the deck on the table needs the files.</p>
+              <p class="help-note" data-help-mode="local">Only you will see these cards. To play with others, choose <b>Steam Cloud</b> above.</p>
+            </li>
           </ol>
-          <p class="help-note" data-help-mode="cloud">The pictures load from your Steam Cloud, so everyone in your game sees them. The links are remembered here: next time, only images that changed need uploading again.</p>
 
-          <ol data-help-mode="local">
-            <li><b>Download</b> the TTS deck with the button above.</li>
-            <li><b>Unzip it.</b> Inside is a folder called <code>Card Builder</code>.</li>
-            <li><b>Move the <code>Card Builder</code> folder into your Saved Objects folder:</b>
-              <code class="path" data-fill="savedObjects" data-empty="(enter it above)"></code>
-              It has to be that exact folder, because the deck looks for its card images there.</li>
-            <li><b>Open TTS</b> and start a game (Singleplayer is fine for a first look).</li>
-            <li>Click <b>Objects</b> in the top menu, then <b>Saved Objects → Card Builder</b>, and click a deck to put it on the table.</li>
-          </ol>
-          <p class="help-note" data-help-mode="local">Only you will see these cards. To play online, choose <b>Steam Cloud</b> above.</p>
-
-          <ol data-help-mode="web">
-            <li><b>Download</b> the TTS deck with the button above.</li>
-            <li><b>Unzip it.</b> Inside the <code>Card Builder</code> folder are your decks and an <code>images</code> folder.</li>
-            <li><b>Upload the files inside <code>images</code></b> to
-              <code class="path" data-fill="baseUrl" data-empty="(enter it above)"></code>
-              Each file should open in a browser at that address followed by its file name.</li>
-            <li><b>Move the <code>Card Builder</code> folder into your TTS Saved Objects folder.</b>
-              <span class="help-sub">Windows: Documents\My Games\Tabletop Simulator\Saves\Saved Objects<br>Mac: ~/Library/Tabletop Simulator/Saves/Saved Objects<br>Linux: ~/.local/share/Tabletop Simulator/Saves/Saved Objects</span></li>
-            <li><b>Open TTS</b>, click <b>Objects</b> in the top menu, then <b>Saved Objects → Card Builder</b>, and click a deck to put it on the table.</li>
-          </ol>
-          <p class="help-note" data-help-mode="web">Everyone in the game loads the images from your website, so all players see the cards. Only the person putting the deck on the table needs the Saved Objects files.</p>
-
-          <h4>If something goes wrong</h4>
-          <ul>
-            <li><b>The deck isn't in Saved Objects:</b> make sure <code>Card Builder</code> sits directly inside Saved Objects. Unzipping sometimes adds an extra folder around it; if so, move the inner one.</li>
-            <li><b>Cards are blank or show an image error:</b> TTS can't find the pictures. <span data-help-mode="cloud">Check that each link was pasted next to the right file name, then download the deck again.</span><span data-help-mode="local">The deck looks for them in exactly this folder, so check they're there:
-              <code class="path" data-fill="imagesFolder" data-empty="(enter your Saved Objects folder above)"></code></span><span data-help-mode="web">Check that the images open in your browser at the address you entered.</span></li>
-            <li><b>Changed some cards?</b> <span data-help-mode="cloud">Download the images to upload again; only the new ones need uploading and pasting. Then download the deck again and replace the old <code>Card Builder</code> folder.</span><span data-help-mode="local">Download again and replace the old <code>Card Builder</code> folder.</span><span data-help-mode="web">Download again, replace the old <code>Card Builder</code> folder, and upload the new images.</span> TTS picks up the changes because changed images get new names.</li>
-          </ul>
-          <p class="help-note">The deck ZIP also includes these steps in <code>HOW TO IMPORT.txt</code>.</p>
-        </details>
+          <details class="help" id="tts-help">
+            <summary>If something goes wrong</summary>
+            <ul>
+              <li><b>The deck isn't in Saved Objects.</b> Check that <code>Card Builder</code> sits directly inside the Saved Objects folder, not inside another folder. In TTS, you may need to close and reopen the Saved Objects window.</li>
+              <li><b>The cards are blank or show an image error.</b>
+                <span data-help-mode="cloud">TTS can't load a picture from its link. Check that each link was pasted next to the right file name, download the TTS deck again, and replace the old <code>Card Builder</code> folder.</span>
+                <span data-help-mode="local">TTS can't find the pictures. The deck looks for them in exactly this folder, so check they're there:
+                  <code class="path" data-fill="imagesFolder" data-empty="(enter your Saved Objects folder above)"></code>
+                  If they are and it still fails, use <b>Steam Cloud</b> instead: it doesn't depend on folders.</span>
+                <span data-help-mode="web">TTS can't load the pictures. Check that they open in your browser at the address you entered.</span></li>
+              <li data-help-mode="cloud"><b>There's no Upload menu.</b> Some versions of TTS call it <b>Modding</b>. The Cloud Manager is in that menu.</li>
+              <li><b>You changed some cards.</b>
+                <span data-help-mode="cloud">Do steps 1 to 4 again. Only pictures that changed need uploading and pasting; the rest fill in by themselves.</span>
+                <span data-help-mode="local">Download the deck again.</span>
+                <span data-help-mode="web">Download the deck again and upload the new pictures.</span>
+                Then replace the old <code>Card Builder</code> folder in Saved Objects. Changed pictures get new names, so TTS won't show old copies.</li>
+            </ul>
+            <p class="help-note">The deck ZIP also includes these steps in <code>HOW TO IMPORT.txt</code>.</p>
+          </details>
+        </section>
       </div>
 
       <div class="tab-panel sheet" data-panel="start" role="tabpanel" hidden>

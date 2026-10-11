@@ -35,6 +35,7 @@ template for each layout and example decks to load.
 ## Playing with friends
 
 Leave the TTS option on **Steam Cloud** (the default). The page walks you
-through it: download the card images, upload them in TTS's Cloud Manager, and
-paste their links back into the page. Then everyone in your game sees the
-cards. Links are remembered, so next time only changed images need uploading.
+through it: download the pictures, upload them in TTS (*Upload → Cloud
+Manager*), and paste their links back into the page. Then everyone in your game
+sees the cards. Links are remembered, so next time only changed pictures need
+uploading.

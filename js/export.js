@@ -65,42 +65,68 @@ function instructions({ decks, location, manual }) {
     '======================================',
     '',
   ];
+  const savedObjects = [
+    '   Windows: Documents\\My Games\\Tabletop Simulator\\Saves\\Saved Objects',
+    '   Mac:     ~/Library/Tabletop Simulator/Saves/Saved Objects',
+    '   Linux:   ~/.local/share/Tabletop Simulator/Saves/Saved Objects',
+  ];
+  const spawn = (n) => [
+    `${n}. In TTS, click Objects in the top menu, then Saved Objects, open the`,
+    `   "${TTS_FOLDER}" folder, and click a deck to put it on the table.`,
+  ];
+  const nesting = [
+    `   Afterwards, Saved Objects should contain "${TTS_FOLDER}" directly. If you see`,
+    `   "${TTS_FOLDER}" inside another "${TTS_FOLDER}", move the inner one up.`,
+  ];
   if (location.mode === 'cloud') {
     lines.push(
-      `1. Put the "${TTS_FOLDER}" folder inside your TTS "Saved Objects" folder:`,
-      '   Windows: Documents\\My Games\\Tabletop Simulator\\Saves\\Saved Objects',
-      '   Mac:     ~/Library/Tabletop Simulator/Saves/Saved Objects',
-      '   Linux:   ~/.local/share/Tabletop Simulator/Saves/Saved Objects',
-      '2. In TTS: Objects → Saved Objects → Card Builder, then click a deck to spawn it.',
+      `1. Move the whole "${TTS_FOLDER}" folder (the one this file is in) into your`,
+      '   TTS "Saved Objects" folder:',
+      ...savedObjects,
+      ...nesting,
+      ...spawn(2),
       '',
-      'The card images load from your Steam Cloud, so everyone in your game sees them.',
+      'The card pictures load from your Steam Cloud, so everyone in your game sees',
+      'them. Only the person putting the deck on the table needs these files.',
+      '',
+      'Cards blank or showing an image error? Check that each link was pasted next',
+      'to the right file name in Card Builder, then download the deck again.',
     );
   } else if (location.mode === 'local') {
     lines.push(
-      `1. Unzip so the "${TTS_FOLDER}" folder lands inside your TTS "Saved Objects" folder:`,
+      `1. Move the whole "${TTS_FOLDER}" folder (the one this file is in) into exactly`,
+      '   this folder:',
       `   ${savedObjectsFolder(location.savedObjects)}`,
-      '2. In TTS: Objects → Saved Objects → Card Builder, then click a deck to spawn it.',
+      ...nesting,
+      ...spawn(2),
       '',
-      'The decks look for their card images in exactly this folder:',
+      'Cards blank or showing an image error? The decks look for their pictures in',
+      'exactly this folder, so check they are there:',
       `   ${localImagesFolder(location.savedObjects)}`,
-      'If the cards come up blank or with an image error, check the images are there.',
+      'If they are and it still fails, choose "Steam Cloud" in Card Builder instead.',
       '',
-      'These images are loaded from files on this computer, so other players will',
-      'not see them. To play online, choose "Steam Cloud" in Card Builder.',
+      'These pictures load from files on this computer, so other players will not',
+      'see them. To play with others, choose "Steam Cloud" in Card Builder.',
     );
   } else {
     lines.push(
-      `1. Upload everything in "${TTS_FOLDER}/images" so each file is reachable at:`,
+      `1. Upload the files inside "${TTS_FOLDER}/images" so each one opens at:`,
       `   ${cleanInput(location.baseUrl).replace(/\/*$/, '/')}<file name>`,
-      `2. Put the "${TTS_FOLDER}" folder (the .json and .png files) in your TTS "Saved Objects" folder.`,
-      '3. In TTS: Objects → Saved Objects → Card Builder, then click a deck to spawn it.',
+      `2. Move the whole "${TTS_FOLDER}" folder (the one this file is in) into your`,
+      '   TTS "Saved Objects" folder:',
+      ...savedObjects,
+      ...nesting,
+      ...spawn(3),
+      '',
+      'Everyone in your game loads the pictures from your website.',
     );
   }
   if (location.mode !== 'cloud') {
     lines.push(
       '',
-      'Manual import (works for anyone; TTS offers to upload the images to Steam Cloud):',
-      'Objects → Components → Custom → Deck, then for each sheet below:',
+      'Another way, by hand: TTS can import each sheet itself and offers to upload',
+      'it to your Steam Cloud. In TTS: Objects → Components → Custom → Deck, then',
+      'for each sheet below:',
     );
     for (const m of manual) {
       lines.push(

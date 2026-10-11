@@ -406,8 +406,8 @@ There are three options, and Steam Cloud is the default:
   and only TTS itself can upload to it, so the flow goes back and forth once:
   1. Card Builder gives a ZIP of just the images to upload. They can be
      unzipped anywhere, since TTS's own file picker reads them.
-  2. In TTS's Cloud Manager, the player uploads them. Clicking an uploaded file
-     copies its link.
+  2. In TTS's Cloud Manager (Upload → Cloud Manager), the player uploads them.
+     Clicking an uploaded file copies its link.
   3. The player pastes each link next to the matching file name in Card
      Builder.
   4. Card Builder builds the deck with those links, so the cards keep their
@@ -459,15 +459,25 @@ There are three options, and Steam Cloud is the default:
 - **My own website:** the player gives a web address and uploads the images
   there. This works for online play, for people who already have hosting.
 
-**Loading instructions live on the page.** Under the TTS download button, in
-the TTS export tab, there is a collapsible "How to load your deck into TTS" guide, so the steps are
-right where people need them rather than only in the README. It shows only the
-steps for the image option that was chosen, fills in the folder or web
-address that was typed, covers the usual problems (an extra folder from
-unzipping, blank cards, updating a deck), and opens by itself after a TTS
-download. A collapsible section was chosen over a pop-up window because it can
-be read alongside the form and doesn't get in the way. The same steps also ship
-inside the ZIP as `HOW TO IMPORT.txt`.
+**Loading instructions live on the page.** The TTS export tab walks through
+the whole job as numbered steps, each with a short heading and plain
+sentences: for Steam Cloud, download the pictures, upload them in TTS, paste
+their links, download the deck; then, for every option, "Put the deck into
+TTS" (unzip, move the folder, open it from the Objects menu). The page scrolls
+to those steps after a TTS download. The steps show only what applies to the
+chosen option and fill in the folder or web address that was typed. Common
+problems (an extra folder from unzipping, blank cards, a TTS version with a
+differently named menu, updating a deck) sit in a collapsible "If something
+goes wrong" section, so they don't crowd the main steps. The same steps also
+ship inside the ZIP as `HOW TO IMPORT.txt`.
+
+The user asked for this guidance to be simple and easy to follow even if it
+gets longer, so it favors one action per line and explains what to expect
+(for example, that clicking a picture in the Cloud Manager copies its link
+without any visible sign). Instructions call the files "pictures" and use
+TTS's own menu names. The Cloud Manager steps follow TTS's official knowledge
+base: **Upload → Cloud Manager**, the folder icon to the left of its search
+bar uploads a file, and clicking an uploaded file copies its link.
 
 Card hover descriptions in TTS include the type, subtype and tags, the cost,
 the rules text, the stats and the flavor text. Any other filled-in column is

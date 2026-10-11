@@ -111,16 +111,17 @@ async function run() {
     await page.fill('#tts-folder', 'C:\\Users\\tester\\Documents\\My Games\\Tabletop Simulator\\Saves\\Saved Objects');
     assert.equal(await page.isDisabled('#export-tts'), false);
 
-    assert.equal(await page.evaluate(() => document.getElementById('tts-help').open), false);
     const tts = await saveDownload(page, 'export-tts');
 
-    // The TTS help opens after the download, with this computer's steps and folder filled in.
-    assert.equal(await page.evaluate(() => document.getElementById('tts-help').open), true);
-    const localHelp = await page.innerText('#tts-help');
-    assert.match(localHelp, /Move the Card Builder folder into your Saved Objects folder:\s+C:\\Users\\tester\\Documents/);
+    // The loading steps show this computer's steps, with the folder filled in.
+    const localHelp = await page.innerText('#tts-load');
+    assert.match(localHelp, /must go in exactly this folder, because that's where the deck looks for its pictures:\s+C:\\Users\\tester\\Documents/);
     assert.match(localHelp, /Only you will see these cards/);
-    assert.doesNotMatch(localHelp, /Upload the files inside images/);
-    await page.screenshot({ path: path.join(OUT, 'tts-help.png'), clip: await page.locator('#tts-help').boundingBox() });
+    assert.doesNotMatch(localHelp, /Upload the pictures to your website/);
+    assert.doesNotMatch(localHelp, /Everyone in your game sees the cards/);
+    await page.click('#tts-help summary');
+    assert.match(await page.innerText('#tts-help'), /use Steam Cloud instead/);
+    await page.screenshot({ path: path.join(OUT, 'tts-help.png'), clip: await page.locator('#tts-load').boundingBox() });
     const names = Object.keys(tts.zip.files).filter((n) => !n.endsWith('/')).sort();
     console.log('TTS zip:', names);
     const fire = JSON.parse(await tts.zip.file('Card Builder/Fire Deck.json').async('string'));
@@ -143,8 +144,9 @@ async function run() {
     await page.check('input[name="tts-mode"][value="web"]');
     assert.equal(await page.isDisabled('#export-tts'), true);
     await page.fill('#tts-url', 'https://example.com/decks');
-    const webHelp = await page.innerText('#tts-help');
-    assert.match(webHelp, /Upload the files inside images to\s+https:\/\/example\.com\/decks/);
+    const webHelp = await page.innerText('#tts-load');
+    assert.match(webHelp, /Upload the files inside Card Builder\/images to\s+https:\/\/example\.com\/decks/);
+    assert.match(webHelp, /Everyone in your game sees the cards/);
     assert.doesNotMatch(webHelp, /Only you will see these cards/);
     await page.selectOption('#tts-quality', 'compatible');
     const web = await saveDownload(page, 'export-tts');
@@ -218,7 +220,9 @@ async function run() {
     await page.check('input[name="tts-mode"][value="cloud"]');
     await page.selectOption('#tts-quality', 'high');
     assert.equal(await page.isDisabled('#export-tts'), true);
-    assert.match(await page.textContent('#tts-reason'), /Step 1: download the images to upload/);
+    assert.match(await page.textContent('#tts-reason'), /Start with step 1: download the pictures to upload/);
+    assert.match(await page.innerText('#tts-cloud'), /click Upload, then Cloud Manager/);
+    assert.match(await page.innerText('#cloud-links'), /appear here after step 1/);
     const pack = await saveDownload(page, 'cloud-pack');
     const packFiles = Object.keys(pack.zip.files).filter((n) => !n.endsWith('/')).sort();
     console.log('Steam Cloud upload zip:', packFiles);
@@ -226,7 +230,7 @@ async function run() {
     assert.ok(packFiles.every((n) => /^Card Builder uploads\/(street-deck-sheet1|back)-[0-9a-f]{10}\.jpg$/.test(n)));
     const rows = await page.$$eval('.cloud-row', (els) => els.map((el) => el.querySelector('code').textContent));
     assert.deepEqual(rows.sort(), packFiles.map((n) => n.split('/').pop()).sort());
-    assert.match(await page.textContent('#tts-reason'), /Paste the Steam Cloud link for 2 more images/);
+    assert.match(await page.textContent('#tts-reason'), /Step 3: paste the Steam Cloud link for 2 more pictures/);
     const links = {};
     for (const [i, name] of rows.entries()) {
       links[name] = `https://steamusercontent-a.akamaihd.net/ugc/${1000 + i}/HASH${i}/`;
