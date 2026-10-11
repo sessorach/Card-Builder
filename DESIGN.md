@@ -71,7 +71,7 @@ box") rather than a special case for that design.
 
 The page has a layout selector that sets the default. A `layout` column in the
 spreadsheet overrides it for individual cards, so one deck can mix designs. It
-ships with four layouts:
+ships with these layouts:
 
 - **Default:** a framed card with an art window. This was the first layout,
   originally called Classic. It was renamed Default to serve as the general
@@ -81,6 +81,16 @@ ships with four layouts:
 - **Street:** the first layout designed for our game (see below).
 - **FlagonQuest:** reference cards for FlagonQuest techniques and items (see
   below).
+
+**One layout per use case, with variants per card type.** A game or project
+gets one layout under one name, even when it has several kinds of card. The
+layout adjusts itself to each kind: Street adds its stat boxes only to cards
+that have stats, and FlagonQuest switches between its technique and item
+versions by whether the row has a Category. The user prefers this to a
+separate layout per card type because the main thing is a consistent look
+across a game's cards; the kinds of card can differ in what they show, but
+they share the frame, colors and fonts. New projects (such as the planned
+allies-and-actions cards) follow the same pattern.
 
 Positions in a layout are percentages of the card rather than pixels or
 millimeters. Text sizes are percentages of the card's width. That way the same
