@@ -15,16 +15,22 @@ const elementEntries = (el) => (el.parts ? flatEntries(el.parts) : el.join ? fla
 const LIST_NOTE = '(separate with commas)';
 
 // Every column a layout reads, in the order it draws them.
+// A layout's elements with stacks opened up (their items' elements, plus the items
+// themselves so their when/unless columns count).
+const allElements = (elements) =>
+  elements.flatMap((el) => (el.type === 'stack' ? [el, ...el.items.flatMap((item) => [item, ...allElements(item.elements)])] : [el]));
+
 export function layoutFields(layout) {
   const fields = [];
-  for (const el of layout.elements) {
+  const elements = allElements(layout.elements);
+  for (const el of elements) {
     if (el.type === 'image') fields.push(el.field || 'art');
     if (el.type === 'blend') fields.push(el.field, el.styleField);
     if (el.type !== 'text' || el.text != null) continue;
     fields.push(...elementEntries(el).map(entryField));
   }
   // Columns that only switch elements on or off, or pick the card color.
-  for (const el of layout.elements) {
+  for (const el of elements) {
     fields.push(...[].concat(el.when || [], el.unless || [], el.whenAll || [], el.unlessAll || []), el.whenHas?.field, el.unlessHas?.field);
   }
   if (layout.colorBy) fields.push(layout.colorBy.field);
@@ -34,7 +40,7 @@ export function layoutFields(layout) {
 // Columns a layout shows as a list (`list: true`), e.g. tags.
 export function listFields(layout) {
   const fields = new Set();
-  for (const el of layout.elements) {
+  for (const el of allElements(layout.elements)) {
     if (el.type !== 'text') continue;
     for (const entry of elementEntries(el)) if (entry?.list && entryField(entry)) fields.add(entryField(entry));
   }

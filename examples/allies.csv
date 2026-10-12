@@ -11,3 +11,5 @@ Arcane Bolt,2,Actions,Action,"Attack, Spell",Knowledge,,,,,+5,"[W] Arcane, ignor
 Rally,1,Actions,Action,Command,"Discipline 2, Instinct 1",,,,,,,,,6,Once per battle,Each ally in range removes 1 Fear stack and gains 1 Resolve.,"""Hold the line!"""
 Shadowstep,1,Actions,Action,Move,Inverted Knowledge,,,,,,,,,4,1/turn,Teleport up to 4. Your next attack this turn gets +2 To Hit.,
 Venom Coat,1,Actions,Action,Stack,"Instinct, Inverted Instinct",,,,,,,,,,At will,Add 2 Poison stacks to your weapon. Each hit spends one to Poison the target.,
+Ruinous Barrage,1,Actions,Action,"Attack, Spell","Passion, Inverted Knowledge",,,,,+2,3d6 + 4d10 + 12 Shadow/Slash/Cold,Every enemy within 2 of the target takes half damage and becomes Frightened.,2d10,10,Once per battle,Spend 3 Fury.,
+Brace,2,Actions,Action,Defense,,,,,,,,,,Self,At will,"Until your next turn, you take 2 less damage from each hit. If you are not hit, gain 1 Resolve.",

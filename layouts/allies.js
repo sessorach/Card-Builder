@@ -28,7 +28,6 @@ const MODIFIERS = { inverted: { saturate: 0.92, darken: 0.26, mix: BLIGHT, amoun
 
 const INK = '#17130f';
 const NAME = '#f1e6cc';
-const PAPER = '#efe6d0';
 const TEXT = '#2b241c';
 const LABEL = '#7a5a2a';
 
@@ -49,17 +48,10 @@ const AURA_CHIPS = {
 
 const labelled = (field, label) => ({ field, label, labelColor: LABEL });
 
-// The bottom row: Armor (left) and Health (right) badges, like a power/toughness box.
-const ROW_Y = 87.8;
-const ROW_H = 8.6;
-// minSize lets a wordy value ("Once per battle") shrink and wrap to fit.
-function badge(field, label, x, fill, minSize = 3.5) {
-  return [
-    { when: field, type: 'rect', x, y: ROW_Y, w: 18, h: ROW_H, fill, stroke: '#d8cfb8', strokeWidth: 0.45, radius: 1.6, bevel: true },
-    { when: field, type: 'text', text: label, x, y: ROW_Y + 0.5, w: 18, h: 2.6, font: 'label', size: 2.6, color: '#d8cfb8', align: 'center', valign: 'middle', baseline: 0.36 },
-    { when: field, type: 'text', field, x: x + 1, y: ROW_Y + 2.8, w: 16, h: 5.4, font: 'title', size: 6, minSize, lineHeight: 0.95, color: '#ffffff', align: 'center', valign: 'middle', shadow: true },
-  ];
-}
+// See-through panels, so the aura shows behind the name, type line and text.
+const GLASS_DARK = 'rgba(23, 19, 15, 0.7)';
+const GLASS_PAPER = 'rgba(239, 230, 208, 0.82)';
+const PANEL = { type: 'rect', fill: GLASS_PAPER, texture: 'paper', textureStrength: 0.6, radius: 1.2 };
 
 // Which card type an element belongs to. A row is an Action when its type says so;
 // anything else is drawn as an Ally.
@@ -67,66 +59,54 @@ const ACTION = { field: 'type', value: 'Action' };
 const ALLY_ONLY = { unlessHas: ACTION };
 const ACTION_ONLY = { whenHas: ACTION };
 
-// The Action attack row under the art, shown when any attack stat has a value:
-// To Hit and [W] (the weapon's damage die, like d6 or 1d4+2) as two boxes, and
-// Damage and Crit as labelled lines beside them (Crit can be a whole sentence,
-// so the lines shrink to fit).
-const ATTACK_Y = 53.6;
-const ATTACK_H = 8.4;
-const ATTACK_FIELDS = ['to_hit', 'w', 'damage', 'crit'];
-// Dice keep their lowercase "d", so [W] uses the body font (the title font is all capitals).
-const ATTACK_BOXES = [['to_hit', 'TO HIT', {}], ['w', '[W]', { font: 'body', weight: 'bold', size: 5.6 }]];
-const BOX_W = 14;
-function attackRow() {
-  const cond = { ...ACTION_ONLY, when: ATTACK_FIELDS };
-  const boxes = ATTACK_BOXES.flatMap(([field, label, valueStyle], i) => {
-    const x = 5 + i * (BOX_W + 1.2);
-    return [
-      { ...cond, type: 'rect', x, y: ATTACK_Y, w: BOX_W, h: ATTACK_H, fill: GLASS_DARK, stroke: 'rgba(255, 255, 255, 0.22)', strokeWidth: 0.3, radius: 1.2 },
-      { ...cond, type: 'text', text: label, x, y: ATTACK_Y + 0.5, w: BOX_W, h: 2.6, font: 'label', size: 2.6, color: '#d8cfb8', align: 'center', valign: 'middle', baseline: 0.36 },
-      { ...cond, when: field, type: 'text', field, x: x + 0.8, y: ATTACK_Y + 2.9, w: BOX_W - 1.6, h: 5, font: 'title', size: 5.2, minSize: 2.2, lineHeight: 0.95, color: NAME, align: 'center', valign: 'middle', shadow: true, ...valueStyle },
-      { ...cond, unless: field, type: 'text', text: '–', x, y: ATTACK_Y + 2.9, w: BOX_W, h: 5, font: 'title', size: 5.2, color: 'rgba(241, 230, 204, 0.4)', align: 'center', valign: 'middle' },
-    ];
-  });
-  const linesX = 5 + 2 * (BOX_W + 1.2);
-  const linesW = 95 - linesX;
+// The bottom row: three badge slots (left corner, middle, right corner).
+// Allies: Armor, the Aura boxes, Health. Actions: Range, [W], Usage.
+const ROW_Y = 87.8;
+const ROW_H = 8.6;
+const LEFT = 5;
+const MIDDLE = 41;
+const RIGHT = 77;
+// minSize lets a wordy value ("Once per battle") shrink and wrap to fit; valueStyle
+// can change the value's font (dice keep their lowercase "d" in the body font, since
+// the title font has only capitals).
+function badge(field, label, x, fill, cond, { minSize = 3.5, ...valueStyle } = {}) {
+  const c = { ...cond, when: field };
   return [
-    ...boxes,
-    { ...cond, type: 'rect', x: linesX, y: ATTACK_Y, w: linesW, h: ATTACK_H, fill: GLASS_PAPER, texture: 'paper', textureStrength: 0.6, radius: 1.2 },
-    {
-      ...cond, type: 'text',
-      parts: [
-        { field: 'damage', label: 'DAMAGE', labelColor: LABEL, labelSep: '' },
-        { field: 'crit', label: 'CRIT', labelColor: LABEL, labelSep: '' },
-      ],
-      x: linesX + 2, y: ATTACK_Y + 0.5, w: linesW - 4, h: ATTACK_H - 1, font: 'body', size: 3.8, minSize: 2, lineHeight: 1.08, color: TEXT, valign: 'middle',
-    },
+    { ...c, type: 'rect', x, y: ROW_Y, w: 18, h: ROW_H, fill, stroke: '#d8cfb8', strokeWidth: 0.45, radius: 1.6, bevel: true },
+    { ...c, type: 'text', text: label, x, y: ROW_Y + 0.5, w: 18, h: 2.6, font: 'label', size: 2.6, color: '#d8cfb8', align: 'center', valign: 'middle', baseline: 0.36 },
+    { ...c, type: 'text', field, x: x + 1, y: ROW_Y + 2.8, w: 16, h: 5.4, font: 'title', size: 6, minSize, lineHeight: 0.95, color: '#ffffff', align: 'center', valign: 'middle', shadow: true, ...valueStyle },
   ];
 }
 
-// A full-width strip for a list stat ("IMMUNITIES  Poison, Bleeding"), stacked
-// above the text box. `cond` says when it shows and `y` where.
-const STRIP_H = 4.6;
-function strip(field, label, y, cond) {
-  return [
-    { ...cond, type: 'rect', x: 5, y, w: 90, h: STRIP_H, fill: GLASS_PAPER, texture: 'paper', textureStrength: 0.6, radius: 1.2 },
-    {
-      ...cond, type: 'text', field, label, labelColor: LABEL, labelSep: '',
-      x: 8, y, w: 84, h: STRIP_H, font: 'body', weight: 'bold', size: 3.8, minSize: 2.2, color: TEXT, valign: 'middle',
-    },
-  ];
+// A bar in the stack above the text box: a labelled stat on a paper strip
+// ("IMMUNITIES Poison, Bleeding"; "DAMAGE 3d6 + 4d10 + 12 Shadow/Cold"). Taller bars
+// fit two lines for the wordy ones (Damage, Crit); the text shrinks to fit.
+function bar(field, label, h, extra = {}) {
+  return {
+    when: field,
+    h,
+    elements: [
+      { ...PANEL },
+      {
+        type: 'text', field, label, labelColor: LABEL, labelSep: '', inset: [3, 0.2],
+        font: 'body', weight: 'bold', size: 3.8, minSize: 2.2, lineHeight: 1.02, color: TEXT, valign: 'middle', ...extra,
+      },
+    ],
+  };
 }
 
-// See-through panels, so the aura shows behind the name, type line and text.
-const GLASS_DARK = 'rgba(23, 19, 15, 0.7)';
-const GLASS_PAPER = 'rgba(239, 230, 208, 0.82)';
-
-// The ability text box: full height, or shorter under the stat boxes.
-const TEXT_RECT = { type: 'rect', x: 5, y: 53.6, w: 90, h: 26, fill: GLASS_PAPER, texture: 'paper', textureStrength: 0.6, radius: 1.2 };
-const TEXT_BOX = {
-  type: 'text', parts: ['text', { field: 'flavor', italic: true, color: '#5e5140' }],
-  x: 8, y: 55.2, w: 84, h: 22.8, font: 'body', size: 4.6, minSize: 2.4, lineHeight: 1.18, color: TEXT, valign: 'top',
+// The text box: whatever space the bars leave between the art and the type line.
+const TEXT_FILL = {
+  fill: true,
+  elements: [
+    { ...PANEL },
+    {
+      type: 'text', parts: ['text', { field: 'flavor', italic: true, color: '#5e5140' }], inset: [3, 1.4],
+      font: 'body', size: 4.6, minSize: 2.4, lineHeight: 1.18, color: TEXT, valign: 'top',
+    },
+  ],
 };
+const MIDDLE_AREA = { type: 'stack', x: 5, y: 53.6, w: 90, h: 26, gap: 0.5 };
 
 export default {
   id: 'allies',
@@ -160,7 +140,7 @@ export default {
     // The aura background, then a thin dark line just inside the edge.
     {
       type: 'blend', field: 'aura', colors: AURA, modifiers: MODIFIERS, styleField: 'blend',
-      fallback: '#6f6a62', x: 0, y: 0, w: 100, h: 100, texture: 'grit', textureStrength: 0.35,
+      fallback: ['#55595e', '#8d9298', '#5f6368', '#4c5055'], x: 0, y: 0, w: 100, h: 100, texture: 'grit', textureStrength: 0.35,
     },
     { type: 'rect', x: 2.2, y: 1.6, w: 95.6, h: 96.8, stroke: 'rgba(15, 12, 9, 0.55)', strokeWidth: 0.5, radius: 2.6 },
 
@@ -171,24 +151,14 @@ export default {
     // Art
     { type: 'image', x: 5, y: 12.6, w: 90, h: 40, radius: 1, stroke: INK, strokeWidth: 0.6 },
 
-    // ALLY: Immunities, then Resistances, each a strip when the card has it; the
-    // ability text takes the rest of the space between the art and the type line.
-    ...strip('immunities', 'IMMUNITIES', 53.6, { ...ALLY_ONLY, when: 'immunities' }),
-    ...strip('resists', 'RESISTANCES', 58.8, { ...ALLY_ONLY, whenAll: ['immunities', 'resists'] }),
-    ...strip('resists', 'RESISTANCES', 53.6, { ...ALLY_ONLY, when: 'resists', unless: 'immunities' }),
-    { ...ALLY_ONLY, whenAll: ['immunities', 'resists'], ...TEXT_RECT, y: 64, h: 15.6 },
-    { ...ALLY_ONLY, whenAll: ['immunities', 'resists'], ...TEXT_BOX, y: 65.2, h: 13.2 },
-    { ...ALLY_ONLY, when: ['immunities', 'resists'], unlessAll: ['immunities', 'resists'], ...TEXT_RECT, y: 58.8, h: 20.8 },
-    { ...ALLY_ONLY, when: ['immunities', 'resists'], unlessAll: ['immunities', 'resists'], ...TEXT_BOX, y: 60, h: 18.4 },
-    { ...ALLY_ONLY, unless: ['immunities', 'resists'], ...TEXT_RECT },
-    { ...ALLY_ONLY, unless: ['immunities', 'resists'], ...TEXT_BOX },
-
-    // ACTION: the attack row when it has attack stats, then the text box.
-    ...attackRow(),
-    { ...ACTION_ONLY, when: ATTACK_FIELDS, ...TEXT_RECT, y: 63, h: 16.6 },
-    { ...ACTION_ONLY, when: ATTACK_FIELDS, ...TEXT_BOX, y: 64.4, h: 14 },
-    { ...ACTION_ONLY, unless: ATTACK_FIELDS, ...TEXT_RECT },
-    { ...ACTION_ONLY, unless: ATTACK_FIELDS, ...TEXT_BOX },
+    // Between the art and the type line: stat bars, then the text box in the space left.
+    // ALLY: Immunities, then Resistances.
+    { ...MIDDLE_AREA, ...ALLY_ONLY, items: [bar('immunities', 'IMMUNITIES', 4.6), bar('resists', 'RESISTANCES', 4.6), TEXT_FILL] },
+    // ACTION: To Hit, Damage, then Crit (Damage and Crit fit two smaller lines when long).
+    {
+      ...MIDDLE_AREA, ...ACTION_ONLY,
+      items: [bar('to_hit', 'TO HIT', 4.2), bar('damage', 'DAMAGE', 5), bar('crit', 'CRIT', 5.6, { weight: undefined }), TEXT_FILL],
+    },
 
     // Type line: "Ally — Beast · Guardian"
     { type: 'rect', x: 5, y: 80.6, w: 90, h: 6, fill: GLASS_DARK, radius: 1 },
@@ -197,15 +167,16 @@ export default {
       x: 7.5, y: 80.6, w: 85, h: 6, font: 'label', size: 4.2, minSize: 2.6, color: NAME, valign: 'middle', baseline: 0.36, shadow: true,
     },
 
-    // Bottom row: Armor / Range on the left, the Aura as colored boxes, Health / Usage
-    // on the right.
-    ...badge('armor', 'ARMOR', 5, '#3a3d46').map((e) => ({ ...e, ...ALLY_ONLY })),
-    ...badge('range', 'RANGE', 5, '#2c4656', 2.4).map((e) => ({ ...e, ...ACTION_ONLY })),
+    // Bottom row. Allies: Armor, the Aura as colored boxes, Health. Actions: Range,
+    // [W] (the weapon damage die), Usage; their Aura only colors the background.
+    ...badge('armor', 'ARMOR', LEFT, '#3a3d46', ALLY_ONLY),
     {
-      type: 'text', field: 'aura', list: true, listSep: ' ', bold: true, chip: { fill: '#ddd', stroke: '#0003' }, itemChips: AURA_CHIPS,
+      ...ALLY_ONLY, type: 'text', field: 'aura', list: true, listSep: ' ', bold: true, chip: { fill: '#ddd', stroke: '#0003' }, itemChips: AURA_CHIPS,
       x: 24.5, y: ROW_Y, w: 51, h: ROW_H, font: 'body', size: 4.6, minSize: 2.4, lineHeight: 1.4, align: 'center', valign: 'middle',
     },
-    ...badge('health', 'HEALTH', 77, '#7a2320').map((e) => ({ ...e, ...ALLY_ONLY })),
-    ...badge('usage', 'USAGE', 77, '#5b4524', 2.4).map((e) => ({ ...e, ...ACTION_ONLY })),
+    ...badge('health', 'HEALTH', RIGHT, '#7a2320', ALLY_ONLY),
+    ...badge('range', 'RANGE', LEFT, '#2c4656', ACTION_ONLY, { minSize: 2.4 }),
+    ...badge('w', '[W]', MIDDLE, '#3d2f4f', ACTION_ONLY, { minSize: 2.4, font: 'body', weight: 'bold', size: 6.4 }),
+    ...badge('usage', 'USAGE', RIGHT, '#5b4524', ACTION_ONLY, { minSize: 2.4 }),
   ],
 };

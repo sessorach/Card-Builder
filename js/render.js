@@ -181,6 +181,48 @@ export function cardAccent(card, layout) {
 }
 
 // `when`/`unless` name one field or a list of fields; a list matches if any field has a value.
+// Whether an element (or a stack item) shows on this card: its when/unless conditions.
+export function shows(card, el) {
+  if (el.when && !anyValue(card, el.when)) return false;
+  if (el.unless && anyValue(card, el.unless)) return false;
+  if (el.whenAll && ![].concat(el.whenAll).every((f) => anyValue(card, f))) return false;
+  if (el.unlessAll && [].concat(el.unlessAll).every((f) => anyValue(card, f))) return false;
+  if (el.whenHas && !hasItem(card, el.whenHas)) return false;
+  if (el.unlessHas && hasItem(card, el.unlessHas)) return false;
+  return true;
+}
+
+// A `stack` lays out items top to bottom inside its box, skipping items that don't
+// show on this card:
+//   { type: 'stack', x, y, w, h, gap, when…, items: [{ h, when…, elements }, …, { fill: true, elements }] }
+// A `fill` item takes the height left over. Each item's elements get the item's box,
+// shrunk by their own `inset: [horizontal, vertical]` (in % of card width/height).
+// Returns the layout's elements with every stack replaced by plain, placed elements.
+export function expandStacks(elements, card) {
+  return elements.flatMap((el) => {
+    if (el.type !== 'stack') return [el];
+    if (!shows(card, el)) return [];
+    const gap = el.gap ?? 0;
+    const items = el.items.filter((item) => shows(card, item));
+    const fixed = items.reduce((sum, item) => sum + (item.fill ? 0 : item.h), 0);
+    const fillers = items.filter((item) => item.fill).length;
+    const spare = Math.max(0, el.h - fixed - gap * Math.max(0, items.length - 1));
+    let y = el.y;
+    return items.flatMap((item) => {
+      const h = item.fill ? spare / fillers : item.h;
+      const placed = item.elements.map(({ inset = [0, 0], ...child }) => ({
+        ...child,
+        x: el.x + inset[0],
+        y: y + inset[1],
+        w: el.w - inset[0] * 2,
+        h: h - inset[1] * 2,
+      }));
+      y += h + gap;
+      return placed;
+    });
+  });
+}
+
 function anyValue(card, fields) {
   return [].concat(fields).some((f) => fieldValue(card, f));
 }
@@ -208,13 +250,8 @@ export function renderCard(card, { layout, px, assets, canvas }) {
   const s = (v) => (v / 100) * W;
   const color = (c) => theme[c] || c;
 
-  for (const el of layout.elements) {
-    if (el.when && !anyValue(card, el.when)) continue;
-    if (el.unless && anyValue(card, el.unless)) continue;
-    if (el.whenAll && ![].concat(el.whenAll).every((f) => anyValue(card, f))) continue;
-    if (el.unlessAll && [].concat(el.unlessAll).every((f) => anyValue(card, f))) continue;
-    if (el.whenHas && !hasItem(card, el.whenHas)) continue;
-    if (el.unlessHas && hasItem(card, el.unlessHas)) continue;
+  for (const el of expandStacks(layout.elements, card)) {
+    if (!shows(card, el)) continue;
     const b = box(el);
     ctx.save();
     if (el.opacity != null) ctx.globalAlpha = el.opacity;
@@ -262,7 +299,8 @@ export function renderCard(card, { layout, px, assets, canvas }) {
 //   modifiers: { word: { saturate, darken, mix, amount, mottle } } (e.g. "Inverted"
 //     blights that part; see js/blend.js),
 //   style (default 'gradient') or styleField (a column naming the style per card),
-//   fallback (color when the list has no known colors), radius, texture, textureStrength.
+//   fallback (color when the list has no known colors, or a list of colors blended as an
+//   even gradient), radius, texture, textureStrength.
 // Painted at a third of the size and scaled up, which is quicker and softens edges.
 function drawBlendElement(ctx, card, el, b, { s, color }) {
   const parts = parseBlend(fieldValue(card, el.field), el.colors || {}, el.modifiers || {});
@@ -271,7 +309,10 @@ function drawBlendElement(ctx, card, el, b, { s, color }) {
   ctx.save();
   roundRectPath(ctx, b.x, b.y, b.w, b.h, s(el.radius || 0));
   ctx.clip();
-  if (!parts.length) {
+  // fallback: a color, or a list of colors blended evenly (e.g. a metallic sheen).
+  const fallback = !parts.length && Array.isArray(el.fallback) ? el.fallback.map((c) => ({ color: c, weight: 1, modifiers: [] })) : null;
+  const drawn = fallback || parts;
+  if (!drawn.length) {
     ctx.fillStyle = color(el.fallback || 'paper');
     ctx.fillRect(b.x, b.y, b.w, b.h);
   } else {
@@ -283,7 +324,13 @@ function drawBlendElement(ctx, card, el, b, { s, color }) {
     const sctx = small.getContext('2d');
     const img = sctx.createImageData(w, h);
     const mods = el.modifiers || {};
-    paintBlend(img.data, w, h, { parts, rgb: parts.map((p) => partRgb(p, mods)), mottle: parts.map((p) => partMottle(p, mods)), style, seed: hashSeed(card.name) });
+    paintBlend(img.data, w, h, {
+      parts: drawn,
+      rgb: drawn.map((p) => partRgb(p, mods)),
+      mottle: drawn.map((p) => partMottle(p, mods)),
+      style: fallback ? 'gradient' : style,
+      seed: hashSeed(card.name),
+    });
     sctx.putImageData(img, 0, 0);
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(small, b.x, b.y, b.w, b.h);

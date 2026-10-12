@@ -329,28 +329,40 @@ boxes side by side; the user moved them to stacked strips to save room for
 the ability text without shrinking the art. The name bar, type line and text boxes are slightly see-through, so
 the Aura's colors show behind them as well as around the edges.
 
-Actions are a mixed bunch: attacks, moves, stack effects, commands. They use
-the same frame, art, text box, type line and Aura background as allies, with
-two differences. Under the art, an attack row appears only when the action has
-any attack stats, so a move or a stack effect gets the whole text box. To Hit
-(usually a number) and [W] (the attack's base weapon damage die, like d6 or
-1d4+2) sit in two small boxes; a missing one shows a dash. Damage (often a
-longer phrase, like "[W] + 3") and Crit (sometimes a whole sentence of effect)
-share the rest of the row as two labelled lines, which shrink to fit. The user
-asked for lines there after a first version gave all four stats equal boxes,
-which was too cramped for the wordier two. The [W] box uses the body font,
-because the title font has only capital letters and dice read better as "d8"
-than "D8". In the
-bottom row, Range and Usage take the corners where an ally has Armor and
-Health, with the Aura boxes between them as on allies. A wordy usage ("Once
-per battle") shrinks and wraps to fit its badge. A spreadsheet header of
-"[W]" is read as the `w` column.
+Actions are a mixed bunch: attacks, moves, stack effects, commands. They are
+shared rather than tied to one ally, and the type line simply shows whatever
+type and tags the spreadsheet gives ("Action — Attack · Melee"), since the full
+list of types and tags isn't settled. Actions use the same frame, art, text
+box, type line and Aura background as allies, with these differences:
+
+- To Hit, Damage and Crit each get their own bar at the top of the text area,
+  only when the action has them, so a move or a stack effect keeps the whole
+  text box. Damage can be long ("3d6 + 4d10 + 12 Shadow/Slash/Cold") and Crit
+  can be a sentence of effect, so their bars fit two lines and the text
+  shrinks to fit. The text box takes whatever space the bars leave; the user
+  expects action text to be short once the stats have their own places.
+- The bottom row holds Range, [W] (the attack's base weapon damage die, like
+  d6 or 1d4+2) and Usage. [W] uses the body font, because the title font has
+  only capital letters and dice read better as "d8" than "D8". A wordy usage
+  ("Once per battle") shrinks and wraps to fit its badge.
+- Actions don't show their Aura boxes; the Aura only colors the background.
+
+These replaced two earlier attempts: four equal stat boxes under the art
+(too cramped for Damage and Crit), then To Hit and [W] boxes beside two
+Damage/Crit lines (still too tight for the longest damage strings). A
+spreadsheet header of "[W]" is read as the `w` column.
+
+The middle of both card types is a vertical stack: the stat bars that the
+card has (Immunities and Resistances on allies; To Hit, Damage and Crit on
+actions), top to bottom with no gaps for missing ones, then the text box in
+the rest of the space. Stacking is a general layout feature, so other layouts
+can use it too.
 
 **The Aura colors the card.** The Aura lists up to four types, each with a
 color: Instinct green, Knowledge blue, Passion red and Discipline white. The
 card's background blends them, with each one's number setting its share of the
 card ("Knowledge 2, Passion 1" is two-thirds blue). Without numbers, they share
-equally; an ally with no Aura gets a plain stone gray. An Aura marked Inverted
+equally; a card with no Aura gets a dull metallic gray with a soft sheen, as a neutral color. An Aura marked Inverted
 ("Inverted Passion" or "Passion (Inverted)") blights its share: the same color,
 duller and darker with a bilious cast, and veined with dark lines, so it reads
 as an evil version of that Aura. (A first version turned the share nearly

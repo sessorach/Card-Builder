@@ -319,10 +319,10 @@ async function run() {
 
     // Allies: the background blends the Aura colors; Inverted darkens its share.
     await loadExample(page, 'allies.csv');
-    await page.waitForFunction(() => document.querySelectorAll('.tile canvas').length === 12);
+    await page.waitForFunction(() => document.querySelectorAll('.tile canvas').length === 14);
     assert.equal(await page.inputValue('#layout-select'), 'allies');
     assert.equal(await page.isHidden('#warnings'), true, 'allies example should load without warnings');
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 14; i++) {
       const png = await page.evaluate((n) => document.querySelectorAll('.tile canvas')[n].toDataURL('image/png'), i);
       await writeFile(path.join(OUT, `allies-${i}.png`), Buffer.from(png.split(',')[1], 'base64'));
     }
