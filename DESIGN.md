@@ -312,7 +312,8 @@ the table.
 ### The Allies layout (draft)
 
 A card game with two kinds of card, allies (characters) and the actions they
-take, in one layout. The ally card is drafted first; actions come next.
+take, in one layout. A row whose type is "Action" is drawn as an action; any
+other row as an ally.
 
 An ally has a type ("Ally"), tags (creature and fighter types), Armor,
 Health, Resists, Immunities, ability text, and an Aura. From top to bottom the
@@ -327,6 +328,16 @@ the art. Immunities and Resistances started as two half-width
 boxes side by side; the user moved them to stacked strips to save room for
 the ability text without shrinking the art. The name bar, type line and text boxes are slightly see-through, so
 the Aura's colors show behind them as well as around the edges.
+
+Actions are a mixed bunch: attacks, moves, stack effects, commands. They use
+the same frame, art, text box, type line and Aura background as allies, with
+two differences. Under the art, an attack row shows To Hit, Damage, Crit and
+[W] in four small boxes, but only when the action has any of them (a missing
+one shows a dash), so a move or a stack effect gets the whole text box. In the
+bottom row, Range and Usage take the corners where an ally has Armor and
+Health, with the Aura boxes between them as on allies. A wordy usage ("Once
+per battle") shrinks and wraps to fit its badge. A spreadsheet header of
+"[W]" is read as the `w` column.
 
 **The Aura colors the card.** The Aura lists up to four types, each with a
 color: Instinct green, Knowledge blue, Passion red and Discipline white. The

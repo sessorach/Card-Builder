@@ -1,5 +1,5 @@
-// Allies (working name): characters and, later, the actions they take, in one
-// layout with a variant per card type. Draft: the Ally card.
+// Allies (working name): characters and the actions they take, in one layout
+// with a variant per card type. Draft.
 //
 // The background is the card's Aura: each aura word is a color, its number is its
 // share of the card ("Instinct 2, Knowledge 1" is two-thirds green), and an aura
@@ -7,8 +7,9 @@
 // color. A `blend` column picks the style per card: gradient (default), split,
 // tie-dye, marble or solid.
 //
-// Columns: name, type (Ally), tags, aura, armor, health, resists, immunities,
-// text (abilities), flavor, blend, art (optional; images match by card name).
+// Columns: name, type (Ally or Action), tags, aura, text (abilities), flavor, blend,
+// art (optional; images match by card name). Allies: armor, health, resists,
+// immunities. Actions: to_hit, damage, crit, w (a "[W]" header works too), range, usage.
 
 import { partRgb } from '../js/blend.js';
 
@@ -50,12 +51,40 @@ const labelled = (field, label) => ({ field, label, labelColor: LABEL });
 // The bottom row: Armor (left) and Health (right) badges, like a power/toughness box.
 const ROW_Y = 87.8;
 const ROW_H = 8.6;
-function badge(field, label, x, fill) {
+// minSize lets a wordy value ("Once per battle") shrink and wrap to fit.
+function badge(field, label, x, fill, minSize = 3.5) {
   return [
     { when: field, type: 'rect', x, y: ROW_Y, w: 18, h: ROW_H, fill, stroke: '#d8cfb8', strokeWidth: 0.45, radius: 1.6, bevel: true },
     { when: field, type: 'text', text: label, x, y: ROW_Y + 0.5, w: 18, h: 2.6, font: 'label', size: 2.6, color: '#d8cfb8', align: 'center', valign: 'middle', baseline: 0.36 },
-    { when: field, type: 'text', field, x, y: ROW_Y + 2.8, w: 18, h: 5.4, font: 'title', size: 6, minSize: 3.5, lineHeight: 0.9, color: '#ffffff', align: 'center', valign: 'middle', shadow: true },
+    { when: field, type: 'text', field, x: x + 1, y: ROW_Y + 2.8, w: 16, h: 5.4, font: 'title', size: 6, minSize, lineHeight: 0.95, color: '#ffffff', align: 'center', valign: 'middle', shadow: true },
   ];
+}
+
+// Which card type an element belongs to. A row is an Action when its type says so;
+// anything else is drawn as an Ally.
+const ACTION = { field: 'type', value: 'Action' };
+const ALLY_ONLY = { unlessHas: ACTION };
+const ACTION_ONLY = { whenHas: ACTION };
+
+// The Action attack row under the art: To Hit, Damage, Crit and [W] in four boxes,
+// shown when any of them has a value (a missing one shows a dash).
+const ATTACK = [['to_hit', 'TO HIT'], ['damage', 'DAMAGE'], ['crit', 'CRIT'], ['w', '[W]']];
+const ATTACK_Y = 53.6;
+const ATTACK_H = 8.4;
+const ATTACK_FIELDS = ATTACK.map(([f]) => f);
+function attackRow() {
+  const gap = 1.33;
+  const w = (90 - gap * (ATTACK.length - 1)) / ATTACK.length;
+  return ATTACK.flatMap(([field, label], i) => {
+    const x = 5 + i * (w + gap);
+    const cond = { ...ACTION_ONLY, when: ATTACK_FIELDS };
+    return [
+      { ...cond, type: 'rect', x, y: ATTACK_Y, w, h: ATTACK_H, fill: GLASS_DARK, stroke: 'rgba(255, 255, 255, 0.22)', strokeWidth: 0.3, radius: 1.2 },
+      { ...cond, type: 'text', text: label, x, y: ATTACK_Y + 0.5, w, h: 2.6, font: 'label', size: 2.6, color: '#d8cfb8', align: 'center', valign: 'middle', baseline: 0.36 },
+      { ...cond, when: field, type: 'text', field, x: x + 0.8, y: ATTACK_Y + 2.9, w: w - 1.6, h: 5, font: 'title', size: 5.2, minSize: 2.6, lineHeight: 0.95, color: NAME, align: 'center', valign: 'middle', shadow: true },
+      { ...cond, unless: field, type: 'text', text: '–', x, y: ATTACK_Y + 2.9, w, h: 5, font: 'title', size: 5.2, color: 'rgba(241, 230, 204, 0.4)', align: 'center', valign: 'middle' },
+    ];
+  });
 }
 
 // A full-width strip for a list stat ("IMMUNITIES  Poison, Bleeding"), stacked
@@ -85,9 +114,9 @@ const TEXT_BOX = {
 export default {
   id: 'allies',
   name: 'Allies',
-  description: 'Allies (draft): characters whose background is blended from their Aura. Inverted auras blight their share of the color.',
+  description: 'Allies (draft): characters and their actions, with backgrounds blended from their Aura. Inverted auras blight their share of the color.',
   defaultColor: '#6b5a45',
-  matchColumns: ['aura', 'armor', 'health'],
+  matchColumns: [['aura', 'armor', 'health'], ['aura', 'usage']],
   fonts: {
     title: { font: 'cinzel', weight: 700 },
     body: { font: 'crimson', weight: 400, boldWeight: 700 },
@@ -101,6 +130,12 @@ export default {
     labelled('health', 'Health'),
     labelled('resists', 'Resists'),
     labelled('immunities', 'Immune'),
+    labelled('to_hit', 'To Hit'),
+    labelled('damage', 'Damage'),
+    labelled('crit', 'Crit'),
+    labelled('w', '[W]'),
+    labelled('range', 'Range'),
+    labelled('usage', 'Usage'),
     'text',
     { field: 'flavor', italic: true },
   ],
@@ -119,17 +154,24 @@ export default {
     // Art
     { type: 'image', x: 5, y: 12.6, w: 90, h: 40, radius: 1, stroke: INK, strokeWidth: 0.6 },
 
-    // Immunities, then Resistances, each a strip when the card has it; the ability
-    // text takes the rest of the space between the art and the type line.
-    ...strip('immunities', 'IMMUNITIES', 53.6, { when: 'immunities' }),
-    ...strip('resists', 'RESISTANCES', 58.8, { whenAll: ['immunities', 'resists'] }),
-    ...strip('resists', 'RESISTANCES', 53.6, { when: 'resists', unless: 'immunities' }),
-    { whenAll: ['immunities', 'resists'], ...TEXT_RECT, y: 64, h: 15.6 },
-    { whenAll: ['immunities', 'resists'], ...TEXT_BOX, y: 65.2, h: 13.2 },
-    { when: ['immunities', 'resists'], unlessAll: ['immunities', 'resists'], ...TEXT_RECT, y: 58.8, h: 20.8 },
-    { when: ['immunities', 'resists'], unlessAll: ['immunities', 'resists'], ...TEXT_BOX, y: 60, h: 18.4 },
-    { unless: ['immunities', 'resists'], ...TEXT_RECT },
-    { unless: ['immunities', 'resists'], ...TEXT_BOX },
+    // ALLY: Immunities, then Resistances, each a strip when the card has it; the
+    // ability text takes the rest of the space between the art and the type line.
+    ...strip('immunities', 'IMMUNITIES', 53.6, { ...ALLY_ONLY, when: 'immunities' }),
+    ...strip('resists', 'RESISTANCES', 58.8, { ...ALLY_ONLY, whenAll: ['immunities', 'resists'] }),
+    ...strip('resists', 'RESISTANCES', 53.6, { ...ALLY_ONLY, when: 'resists', unless: 'immunities' }),
+    { ...ALLY_ONLY, whenAll: ['immunities', 'resists'], ...TEXT_RECT, y: 64, h: 15.6 },
+    { ...ALLY_ONLY, whenAll: ['immunities', 'resists'], ...TEXT_BOX, y: 65.2, h: 13.2 },
+    { ...ALLY_ONLY, when: ['immunities', 'resists'], unlessAll: ['immunities', 'resists'], ...TEXT_RECT, y: 58.8, h: 20.8 },
+    { ...ALLY_ONLY, when: ['immunities', 'resists'], unlessAll: ['immunities', 'resists'], ...TEXT_BOX, y: 60, h: 18.4 },
+    { ...ALLY_ONLY, unless: ['immunities', 'resists'], ...TEXT_RECT },
+    { ...ALLY_ONLY, unless: ['immunities', 'resists'], ...TEXT_BOX },
+
+    // ACTION: the attack row when it has attack stats, then the text box.
+    ...attackRow(),
+    { ...ACTION_ONLY, when: ATTACK_FIELDS, ...TEXT_RECT, y: 63, h: 16.6 },
+    { ...ACTION_ONLY, when: ATTACK_FIELDS, ...TEXT_BOX, y: 64.4, h: 14 },
+    { ...ACTION_ONLY, unless: ATTACK_FIELDS, ...TEXT_RECT },
+    { ...ACTION_ONLY, unless: ATTACK_FIELDS, ...TEXT_BOX },
 
     // Type line: "Ally — Beast · Guardian"
     { type: 'rect', x: 5, y: 80.6, w: 90, h: 6, fill: GLASS_DARK, radius: 1 },
@@ -138,12 +180,15 @@ export default {
       x: 7.5, y: 80.6, w: 85, h: 6, font: 'label', size: 4.2, minSize: 2.6, color: NAME, valign: 'middle', baseline: 0.36, shadow: true,
     },
 
-    // Bottom row: Armor, the Aura as colored boxes, Health.
-    ...badge('armor', 'ARMOR', 5, '#3a3d46'),
+    // Bottom row: Armor / Range on the left, the Aura as colored boxes, Health / Usage
+    // on the right.
+    ...badge('armor', 'ARMOR', 5, '#3a3d46').map((e) => ({ ...e, ...ALLY_ONLY })),
+    ...badge('range', 'RANGE', 5, '#2c4656', 2.4).map((e) => ({ ...e, ...ACTION_ONLY })),
     {
       type: 'text', field: 'aura', list: true, listSep: ' ', bold: true, chip: { fill: '#ddd', stroke: '#0003' }, itemChips: AURA_CHIPS,
       x: 24.5, y: ROW_Y, w: 51, h: ROW_H, font: 'body', size: 4.6, minSize: 2.4, lineHeight: 1.4, align: 'center', valign: 'middle',
     },
-    ...badge('health', 'HEALTH', 77, '#7a2320'),
+    ...badge('health', 'HEALTH', 77, '#7a2320').map((e) => ({ ...e, ...ALLY_ONLY })),
+    ...badge('usage', 'USAGE', 77, '#5b4524', 2.4).map((e) => ({ ...e, ...ACTION_ONLY })),
   ],
 };

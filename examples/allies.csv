@@ -1,8 +1,13 @@
-name,count,type,tags,aura,armor,health,resists,immunities,text,flavor
-Mossback Warden,2,Ally,"Beast, Guardian",Instinct,3,9,Poison,,"When an adjacent ally is attacked, you may become the target instead.","It has slept under the same hill for four hundred years, and it is not done yet."
-Archivist of Ash,1,Ally,"Human, Mage","Knowledge 2, Passion 1",1,5,Fire,,"**Recall:** Look at the top three cards of your deck. Put one in your hand and the rest on the bottom.",
-Fallen Paladin,1,Ally,"Human, Knight","Discipline 2, Inverted Passion 1",4,8,,Fear,"Your other allies with Discipline get +1 Armor. Once per turn, when an ally falls, heal 2.","The oath still binds him. He just no longer remembers to whom."
-The Hollow Sage,1,Ally,"Undead, Mystic",Inverted Knowledge,0,6,"Shadow, Frost","Poison, Bleeding","At the start of your turn, each opponent discards a card at random.",
-Wildfire Chorus,3,Ally,"Spirit, Swarm","Instinct, Knowledge, Passion, Discipline",1,4,,,"Counts as every Aura. When this enters play, copy the last action you took this turn.",
-Iron Recruit,4,Ally,"Human, Soldier",,2,4,,,Guard. *(Enemies must attack Guards first.)*,
-Plague Rat Swarm,2,Ally,"Beast, Swarm","Instinct 2, Inverted Instinct 1",0,3,,Poison,"When this deals damage, the target is Sickened.",
+name,count,deck,type,tags,aura,armor,health,resists,immunities,to_hit,damage,crit,[W],range,usage,text,flavor
+Mossback Warden,2,Allies,Ally,"Beast, Guardian",Instinct,3,9,Poison,,,,,,,,"When an adjacent ally is attacked, you may become the target instead.","It has slept under the same hill for four hundred years, and it is not done yet."
+Archivist of Ash,1,Allies,Ally,"Human, Mage","Knowledge 2, Passion 1",1,5,Fire,,,,,,,,**Recall:** Look at the top three cards of your deck. Put one in your hand and the rest on the bottom.,
+Fallen Paladin,1,Allies,Ally,"Human, Knight","Discipline 2, Inverted Passion 1",4,8,,Fear,,,,,,,"Your other allies with Discipline get +1 Armor. Once per turn, when an ally falls, heal 2.",The oath still binds him. He just no longer remembers to whom.
+The Hollow Sage,1,Allies,Ally,"Undead, Mystic",Inverted Knowledge,0,6,"Shadow, Frost","Poison, Bleeding",,,,,,,"At the start of your turn, each opponent discards a card at random.",
+Wildfire Chorus,3,Allies,Ally,"Spirit, Swarm","Instinct, Knowledge, Passion, Discipline",1,4,,,,,,,,,"Counts as every Aura. When this enters play, copy the last action you took this turn.",
+Iron Recruit,4,Allies,Ally,"Human, Soldier",,2,4,,,,,,,,,Guard. *(Enemies must attack Guards first.)*,
+Plague Rat Swarm,2,Allies,Ally,"Beast, Swarm","Instinct 2, Inverted Instinct 1",0,3,,Poison,,,,,,,"When this deals damage, the target is Sickened.",
+Cleaving Strike,2,Actions,Action,"Attack, Melee",Passion,,,,,+4,3,18+,1,Melee,At will,"Hit up to two adjacent enemies. If both are hit, gain 1 Fury.",
+Arcane Bolt,2,Actions,Action,"Attack, Spell",Knowledge,,,,,+5,2,20,,8,1/turn,"On a crit, the target is Dazed until the end of its next turn.",
+Rally,1,Actions,Action,Command,"Discipline 2, Instinct 1",,,,,,,,,6,Once per battle,Each ally in range removes 1 Fear stack and gains 1 Resolve.,"""Hold the line!"""
+Shadowstep,1,Actions,Action,Move,Inverted Knowledge,,,,,,,,,4,1/turn,Teleport up to 4. Your next attack this turn gets +2 To Hit.,
+Venom Coat,1,Actions,Action,Stack,"Instinct, Inverted Instinct",,,,,,,,,,At will,Add 2 Poison stacks to your weapon. Each hit spends one to Poison the target.,
