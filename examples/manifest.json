@@ -1,5 +1,12 @@
 {
   "example-cards.csv": {
+    "title": "Fantasy cards",
+    "description": "Eight fantasy cards in two decks, with art.",
+    "for": [
+      "default",
+      "full-art",
+      "text-only"
+    ],
     "layout": "default",
     "images": [
       "ember.jpg",
@@ -7,10 +14,17 @@
       "kindling.jpg",
       "tide.jpg",
       "coral.jpg",
-      "still-waters.jpg"
+      "still-waters.jpg",
+      "wildfire.jpg",
+      "riptide.jpg"
     ]
   },
   "street-cards.csv": {
+    "title": "Street cards",
+    "description": "Five cards; the art is matched by card name.",
+    "for": [
+      "street"
+    ],
     "images": [
       "block-party-boss.jpg",
       "corner-lookout.jpg",
@@ -20,14 +34,30 @@
     ]
   },
   "flagonquest-techniques.csv": {
+    "title": "FlagonQuest techniques",
+    "description": "Rows from FlagonQuest's techniques spreadsheet, unchanged.",
+    "for": [
+      "flagonquest"
+    ],
     "layout": "flagonquest",
-    "images": []
+    "images": [],
+    "preview": "Battle Maneuver"
   },
   "flagonquest-items.csv": {
+    "title": "FlagonQuest items",
+    "description": "Rows from FlagonQuest's items spreadsheet, unchanged.",
+    "for": [
+      "flagonquest"
+    ],
     "layout": "flagonquest",
     "images": []
   },
   "rossquest.csv": {
+    "title": "RossQuest cards",
+    "description": "Seven allies and seven actions, showing how the Aura colors each card.",
+    "for": [
+      "rossquest"
+    ],
     "layout": "rossquest",
     "images": [
       "mossback-warden.jpg",
@@ -44,6 +74,7 @@
       "venom-coat.jpg",
       "ruinous-barrage.jpg",
       "brace.jpg"
-    ]
+    ],
+    "preview": "Fallen Paladin"
   }
 }

@@ -23,7 +23,23 @@
   <main class="app">
     <aside class="panel">
       <section class="step">
-        <h2><span class="num">1</span> Your files</h2>
+        <h2><span class="num">1</span> Look</h2>
+        <div class="look-row">
+          <div class="field">
+            <label for="layout-select">Layout</label>
+            <select id="layout-select"></select>
+          </div>
+          <div class="field field-size">
+            <label for="size-select">Size</label>
+            <select id="size-select"></select>
+          </div>
+        </div>
+        <p class="hint" id="layout-desc"></p>
+        <button type="button" class="secondary small" data-tab-link="start">Template &amp; guide for this look</button>
+      </section>
+
+      <section class="step">
+        <h2><span class="num">2</span> Your files</h2>
         <div class="files">
           <div class="file-row" data-drop="sheet">
             <label class="file-pick">
@@ -58,26 +74,11 @@
           <summary>Tips</summary>
           <ul>
             <li>Drop files anywhere on the page: a spreadsheet, images, or a whole folder.</li>
-            <li>Name each image after its card, like <code>Block Party Boss.png</code>. Capitals, spaces and punctuation don't matter.</li>
+            <li>Name each image after its card, like <code>Battle Maneuver.png</code>. Capitals, spaces and punctuation don't matter.</li>
             <li>Without a back image, each deck gets a generated back in its color.</li>
-            <li>Starting a new spreadsheet? Get a blank template or an example under <button type="button" class="link" data-tab-link="start">Templates &amp; examples</button>.</li>
+            <li>Need a spreadsheet to start from? <button type="button" class="link" data-tab-link="start">Template &amp; guide</button> has a blank one for the look you picked.</li>
           </ul>
         </details>
-      </section>
-
-      <section class="step">
-        <h2><span class="num">2</span> Look</h2>
-        <div class="look-row">
-          <div class="field">
-            <label for="layout-select">Layout</label>
-            <select id="layout-select"></select>
-          </div>
-          <div class="field field-size">
-            <label for="size-select">Size</label>
-            <select id="size-select"></select>
-          </div>
-        </div>
-        <p class="hint" id="layout-desc"></p>
       </section>
 
       <section class="step">
@@ -95,7 +96,7 @@
         <button type="button" role="tab" data-tab="cards" aria-selected="true">Cards <span class="tab-count" id="card-count"></span></button>
         <button type="button" role="tab" data-tab="data" aria-selected="false">Data</button>
         <button type="button" role="tab" data-tab="tts" aria-selected="false">TTS export</button>
-        <button type="button" role="tab" data-tab="start" aria-selected="false">Templates &amp; examples</button>
+        <button type="button" role="tab" data-tab="start" aria-selected="false">Template &amp; guide</button>
       </nav>
 
       <div id="warnings" class="warnings" hidden></div>
@@ -103,9 +104,10 @@
       <div class="tab-panel" data-panel="cards" role="tabpanel">
         <div id="decks">
           <div class="empty">
-            <p class="empty-title">Drop a spreadsheet and your card art anywhere on the page.</p>
-            <p>Or try an example: <button type="button" class="chip" data-example="example-cards.csv">Default</button> <button type="button" class="chip" data-example="street-cards.csv">Street</button> <button type="button" class="chip" data-example="flagonquest-techniques.csv">FlagonQuest techniques</button> <button type="button" class="chip" data-example="flagonquest-items.csv">FlagonQuest items</button> <button type="button" class="chip" data-example="rossquest.csv">RossQuest</button></p>
-            <p>Starting from scratch? Blank templates are under <button type="button" class="link" data-tab-link="start">Templates &amp; examples</button>.</p>
+            <p class="empty-title">Pick a look</p>
+            <p>Click one to see example cards in that style. You can switch any time under <b>Look</b> on the left.</p>
+            <div class="looks" id="looks"></div>
+            <p>Already have a spreadsheet? Drop it and your card art anywhere on the page.</p>
           </div>
         </div>
       </div>
@@ -245,51 +247,31 @@
       </div>
 
       <div class="tab-panel sheet" data-panel="start" role="tabpanel" hidden>
-        <h2>Examples</h2>
-        <p class="lead">Load one to see how it works, or download its spreadsheet to start from.</p>
-        <table class="list">
-          <tr>
-            <th>Default</th>
-            <td>Eight fantasy cards in two decks, with art.</td>
-            <td class="actions"><button type="button" class="small" data-example="example-cards.csv">Load</button> <a class="small" href="examples/example-cards.csv" download>Download .csv</a></td>
-          </tr>
-          <tr>
-            <th>Street</th>
-            <td>Five Street cards. The art is matched by card name.</td>
-            <td class="actions"><button type="button" class="small" data-example="street-cards.csv">Load</button> <a class="small" href="examples/street-cards.csv" download>Download .csv</a></td>
-          </tr>
-          <tr>
-            <th>FlagonQuest techniques</th>
-            <td>Rows from FlagonQuest's techniques spreadsheet, unchanged.</td>
-            <td class="actions"><button type="button" class="small" data-example="flagonquest-techniques.csv">Load</button> <a class="small" href="examples/flagonquest-techniques.csv" download>Download .csv</a></td>
-          </tr>
-          <tr>
-            <th>FlagonQuest items</th>
-            <td>Rows from FlagonQuest's items spreadsheet, unchanged.</td>
-            <td class="actions"><button type="button" class="small" data-example="flagonquest-items.csv">Load</button> <a class="small" href="examples/flagonquest-items.csv" download>Download .csv</a></td>
-          </tr>
-          <tr>
-            <th>RossQuest</th>
-            <td>Draft: seven allies and seven actions, showing how the Aura colors each card. New to it? Read the <a href="#rossquest-guide">RossQuest guide</a> below.</td>
-            <td class="actions"><button type="button" class="small" data-example="rossquest.csv">Load</button> <a class="small" href="examples/rossquest.csv" download>Download .csv</a></td>
-          </tr>
-        </table>
+        <h2 id="look-title"></h2>
+        <p class="lead" id="look-desc"></p>
 
-        <h2>Blank templates</h2>
-        <p class="lead">A spreadsheet with just the header row: every column the layout uses, in the order it draws them.</p>
-        <table class="list" id="template-list"></table>
-
-        <h2 id="rossquest-guide">RossQuest guide</h2>
-        <p class="lead">RossQuest makes two kinds of cards: <b>allies</b> (characters) and <b>actions</b> (the things they do). Each card's background is painted in its Aura colors. Here is everything you need, step by step.</p>
-
-        <h3>Get started</h3>
-        <ol class="guide">
-          <li>Click <b>Load</b> next to RossQuest in the Examples list above to see finished cards.</li>
-          <li>Click <b>Download .csv</b> next to it to get that spreadsheet.</li>
-          <li>Open it in Excel, Google Sheets or LibreOffice. Change the rows into your own cards. Keep the first row (the column names) as it is.</li>
-          <li>Save it as <b>.csv</b> (or .xlsx) and drop it onto this page.</li>
-          <li>Drop in your card pictures. Name each picture after its card, for example <code>Fallen Paladin.png</code>.</li>
+        <h3>Make your own cards in this look</h3>
+        <ol class="guide" id="look-steps">
+          <li>Get the spreadsheet: <button type="button" class="small" id="template-download" data-template="">Download blank template</button><span class="help-sub">It has a column for everything this look shows. Or start from an example's spreadsheet below.</span></li>
+          <li>Open it in Excel, Google Sheets or LibreOffice. Fill in one row per card. Keep the first row (the column names) as it is.<span class="help-sub">Save it as .csv or .xlsx. The columns are explained below.</span></li>
+          <li data-needs-art>Get a picture for each card. Name each picture after its card, for example <code id="look-art-name">Battle Maneuver.png</code>.<span class="help-sub">Capitals, spaces and punctuation in the name don't matter.</span></li>
+          <li>Drop the spreadsheet<span data-needs-art> and the pictures</span> anywhere on this page, or use <b>Your files</b> on the left. Your cards appear in the <button type="button" class="link" data-tab-link="cards">Cards</button> tab.</li>
+          <li>Download the card images, or a deck for Tabletop Simulator. The <button type="button" class="link" data-tab-link="tts">TTS export</button> tab walks you through it.</li>
         </ol>
+
+        <h3>Examples</h3>
+        <p>Load one to see it in the Cards tab, or download its spreadsheet to start from.</p>
+        <table class="list" id="look-examples"></table>
+
+        <div data-guide="flagonquest" hidden>
+        <h3>Already have FlagonQuest's spreadsheets?</h3>
+        <p>Drop <code>techniques.csv</code> or <code>items.csv</code> from the FlagonQuest repo in as they are. Their column names (like <code>Effects</code> and <code>Level Min</code>) work too, and the page picks this look by itself.</p>
+        <p>To make cards for one character, use <b>Make cards</b> on the FlagonQuest Character Sheet. It opens this page with that character's cards already loaded.</p>
+        </div>
+
+        <div data-guide="rossquest" data-guide-columns id="rossquest-guide" hidden>
+        <h3>Two kinds of card</h3>
+        <p>RossQuest makes <b>allies</b> (characters) and <b>actions</b> (the things they do). Each card's background is painted in its Aura colors.</p>
         <p>Allies and actions go in the same spreadsheet. The <code>type</code> column decides which is which: write <code>Action</code> for an action. Anything else (like <code>Ally</code>) makes an ally card.</p>
 
         <h3>Columns for every card</h3>
@@ -385,25 +367,19 @@
           <tr><th>crit</th><td></td><td>Every enemy within 2 of the target takes half damage and becomes Frightened.</td></tr>
           <tr><th>text</th><td>Your other allies with Discipline get +1 Armor. Once per turn, when an ally falls, heal 2.</td><td>Spend 3 Fury.</td></tr>
         </table>
+        </div>
 
-        <h2 id="columns">Spreadsheet columns</h2>
-        <p class="lead">The first row holds column names. Only <code>name</code> is needed; everything else is optional.</p>
+        <div id="look-columns-block">
+        <h3>Columns</h3>
+        <p>Every column this look uses, in the order it draws them. Only <code>name</code> is needed; leave any other column empty and that part isn't shown.</p>
+        <table class="columns" id="look-columns"></table>
+        </div>
+
+        <h3>Works with every look</h3>
         <table class="columns">
-          <tr><th>name</th><td>Card name.</td></tr>
-          <tr><th>count</th><td>Copies in the deck (default 1; 0 leaves the card out).</td></tr>
-          <tr><th>deck</th><td>Which deck the card belongs to. Each deck becomes its own TTS object.</td></tr>
-          <tr><th>art</th><td>Optional. Images match cards by name; use this to pick a different file, e.g. <code>shared-art.png</code>.</td></tr>
-          <tr><th>cost</th><td>Shown in a badge in the corner. FlagonQuest techniques show it on their Cost line, e.g. <code>Discard a card</code>.</td></tr>
-          <tr><th>type, subtype</th><td>Type line, e.g. “Creature — Imp”.</td></tr>
-          <tr><th>tags</th><td>Tags, all in one cell separated by commas, e.g. <code>Martial, Buildable, Encounter</code> on a FlagonQuest technique.</td></tr>
-          <tr><th>text</th><td>Rules text. Supports <code>**bold**</code>, <code>*italic*</code>, <code>{icon}</code> and line breaks.</td></tr>
-          <tr><th>flavor</th><td>Italic flavor text under the rules.</td></tr>
-          <tr><th>stats</th><td>Default, Full Art, Text Only: one badge, e.g. <code>3 / 2</code>.</td></tr>
-          <tr><th>strengf, helf, steal</th><td>Street: three stats, each in its own box.</td></tr>
-          <tr><th>color</th><td>Optional card color: a name (<code>crimson</code>) or hex (<code>#3b5b7a</code>). Some layouts pick a color by type unless this is set.</td></tr>
-          <tr><th>layout</th><td>Override the layout for this card: <span id="layout-ids"></span>.</td></tr>
+          <tr><th>art</th><td>Optional. Pictures match cards by name; use this to pick a different file, e.g. <code>shared-art.png</code>.</td></tr>
+          <tr><th>layout</th><td>Optional. Draws one card in another look: <span id="layout-ids"></span>.</td></tr>
         </table>
-        <p>RossQuest's columns are explained in the <a href="#rossquest-guide">RossQuest guide</a> above.</p>
         <p><b>Icons:</b> <code>{fire}</code> in text draws an uploaded image named <code>fire.png</code> or <code>icon-fire.png</code>. Without one, it draws a ringed letter.</p>
       </div>
     </section>

@@ -244,7 +244,7 @@ select:focus, input:focus { outline: 2px solid var(--accent); outline-offset: 1p
 .guide p { margin: 0 0 8px; }
 .guide ul { margin: 0 0 8px; padding-left: 18px; }
 .guide ul li { margin-bottom: 5px; }
-.guide button { display: block; width: auto; margin-top: 4px; }
+.guide button:not(.link) { display: block; width: auto; margin-top: 4px; }
 .guide .path { display: block; margin: 4px 0; padding: 4px 6px; overflow-wrap: anywhere; }
 .load { margin-top: 28px; padding-top: 4px; border-top: 1px solid var(--border); }
 .load > h2 { margin-top: 18px; }
@@ -510,3 +510,10 @@ table.data { border-collapse: collapse; font-size: 0.82rem; }
 .swatch canvas { display: block; width: 84px; height: 118px; margin: 0 auto 6px; border-radius: 6px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35); }
 .swatch figcaption code { display: block; color: var(--text); white-space: normal; overflow-wrap: anywhere; }
 .example-rows td { padding-right: 14px; vertical-align: top; }
+
+.looks { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; margin: 18px 0; }
+.look { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 150px; padding: 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); color: var(--text); font: inherit; font-weight: 600; cursor: pointer; }
+.look:hover, .look:focus-visible { border-color: var(--accent); }
+.look canvas { width: 128px; height: 179px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); }
+.example-note { margin: 0 0 16px; padding: 10px 14px; border: 1px solid var(--accent); border-radius: 8px; background: var(--surface-2); }
+.example-note p { margin: 0; }

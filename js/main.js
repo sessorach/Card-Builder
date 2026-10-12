@@ -7,7 +7,8 @@ import { AssetStore, decodeImage, renderCard, renderBack, findArt, cardAccent } 
 import { loadFonts } from './fonts.js';
 import { unknownBlendItems, BLEND_STYLES } from './blend.js';
 import { buildImagesZip, buildTtsZip, prepareTtsImages, cloudFiles, buildUploadZip } from './export.js';
-import { templateCsv } from './template.js';
+import { templateCsv, templateColumns } from './template.js';
+import { columnHelp } from './columns.js';
 import { handoffData, decodeHandoff } from './handoff.js';
 import { cleanInput, savedObjectsFolder, localImagesFolder, isLink, looksLikeSteamCloud, cardDescription } from './tts.js';
 
@@ -19,6 +20,8 @@ const SHEET_EXT = /\.(csv|tsv|txt|xlsx)$/i;
 
 const state = {
   sheetName: '',
+  example: '', // the example spreadsheet on show, if the cards are an example
+  exampleArt: false, // every loaded image came with an example (so switching examples can drop them)
   cards: [],
   columns: [], // normalized column names, as rowsToCards returns them
   headers: [], // the same columns as written in the spreadsheet
@@ -122,7 +125,7 @@ const cardPx = () => sizePx(getSize(settings.size));
 
 // ---- Loading inputs -----------------------------------------------------------
 
-async function loadSpreadsheet(file) {
+async function loadSpreadsheet(file, options = {}) {
   try {
     let rows;
     if (/\.xlsx$/i.test(file.name)) {
@@ -133,7 +136,7 @@ async function loadSpreadsheet(file) {
       const text = await file.text();
       rows = parseDelimited(text, detectDelimiter(text, file.name));
     }
-    await applyRows(rows, file.name);
+    await applyRows(rows, file.name, options);
   } catch (err) {
     console.error(err);
     state.sheetWarnings = [`Couldn't read ${file.name}: ${err.message}`];
@@ -142,7 +145,7 @@ async function loadSpreadsheet(file) {
 }
 
 // Shows a spreadsheet's rows (header row first) as cards. `name` labels them in the page.
-async function applyRows(rows, name, { layoutChosen = false } = {}) {
+async function applyRows(rows, name, { layoutChosen = false, example = '' } = {}) {
   const { cards, warnings, columns, headers } = rowsToCards(rows);
   // A spreadsheet that fits a layout's known columns (e.g. FlagonQuest's techniques
   // sheet) picks that layout, unless it chooses layouts itself with a layout column.
@@ -154,6 +157,7 @@ async function applyRows(rows, name, { layoutChosen = false } = {}) {
     }
   }
   state.sheetName = name;
+  state.example = example;
   state.cards = cards;
   state.columns = columns;
   state.headers = headers;
@@ -182,9 +186,10 @@ async function loadHandoff() {
   }
 }
 
-async function addArt(files) {
+async function addArt(files, { render = true, fromExample = false } = {}) {
   const images = files.filter((f) => IMAGE_EXT.test(f.name));
   if (!images.length) return;
+  state.exampleArt = fromExample && (state.exampleArt || !state.assets.size);
   setStatus(`Loading ${images.length} images…`);
   const failed = [];
   await Promise.all(
@@ -200,7 +205,7 @@ async function addArt(files) {
   document.querySelector('[data-drop="art"]').classList.add('loaded');
   $('clear-art').hidden = false;
   setStatus('');
-  await rerender();
+  if (render) await rerender();
 }
 
 async function setBack(file) {
@@ -218,25 +223,53 @@ async function setBack(file) {
   await rerender();
 }
 
-async function loadExample(file) {
+// examples/manifest.json: per example spreadsheet, its title, description, the looks it
+// shows (`for`), its pictures and the layout to pick.
+let manifestPromise = null;
+const getManifest = () => (manifestPromise ||= fetch('examples/manifest.json').then((r) => r.json()));
+// The example spreadsheets for a look, in manifest order (the first is its main one).
+const examplesFor = (manifest, layoutId) => Object.keys(manifest).filter((f) => (manifest[f].for || []).includes(layoutId));
+
+// Loads an example spreadsheet and its pictures. `layout` keeps the look the user
+// picked when the example serves several (Default, Full Art and Text Only share one).
+async function loadExample(file, { layout } = {}) {
   showTab('cards');
   try {
-    const text = await (await fetch(`examples/${file}`)).text();
-    const manifest = await (await fetch('examples/manifest.json')).json();
+    const manifest = await getManifest();
     const entry = manifest[file] || {};
-    if (entry.layout) setLayout(entry.layout);
-    const art = await Promise.all(
-      (entry.images || []).map(async (name) => {
-        const res = await fetch(`examples/art/${encodeURIComponent(name)}`);
-        return res.ok ? new File([await res.blob()], name) : null;
-      }),
-    );
-    await addArt(art.filter(Boolean));
-    await loadSpreadsheet(new File([text], file, { type: 'text/csv' }));
+    const text = await (await fetch(`examples/${file}`)).text();
+    setLayout(layout && (entry.for || []).includes(layout) ? layout : entry.layout || layout || settings.layout);
+    // Another example's pictures go; pictures you dropped in stay.
+    if (state.exampleArt) state.assets = new AssetStore();
+    await addArt(await exampleArt(entry), { render: false, fromExample: true });
+    await loadSpreadsheet(new File([text], file, { type: 'text/csv' }), { layoutChosen: true, example: file });
   } catch (err) {
     console.error(err);
     setStatus(`Couldn't load the example: ${err.message}`);
   }
+}
+
+const artCache = new Map();
+function exampleArt(entry) {
+  return Promise.all(
+    (entry.images || []).map((name) => {
+      if (!artCache.has(name)) {
+        artCache.set(name, fetch(`examples/art/${encodeURIComponent(name)}`).then(async (res) => (res.ok ? new File([await res.blob()], name) : null)));
+      }
+      return artCache.get(name);
+    }),
+  ).then((files) => files.filter(Boolean));
+}
+
+// Picking a look while an example (or nothing) is on show shows that look's example,
+// so switching looks is a way to browse them. Your own cards just redraw.
+async function changeLook(id) {
+  setLayout(id);
+  if (!state.cards.length || state.example) {
+    const [main] = examplesFor(await getManifest(), id);
+    if (main && main !== state.example) return loadExample(main, { layout: id });
+  }
+  await rerender();
 }
 
 // ---- Rendering ------------------------------------------------------------------
@@ -276,6 +309,20 @@ function renderWarnings(extra = []) {
   box.append(details);
 }
 
+// The empty page (the looks to pick from), kept to show again if the cards go away.
+const EMPTY = document.querySelector('#decks .empty');
+
+// Over example cards: what they are and where to go next.
+function exampleNote() {
+  const layout = getLayout(settings.layout) || LAYOUTS[0];
+  const note = document.createElement('div');
+  note.className = 'example-note';
+  note.innerHTML = '<p><b>Example cards in the <span></span> look.</b> Try other looks with the <b>Look</b> picker on the left. When you find one you like, get its spreadsheet and instructions under <button type="button" class="link" data-tab-link="start">Template &amp; guide</button>.</p>';
+  note.querySelector('span').textContent = layout.name;
+  note.querySelector('button').addEventListener('click', () => showTab('start'));
+  return note;
+}
+
 let renderToken = 0;
 async function rerender() {
   const token = ++renderToken;
@@ -289,10 +336,12 @@ async function rerender() {
   renderData();
   $('card-count').textContent = state.cards.length || '';
   if (!state.cards.length) {
+    container.replaceChildren(EMPTY);
     renderWarnings();
     return;
   }
   container.replaceChildren();
+  if (state.example) container.append(exampleNote());
   const px = cardPx();
   const extra = [];
   const missingArt = new Set(); // art-column files that weren't uploaded
@@ -693,31 +742,95 @@ function setupDragAndDrop() {
   });
 }
 
-// The layout picker's description follows the chosen layout.
+// The chosen look: its description under the picker, and the Template & guide tab
+// (its template, examples, columns and any guide of its own).
 function describeLayout() {
-  $('layout-desc').textContent = getLayout(settings.layout)?.description || '';
+  const layout = getLayout(settings.layout) || LAYOUTS[0];
+  $('layout-desc').textContent = layout.description || '';
+  $('look-title').textContent = layout.name;
+  $('look-desc').textContent = layout.description || '';
+  $('template-download').dataset.template = layout.id;
+  const hasArt = layout.elements.some((e) => e.type === 'image');
+  document.querySelectorAll('[data-needs-art]').forEach((el) => (el.hidden = !hasArt));
+  let ownColumns = false;
+  document.querySelectorAll('[data-guide]').forEach((el) => {
+    el.hidden = el.dataset.guide !== layout.id;
+    if (!el.hidden && el.hasAttribute('data-guide-columns')) ownColumns = true;
+  });
+  $('look-columns-block').hidden = ownColumns;
+  const table = $('look-columns');
+  table.replaceChildren();
+  for (const column of templateColumns(layout)) {
+    const tr = table.insertRow();
+    const th = document.createElement('th');
+    th.textContent = column === 'w' ? '[W]' : column;
+    tr.append(th);
+    tr.insertCell().textContent = columnHelp(column, layout.id);
+  }
+  renderLookExamples(layout);
 }
 
-// Templates & examples tab: one blank template per layout.
-function renderTemplateList() {
-  const table = $('template-list');
-  for (const layout of LAYOUTS) {
+async function renderLookExamples(layout) {
+  const manifest = await getManifest();
+  if (settings.layout !== layout.id) return; // the look changed meanwhile
+  const table = $('look-examples');
+  table.replaceChildren();
+  const files = examplesFor(manifest, layout.id);
+  for (const file of files) {
+    const entry = manifest[file];
     const tr = table.insertRow();
-    const name = document.createElement('th');
-    name.textContent = layout.name;
-    tr.append(name);
-    tr.insertCell().textContent = layout.description || '';
+    const th = document.createElement('th');
+    th.textContent = entry.title || file;
+    tr.append(th);
+    tr.insertCell().textContent = entry.description || '';
     const actions = tr.insertCell();
     actions.className = 'actions';
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'small';
-    button.dataset.template = layout.id;
-    button.textContent = 'Download template';
-    button.addEventListener('click', () =>
-      download(new Blob([templateCsv(layout)], { type: 'text/csv' }), `${layout.id}-template.csv`),
-    );
-    actions.append(button);
+    const load = document.createElement('button');
+    load.type = 'button';
+    load.className = 'small';
+    load.dataset.example = file;
+    load.textContent = 'Load';
+    load.addEventListener('click', () => loadExample(file, { layout: layout.id }));
+    const csv = document.createElement('a');
+    csv.className = 'small';
+    csv.href = `examples/${file}`;
+    csv.download = file;
+    csv.textContent = 'Download .csv';
+    actions.append(load, ' ', csv);
+  }
+  if (!files.length) {
+    const tr = table.insertRow();
+    tr.insertCell().textContent = 'No example for this look yet.';
+  }
+}
+
+// The empty page: one sample card per look, drawn from its example. Click to try it.
+async function renderLooks() {
+  const box = $('looks');
+  const manifest = await getManifest();
+  const px = { width: 240, height: 335 };
+  for (const layout of LAYOUTS) {
+    const fig = document.createElement('button');
+    fig.type = 'button';
+    fig.className = 'look';
+    fig.dataset.look = layout.id;
+    const label = document.createElement('span');
+    label.textContent = layout.name;
+    fig.append(label);
+    fig.addEventListener('click', () => changeLook(layout.id));
+    box.append(fig);
+    const [file] = examplesFor(manifest, layout.id);
+    if (!file) continue;
+    try {
+      const text = await (await fetch(`examples/${file}`)).text();
+      const { cards } = rowsToCards(parseDelimited(text, detectDelimiter(text, file)));
+      const assets = new AssetStore();
+      for (const f of await exampleArt(manifest[file])) assets.add(f.name, await decodeImage(f));
+      const card = cards.find((c) => c.name === manifest[file].preview) || cards[0];
+      if (card) fig.prepend(renderCard(card, { layout, px, assets }));
+    } catch (err) {
+      console.error(err);
+    }
   }
 }
 
@@ -755,13 +868,11 @@ function setupControls() {
   layoutSelect.value = (getLayout(settings.layout) || LAYOUTS[0]).id;
   settings.layout = layoutSelect.value;
   describeLayout();
-  layoutSelect.addEventListener('change', () => {
-    settings.layout = layoutSelect.value;
-    saveSettings();
-    describeLayout();
-    rerender();
+  layoutSelect.addEventListener('change', () => changeLook(layoutSelect.value));
+  $('template-download').addEventListener('click', () => {
+    const layout = getLayout(settings.layout) || LAYOUTS[0];
+    download(new Blob([templateCsv(layout)], { type: 'text/csv' }), `${layout.id}-template.csv`);
   });
-  renderTemplateList();
   renderSwatches();
   $('layout-ids').innerHTML = LAYOUTS.map((l) => `<code>${l.id}</code>`).join(', ');
 
@@ -836,15 +947,13 @@ function setupControls() {
   });
   $('clear-art').addEventListener('click', () => {
     state.assets = new AssetStore();
+    state.exampleArt = false;
     $('art-input').value = '';
     $('art-folder-input').value = '';
     document.querySelector('[data-drop="art"]').classList.remove('loaded');
     $('clear-art').hidden = true;
     rerender();
   });
-  document.querySelectorAll('[data-example]').forEach((button) =>
-    button.addEventListener('click', () => loadExample(button.dataset.example)),
-  );
   document.querySelectorAll('[data-tab], [data-tab-link]').forEach((button) => {
     if (button.matches('.main')) return;
     button.addEventListener('click', () => showTab(button.dataset.tab || button.dataset.tabLink));
@@ -862,6 +971,7 @@ async function init() {
   setupDragAndDrop();
   await loadFonts();
   drawBackPreview();
+  renderLooks();
   await loadHandoff();
   // The sending site reuses this tab for the next batch, which only changes the link's "#" part.
   window.addEventListener('hashchange', loadHandoff);

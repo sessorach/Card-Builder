@@ -1,10 +1,10 @@
-name,deck,count,layout,cost,type,subtype,text,flavor,stats,color,art
-Ember Imp,Fire Deck,3,,1,Creature,Imp,"When Ember Imp enters, deal 1 {fire} damage to any target.",It giggles. Then things burn.,2 / 1,#b5452a,ember.jpg
-Cinder Golem,Fire Deck,2,,4,Creature,Golem,"**Guard.** Cinder Golem takes 1 less damage from {fire} sources.",,3 / 5,#8f3a22,cinder.jpg
-Wildfire,Fire Deck,2,text-only,3,Spell,,"Deal 2 {fire} damage to each creature.\nDraw a card.",The forest remembers.,,#c0562b,
-Kindling,Fire Deck,4,,0,Resource,,"Tap: gain one {fire}.",,,#a0522d,
-Tidecaller,Water Deck,3,full-art,2,Creature,Merfolk,"When Tidecaller enters, return a card from your discard pile to your hand.",The sea gives back what it takes… eventually.,1 / 3,#2f6690,tide.jpg
-Riptide,Water Deck,2,text-only,2,Spell,,"Move an enemy creature to another lane. If it's *tapped*, draw a card.",,,#2f6690,
-Coral Sentinel,Water Deck,2,,3,Creature,Construct,"**Guard.**
+name,deck,count,cost,type,subtype,text,flavor,stats,color,art
+Ember Imp,Fire Deck,3,1,Creature,Imp,"When Ember Imp enters, deal 1 {fire} damage to any target.",It giggles. Then things burn.,2 / 1,#b5452a,ember.jpg
+Cinder Golem,Fire Deck,2,4,Creature,Golem,**Guard.** Cinder Golem takes 1 less damage from {fire} sources.,,3 / 5,#8f3a22,cinder.jpg
+Wildfire,Fire Deck,2,3,Spell,,Deal 2 {fire} damage to each creature.\nDraw a card.,The forest remembers.,,#c0562b,wildfire.jpg
+Kindling,Fire Deck,4,0,Resource,,Tap: gain one {fire}.,,,#a0522d,
+Tidecaller,Water Deck,3,2,Creature,Merfolk,"When Tidecaller enters, return a card from your discard pile to your hand.",The sea gives back what it takes… eventually.,1 / 3,#2f6690,tide.jpg
+Riptide,Water Deck,2,2,Spell,,"Move an enemy creature to another lane. If it's *tapped*, draw a card.",,,#2f6690,riptide.jpg
+Coral Sentinel,Water Deck,2,3,Creature,Construct,"**Guard.**
 {water}: Coral Sentinel gets +0 / +2 until end of turn.",,2 / 4,#3a7d8c,coral.jpg
-Still Waters,Water Deck,4,,0,Resource,,"Tap: gain one {water}.",,,#3a6f9a,
+Still Waters,Water Deck,4,0,Resource,,Tap: gain one {water}.,,,#3a6f9a,

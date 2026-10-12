@@ -5,21 +5,21 @@ your browser: **https://sessorach.github.io/Card-Builder/**
 
 ## How to use it
 
-1. **Drop in your spreadsheet** (`.csv` or `.xlsx`), one row per card.
-2. **Drop in your card images**, each named after its card
+1. **Pick a look.** The page shows a sample of each; click one to see
+   example cards in it, and switch looks any time.
+2. **Get the template.** The **Template & guide** tab has a blank spreadsheet
+   for the look you picked, its examples, and what every column does.
+3. **Drop in your spreadsheet** (`.csv` or `.xlsx`), one row per card.
+4. **Drop in your card images**, each named after its card
    (`Battle Maneuver.png`). You can drop a whole folder at once.
-3. **Drop in a card back** (optional).
-4. **Pick a layout.**
-5. **Download** one of:
+5. **Drop in a card back** (optional).
+6. **Download** one of:
    - **Card images:** a ZIP with one picture per card.
    - **TTS deck:** a ZIP with each deck ready for Tabletop Simulator,
      including the number of copies from your spreadsheet. Unzip it into your
      TTS `Saved Objects` folder, then find it in-game under
      *Objects → Saved Objects → Card Builder*. Step-by-step help is in the
      page's **TTS export** tab.
-
-Not sure where to start? The **Templates & examples** tab has a blank CSV
-template for each layout and example decks to load.
 
 ## Spreadsheet tips
 
@@ -28,13 +28,13 @@ template for each layout and example decks to load.
 - Card text can use `**bold**`, `*italic*` and line breaks.
 - The **Data** tab shows your spreadsheet as the page read it, and which cards
   are missing art.
-- The column list is in the **Templates & examples** tab.
+- The columns for each look are explained in the **Template & guide** tab.
 - FlagonQuest players can drop in the techniques or items spreadsheet from
   the FlagonQuest repo as-is; the page picks the FlagonQuest layout by itself.
   To make cards for one character, use **Make cards** on the FlagonQuest
   Character Sheet: it opens this page with that character's cards loaded.
-- New to RossQuest? The **Templates & examples** tab has a step-by-step
-  RossQuest guide, including how the Aura colors work.
+- New to RossQuest? Pick it, then open **Template & guide** for a
+  step-by-step guide, including how the Aura colors work.
 
 ## Playing with friends
 

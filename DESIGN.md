@@ -431,8 +431,8 @@ So another layout can blend its own list of colors without new code.
 
 **A guide on the page.** RossQuest's colors and two card types take more
 explaining than the other layouts, and the user wants someone who finds the
-page with no context to manage on their own. So the Templates & examples tab
-has a RossQuest guide: getting started in five steps, every column with an
+page with no context to manage on their own. So the Template & guide tab
+shows a RossQuest guide when RossQuest is the chosen look: every column with an
 example (for all cards, allies only, actions only), the Aura explained with
 small painted samples (each color, weighted mixes, Inverted, no Aura), the five
 blend styles side by side, and one ally and one action written out as
@@ -535,8 +535,8 @@ already needed for the downloads.
 Old-style `.xls` files are not supported. Saving as `.xlsx` or `.csv` works
 around it.
 
-**Blank templates.** The Templates & examples tab has a blank CSV template
-for every layout. The template's columns are worked out
+**Blank templates.** The Template & guide tab has a blank CSV template
+for the chosen layout. The template's columns are worked out
 from the layout itself, in the order the layout draws them, so every layout
 (including new ones) gets an up-to-date template with no extra work.
 Hand-written template files per layout were rejected because they would drift
@@ -690,30 +690,52 @@ has around thirty columns, most of them only for the site's character builder.
 
 ## The page
 
-The page has a narrow sidebar on the left and tabs on the right. The sidebar
-holds only the three things every visit needs, in order:
+The page follows the order people make cards in: find a look they like,
+gather what they need (the spreadsheet template, the pictures), drop their
+files in, and download the result. A narrow sidebar on the left holds the three
+steps every visit needs, in that order:
 
-1. **Your files:** one row each for the spreadsheet, the card art and the card
+1. **Look:** the layout and card size pickers, the layout's description, and a
+   button to its Template & guide tab.
+2. **Your files:** one row each for the spreadsheet, the card art and the card
    back, with a check mark and a short status ("5 images · all cards
    matched"). Files can be dropped anywhere on the page, or on a row to pick
    what kind they are. A collapsible Tips section holds the reminders.
-2. **Look:** the layout and card size pickers, side by side.
 3. **Download:** a button for the TTS deck and one for card images.
 
-The tabs on the right are **Cards** (the preview), **Data** (the spreadsheet as
-it was read: one row per card, which header became which column, and whether
-each card found its art), **TTS export** (the image options, the Steam Cloud
-steps and link boxes, and the loading guide) and **Templates & examples**
-(examples to load or download, a blank template per layout, and the column
-reference). Loading a spreadsheet or an example brings the Cards tab forward,
-unless the Data tab is open.
+The user moved Look from the middle to the top, so that everything else follows
+from the chosen look, and asked for the templates and examples to be specific
+to it.
 
-This replaced a five-step sidebar in which every step carried its own rows of
-small links (examples, example downloads, the column list, the template, the
-folder picker, "clear" links) and the whole TTS form. Once the process had
-settled, those links made the sidebar hard to scan. Explanations and links
-still exist, but they live in a collapsible section or on a tab, not in the
-sidebar's main flow.
+**Browsing looks.** Before any cards are loaded, the Cards tab shows "Pick a
+look": one sample card per layout, drawn from its example. Clicking one loads
+that example. While example cards are on show, switching the Look picker loads
+the new look's example, so a visitor can flip through the looks on real cards;
+a note above them says they are examples and points to the Template & guide
+tab. Once someone loads their own spreadsheet, switching looks redraws their
+cards instead. Default, Full Art and Text Only share one example deck; its
+cards no longer pick their own layouts, so each of the three looks shows all
+eight cards in that look (the two spells got pictures for this).
+
+**Template & guide** is about the chosen look only: its name and description,
+five steps for making your own cards (get the template, fill it in, name the
+pictures, drop them in, download), its examples to load or download, and every
+column it uses with what each does there. A look with more to explain has its
+own section: FlagonQuest explains dropping in its own spreadsheets, and
+RossQuest's guide (below) replaces the plain column list. A short table at the
+end covers the columns that work with every look (art, layout) and icons.
+
+The other tabs are **Cards** (the preview), **Data** (the spreadsheet as it was
+read: one row per card, which header became which column, and whether each
+card found its art) and **TTS export** (the image options, the Steam Cloud
+steps and link boxes, and the loading guide). Loading a spreadsheet or an
+example brings the Cards tab forward, unless the Data tab is open.
+
+The three-step sidebar replaced a five-step one in which every step carried
+its own rows of small links (examples, example downloads, the column list, the
+template, the folder picker, "clear" links) and the whole TTS form. Those links
+made the sidebar hard to scan, so explanations and links live in a collapsible
+section or on a tab, not in the sidebar's main flow.
 
 - **Rejected: a step-by-step wizard** (Files → Look → Download, one step
   showing at a time). It is the most guided option, but it adds clicks for the

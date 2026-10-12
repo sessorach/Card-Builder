@@ -161,7 +161,7 @@ const typeLine = (y, cond) => [
 export default {
   id: 'rossquest',
   name: 'RossQuest',
-  description: 'RossQuest (draft): allies and actions, with backgrounds blended from each card\'s Aura colors. See the RossQuest guide in Templates & examples.',
+  description: 'RossQuest (draft): allies and actions, with backgrounds blended from each card\'s Aura colors. Step-by-step help is under Template & guide.',
   // Its working name; spreadsheets naming it still work.
   aliases: ['allies'],
   defaultColor: '#6b5a45',

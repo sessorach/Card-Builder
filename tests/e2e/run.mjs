@@ -55,10 +55,13 @@ async function saveDownload(page, buttonId) {
 
 const tab = (page, name) => page.click(`[role="tab"][data-tab="${name}"]`);
 
-// Examples load from the Templates & examples tab (the empty page has its own buttons).
+// Examples load from the Template & guide tab, which lists the chosen look's examples
+// (the empty page shows a sample of each look instead).
+const EXAMPLE_LOOK = { 'example-cards.csv': 'default', 'street-cards.csv': 'street', 'rossquest.csv': 'rossquest' };
 async function loadExample(page, file) {
+  await page.selectOption('#layout-select', EXAMPLE_LOOK[file]);
   await tab(page, 'start');
-  await page.click(`.list [data-example="${file}"]`);
+  await page.click(`#look-examples [data-example="${file}"]`);
   assert.equal(await page.isVisible('[data-panel="cards"]'), true, 'loading an example shows the cards');
 }
 
@@ -76,14 +79,18 @@ async function run() {
     await page.goto(base);
     await page.waitForSelector('body[data-ready="true"]');
 
-    // Example deck: 8 unique cards in two decks, art loaded.
+    // The empty page shows a sample card for every look; clicking one shows its example.
+    await page.waitForFunction(() => document.querySelectorAll('#looks .look canvas').length === document.querySelectorAll('#looks .look').length);
+    assert.equal(await page.locator('#looks .look').count(), 6);
     await page.screenshot({ path: path.join(OUT, 'start.png') });
-    await page.click('.empty [data-example="example-cards.csv"]');
+    // Example deck: 8 unique cards in two decks, art loaded.
+    await page.click('.look[data-look="default"]');
     await page.waitForFunction(() => document.querySelectorAll('.tile canvas').length === 8);
     assert.match(await page.textContent('#sheet-status'), /8 cards \(22 with copies\)/);
-    assert.equal(await page.textContent('#art-status'), '6 images · all cards matched');
+    assert.equal(await page.textContent('#art-status'), '8 images · all cards matched');
     assert.equal(await page.textContent('#card-count'), '8');
     assert.equal(await page.isHidden('#warnings'), true, 'example should load without warnings');
+    assert.match(await page.textContent('.example-note'), /Example cards in the Default look/);
     await page.screenshot({ path: path.join(OUT, 'preview.png'), fullPage: true });
 
     // Lightbox
@@ -251,7 +258,7 @@ async function run() {
     // After a reload, unchanged images get their links back without re-uploading.
     await page.reload();
     await page.waitForSelector('body[data-ready="true"]');
-    await page.click('.empty [data-example="street-cards.csv"]');
+    await page.click('.look[data-look="street"]');
     await page.waitForFunction(() => document.querySelectorAll('.tile canvas').length === 5);
     assert.equal(await page.isChecked('input[name="tts-mode"][value="cloud"]'), true);
     // The uploaded back from earlier was lost in the reload; add it again so the images match.
@@ -270,8 +277,12 @@ async function run() {
     await page.screenshot({ path: path.join(OUT, 'steam-cloud.png'), fullPage: true });
     await page.selectOption('#tts-quality', 'high');
 
-    // Blank CSV templates: one per layout, in the Templates & examples tab.
+    // The Template & guide tab follows the chosen look: its template, examples and columns.
     await tab(page, 'start');
+    assert.equal(await page.textContent('#look-title'), 'Street');
+    assert.deepEqual(await page.$$eval('#look-examples [data-example]', (els) => els.map((el) => el.dataset.example)), ['street-cards.csv']);
+    assert.match(await page.innerText('#look-columns'), /strengf/);
+    assert.equal(await page.isHidden('#rossquest-guide'), true);
     await page.screenshot({ path: path.join(OUT, 'templates.png'), fullPage: true });
     const [templateDownload] = await Promise.all([page.waitForEvent('download'), page.click('[data-template="street"]')]);
     assert.equal(templateDownload.suggestedFilename(), 'street-template.csv');
@@ -322,6 +333,12 @@ async function run() {
     await page.waitForFunction(() => document.querySelectorAll('.tile canvas').length === 14);
     assert.equal(await page.inputValue('#layout-select'), 'rossquest');
     assert.equal(await page.isHidden('#warnings'), true, 'RossQuest example should load without warnings');
+    // RossQuest's own guide replaces the generic column list.
+    await tab(page, 'start');
+    assert.equal(await page.isVisible('#rossquest-guide'), true);
+    assert.equal(await page.isHidden('#look-columns-block'), true);
+    await page.screenshot({ path: path.join(OUT, 'guide-rossquest.png'), fullPage: true });
+    await tab(page, 'cards');
     // The guide's color samples are painted by the layout itself.
     const swatches = await page.evaluate(() => [document.querySelectorAll('.swatch').length, document.querySelectorAll('.swatch canvas').length]);
     assert.ok(swatches[0] >= 10 && swatches[0] === swatches[1], `guide swatches drawn: ${swatches}`);
