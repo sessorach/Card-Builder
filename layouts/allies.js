@@ -10,7 +10,8 @@
 // Columns: name, type (Ally or Action), tags, aura, text (abilities), flavor, blend,
 // art (optional; images match by card name). Allies: armor, health, resists,
 // immunities. Actions: to_hit, w (a "[W]" header works too; the weapon damage die), damage,
-// crit (can be a sentence), range, usage.
+// crit (can be a sentence), skill_check (non-attacks: "Acrobatics 10 + 1d6, with
+// Advantage"), range, usage.
 
 import { partRgb } from '../js/blend.js';
 
@@ -148,6 +149,7 @@ export default {
     labelled('to_hit', 'To Hit'),
     labelled('damage', 'Damage'),
     labelled('crit', 'Crit'),
+    labelled('skill_check', 'Skill Check'),
     labelled('w', '[W]'),
     labelled('range', 'Range'),
     labelled('usage', 'Usage'),
@@ -172,13 +174,13 @@ export default {
     // Between the art and the type line: stat bars, then the text box in the space left.
     // ALLY: Immunities, then Resistances.
     { ...MIDDLE_AREA, ...ALLY_ONLY, items: [bar('immunities', 'IMMUNITIES', 4.6), bar('resists', 'RESISTANCES', 4.6), TEXT_FILL] },
-    // ACTION: the stat row, then Damage and Crit (two smaller lines when long), then
-    // the text box down to the type line.
+    // ACTION: the stat row, then a Skill Check bar (non-attacks) or Damage and Crit bars
+    // (attacks; two smaller lines when long), then the text box down to the type line.
     ...actionBadge(0, 'range', 'RANGE', 'rgba(44, 70, 86, 0.78)'),
     ...actionBadge(1, 'to_hit', 'TO HIT', 'rgba(90, 38, 36, 0.78)'),
     ...actionBadge(2, 'w', '[W]', 'rgba(61, 47, 79, 0.78)', { font: 'body', weight: 'bold', size: 6.4 }),
     ...actionBadge(3, 'usage', 'USAGE', 'rgba(91, 69, 36, 0.78)'),
-    { ...ACTION_AREA, ...ACTION_ONLY, items: [bar('damage', 'DAMAGE', 5), bar('crit', 'CRIT', 5.6, { weight: undefined }), TEXT_FILL] },
+    { ...ACTION_AREA, ...ACTION_ONLY, items: [bar('skill_check', 'SKILL CHECK', 5), bar('damage', 'DAMAGE', 5), bar('crit', 'CRIT', 5.6, { weight: undefined }), TEXT_FILL] },
 
     // Type line ("Ally — Beast · Guardian"): above the bottom row on allies, at the
     // very bottom on actions.

@@ -341,6 +341,11 @@ box, type line and Aura background as allies, with these differences:
   spot. [W] uses the body font, because the title font has only capital
   letters and dice read better as "d8" than "D8". Wordy values ("Once per
   battle") shrink and wrap to fit.
+- Actions that aren't attacks often call for a skill check instead, with a
+  longer description ("Acrobatics 10 + 1d6, with Advantage"). It gets its own
+  Skill Check bar in the same place, above where Damage and Crit would go. The
+  user doesn't expect an action to have both a skill check and damage, so the
+  two share the space rather than each getting a fixed spot.
 - Then Damage and Crit each get a bar, only when the action has them. Damage
   can be long ("3d6 + 4d10 + 12 Shadow/Slash/Cold") and Crit can be a sentence
   of effect, so their bars fit two lines and the text shrinks to fit.
@@ -360,7 +365,8 @@ user then moved To Hit into a badge and put all four badges together at the
 top. A spreadsheet header of "[W]" is read as the `w` column.
 
 The middle of both card types is a vertical stack: the stat bars that the
-card has (Immunities and Resistances on allies; Damage and Crit on actions), top to bottom with no gaps for missing ones, then the text box in
+card has (Immunities and Resistances on allies; Skill Check, Damage and Crit
+on actions), top to bottom with no gaps for missing ones, then the text box in
 the rest of the space. Stacking is a general layout feature, so other layouts
 can use it too.
 
