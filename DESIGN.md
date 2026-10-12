@@ -316,14 +316,16 @@ take, in one layout. The ally card is drafted first; actions come next.
 
 An ally has a type ("Ally"), tags (creature and fighter types), Armor,
 Health, Resists, Immunities, ability text, and an Aura. From top to bottom the
-card reads: name, art, Resistances and Immunities in two small labelled boxes
-side by side (each only when the card has it), the ability text and flavor in
-the box below them (taking the whole space when there are neither), the type
-line ("Ally — Human · Knight"), and a bottom row with Armor and Health badges
+card reads: name, art, Immunities and then Resistances, each in a thin
+full-width strip ("IMMUNITIES Poison, Bleeding") only when the card has it, the
+ability text and flavor in the box below them (taking the whole space when
+there are neither), the type line ("Ally — Human · Knight"), and a bottom row with Armor and Health badges
 in the corners, like power and toughness, and the Aura as colored boxes
 between them, with their numbers ("Knowledge 2"). The user chose this order:
 type, tags and stats together at the bottom, with the text between them and
-the art. The name bar, type line and text boxes are slightly see-through, so
+the art. Immunities and Resistances started as two half-width
+boxes side by side; the user moved them to stacked strips to save room for
+the ability text without shrinking the art. The name bar, type line and text boxes are slightly see-through, so
 the Aura's colors show behind them as well as around the edges.
 
 **The Aura colors the card.** The Aura lists up to four types, each with a

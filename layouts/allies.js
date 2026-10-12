@@ -58,12 +58,16 @@ function badge(field, label, x, fill) {
   ];
 }
 
-// A small labelled box for a list stat (Resistances, Immunities) above the text box.
-function statBox(field, label, x) {
+// A full-width strip for a list stat ("IMMUNITIES  Poison, Bleeding"), stacked
+// above the text box. `cond` says when it shows and `y` where.
+const STRIP_H = 4.6;
+function strip(field, label, y, cond) {
   return [
-    { when: field, type: 'rect', x, y: 53.6, w: 44, h: 8.4, fill: GLASS_PAPER, texture: 'paper', textureStrength: 0.6, radius: 1.2 },
-    { when: field, type: 'text', text: label, x: x + 2.5, y: 54.2, w: 39, h: 2.8, font: 'label', size: 2.8, color: LABEL, valign: 'middle', baseline: 0.36 },
-    { when: field, type: 'text', field, x: x + 2.5, y: 56.9, w: 39, h: 4.6, font: 'body', weight: 'bold', size: 3.8, minSize: 2.2, lineHeight: 1.05, color: TEXT, valign: 'middle' },
+    { ...cond, type: 'rect', x: 5, y, w: 90, h: STRIP_H, fill: GLASS_PAPER, texture: 'paper', textureStrength: 0.6, radius: 1.2 },
+    {
+      ...cond, type: 'text', field, label, labelColor: LABEL, labelSep: '',
+      x: 8, y, w: 84, h: STRIP_H, font: 'body', weight: 'bold', size: 3.8, minSize: 2.2, color: TEXT, valign: 'middle',
+    },
   ];
 }
 
@@ -115,14 +119,17 @@ export default {
     // Art
     { type: 'image', x: 5, y: 12.6, w: 90, h: 40, radius: 1, stroke: INK, strokeWidth: 0.6 },
 
-    // Resistances and Immunities, each in its own small box when the card has it,
-    // then the ability text in the rest of the space (all of it when there are none).
-    ...statBox('resists', 'RESISTANCES', 5),
-    ...statBox('immunities', 'IMMUNITIES', 51),
-    { when: ['resists', 'immunities'], ...TEXT_RECT, y: 63, h: 16.6 },
-    { when: ['resists', 'immunities'], ...TEXT_BOX, y: 64.4, h: 13.8 },
-    { unless: ['resists', 'immunities'], ...TEXT_RECT },
-    { unless: ['resists', 'immunities'], ...TEXT_BOX },
+    // Immunities, then Resistances, each a strip when the card has it; the ability
+    // text takes the rest of the space between the art and the type line.
+    ...strip('immunities', 'IMMUNITIES', 53.6, { when: 'immunities' }),
+    ...strip('resists', 'RESISTANCES', 58.8, { whenAll: ['immunities', 'resists'] }),
+    ...strip('resists', 'RESISTANCES', 53.6, { when: 'resists', unless: 'immunities' }),
+    { whenAll: ['immunities', 'resists'], ...TEXT_RECT, y: 64, h: 15.6 },
+    { whenAll: ['immunities', 'resists'], ...TEXT_BOX, y: 65.2, h: 13.2 },
+    { when: ['immunities', 'resists'], unlessAll: ['immunities', 'resists'], ...TEXT_RECT, y: 58.8, h: 20.8 },
+    { when: ['immunities', 'resists'], unlessAll: ['immunities', 'resists'], ...TEXT_BOX, y: 60, h: 18.4 },
+    { unless: ['immunities', 'resists'], ...TEXT_RECT },
+    { unless: ['immunities', 'resists'], ...TEXT_BOX },
 
     // Type line: "Ally — Beast · Guardian"
     { type: 'rect', x: 5, y: 80.6, w: 90, h: 6, fill: GLASS_DARK, radius: 1 },

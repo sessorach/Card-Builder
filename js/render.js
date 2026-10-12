@@ -211,6 +211,8 @@ export function renderCard(card, { layout, px, assets, canvas }) {
   for (const el of layout.elements) {
     if (el.when && !anyValue(card, el.when)) continue;
     if (el.unless && anyValue(card, el.unless)) continue;
+    if (el.whenAll && ![].concat(el.whenAll).every((f) => anyValue(card, f))) continue;
+    if (el.unlessAll && [].concat(el.unlessAll).every((f) => anyValue(card, f))) continue;
     if (el.whenHas && !hasItem(card, el.whenHas)) continue;
     if (el.unlessHas && hasItem(card, el.unlessHas)) continue;
     const b = box(el);
