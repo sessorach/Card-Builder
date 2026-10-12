@@ -326,8 +326,12 @@ between them, with their numbers ("Knowledge 2"). The user chose this order:
 type, tags and stats together at the bottom, with the text between them and
 the art. Immunities and Resistances started as two half-width
 boxes side by side; the user moved them to stacked strips to save room for
-the ability text without shrinking the art. The name bar, type line and text boxes are slightly see-through, so
-the Aura's colors show behind them as well as around the edges.
+the ability text without shrinking the art. Everything on the card except the art is slightly see-through (panels,
+bars, badges and Aura boxes alike), so the Aura's colors and patterns show
+behind them as well as around the edges. The user wants it low enough that
+everything stays easy to read. One setting controls the amount for the whole
+layout; dark panels let a little more through than light ones so both look
+about the same.
 
 Actions are a mixed bunch: attacks, moves, stack effects, commands. They are
 shared rather than tied to one ally, and the type line simply shows whatever
@@ -353,8 +357,6 @@ box, type line and Aura background as allies, with these differences:
   to be short once the stats have their own places.
 - The type line sits at the very bottom, since actions have no bottom row of
   badges: their Aura only colors the background, and its boxes aren't shown.
-- The badges are see-through like the panels, so the Aura shows through them
-  too.
 
 This is the fourth arrangement. Four equal stat boxes were too cramped for
 Damage and Crit; two boxes beside two lines were still too tight for the

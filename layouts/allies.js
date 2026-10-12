@@ -36,22 +36,31 @@ const LABEL = '#7a5a2a';
 // aura's chip is that aura's blighted color.
 const hex = (rgb) => `#${rgb.map((v) => v.toString(16).padStart(2, '0')).join('')}`;
 const blighted = (color) => hex(partRgb({ color, modifiers: ['inverted'] }, MODIFIERS));
+
+// How much of the Aura background shows through everything on the card except the
+// art: 0 = solid, 1 = invisible. Dark panels let a bit more through than light ones,
+// so both read about the same.
+const SHOW_THROUGH = 0.18;
+const see = (color, k = 1) => {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(color.slice(i, i + 2), 16));
+  return `rgba(${r}, ${g}, ${b}, ${Math.max(0, Math.min(1, 1 - SHOW_THROUGH * k)).toFixed(3)})`;
+};
 const AURA_CHIPS = {
-  'inverted instinct': { fill: blighted(AURA.instinct), stroke: '#9aab55', color: '#d6e09c' },
-  'inverted knowledge': { fill: blighted(AURA.knowledge), stroke: '#9aab55', color: '#d6e09c' },
-  'inverted passion': { fill: blighted(AURA.passion), stroke: '#9aab55', color: '#d6e09c' },
-  'inverted discipline': { fill: blighted(AURA.discipline), stroke: '#9aab55', color: '#eef2cf' },
-  instinct: { fill: AURA.instinct, stroke: '#1d5c37', color: '#ffffff' },
-  knowledge: { fill: AURA.knowledge, stroke: '#1c4478', color: '#ffffff' },
-  passion: { fill: AURA.passion, stroke: '#7d2219', color: '#ffffff' },
-  discipline: { fill: AURA.discipline, stroke: '#8a7f66', color: '#3a3226' },
+  'inverted instinct': { fill: see(blighted(AURA.instinct)), stroke: '#9aab55', color: '#d6e09c' },
+  'inverted knowledge': { fill: see(blighted(AURA.knowledge)), stroke: '#9aab55', color: '#d6e09c' },
+  'inverted passion': { fill: see(blighted(AURA.passion)), stroke: '#9aab55', color: '#d6e09c' },
+  'inverted discipline': { fill: see(blighted(AURA.discipline)), stroke: '#9aab55', color: '#eef2cf' },
+  instinct: { fill: see(AURA.instinct), stroke: '#1d5c37', color: '#ffffff' },
+  knowledge: { fill: see(AURA.knowledge), stroke: '#1c4478', color: '#ffffff' },
+  passion: { fill: see(AURA.passion), stroke: '#7d2219', color: '#ffffff' },
+  discipline: { fill: see(AURA.discipline), stroke: '#8a7f66', color: '#3a3226' },
 };
 
 const labelled = (field, label) => ({ field, label, labelColor: LABEL });
 
 // See-through panels, so the aura shows behind the name, type line and text.
-const GLASS_DARK = 'rgba(23, 19, 15, 0.7)';
-const GLASS_PAPER = 'rgba(239, 230, 208, 0.82)';
+const GLASS_DARK = see('#17130f', 1.6);
+const GLASS_PAPER = see('#efe6d0');
 const PANEL = { type: 'rect', fill: GLASS_PAPER, texture: 'paper', textureStrength: 0.6, radius: 1.2 };
 
 // Which card type an element belongs to. A row is an Action when its type says so;
@@ -176,10 +185,10 @@ export default {
     { ...MIDDLE_AREA, ...ALLY_ONLY, items: [bar('immunities', 'IMMUNITIES', 4.6), bar('resists', 'RESISTANCES', 4.6), TEXT_FILL] },
     // ACTION: the stat row, then a Skill Check bar (non-attacks) or Damage and Crit bars
     // (attacks; two smaller lines when long), then the text box down to the type line.
-    ...actionBadge(0, 'range', 'RANGE', 'rgba(44, 70, 86, 0.78)'),
-    ...actionBadge(1, 'to_hit', 'TO HIT', 'rgba(90, 38, 36, 0.78)'),
-    ...actionBadge(2, 'w', '[W]', 'rgba(61, 47, 79, 0.78)', { font: 'body', weight: 'bold', size: 6.4 }),
-    ...actionBadge(3, 'usage', 'USAGE', 'rgba(91, 69, 36, 0.78)'),
+    ...actionBadge(0, 'range', 'RANGE', see('#2c4656', 1.3)),
+    ...actionBadge(1, 'to_hit', 'TO HIT', see('#5a2624', 1.3)),
+    ...actionBadge(2, 'w', '[W]', see('#3d2f4f', 1.3), { font: 'body', weight: 'bold', size: 6.4 }),
+    ...actionBadge(3, 'usage', 'USAGE', see('#5b4524', 1.3)),
     { ...ACTION_AREA, ...ACTION_ONLY, items: [bar('skill_check', 'SKILL CHECK', 5), bar('damage', 'DAMAGE', 5), bar('crit', 'CRIT', 5.6, { weight: undefined }), TEXT_FILL] },
 
     // Type line ("Ally — Beast · Guardian"): above the bottom row on allies, at the
@@ -189,11 +198,11 @@ export default {
 
     // Bottom row (allies only): Armor, the Aura as colored boxes, Health. Actions
     // don't show their Aura boxes; it only colors the background.
-    ...badge('armor', 'ARMOR', LEFT, '#3a3d46', ALLY_ONLY),
+    ...badge('armor', 'ARMOR', LEFT, see('#3a3d46', 1.3), ALLY_ONLY),
     {
       ...ALLY_ONLY, type: 'text', field: 'aura', list: true, listSep: ' ', bold: true, chip: { fill: '#ddd', stroke: '#0003' }, itemChips: AURA_CHIPS,
       x: 24.5, y: ROW_Y, w: 51, h: ROW_H, font: 'body', size: 4.6, minSize: 2.4, lineHeight: 1.4, align: 'center', valign: 'middle',
     },
-    ...badge('health', 'HEALTH', RIGHT, '#7a2320', ALLY_ONLY),
+    ...badge('health', 'HEALTH', RIGHT, see('#7a2320', 1.3), ALLY_ONLY),
   ],
 };
