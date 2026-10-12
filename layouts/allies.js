@@ -9,7 +9,8 @@
 //
 // Columns: name, type (Ally or Action), tags, aura, text (abilities), flavor, blend,
 // art (optional; images match by card name). Allies: armor, health, resists,
-// immunities. Actions: to_hit, damage, crit, w (a "[W]" header works too), range, usage.
+// immunities. Actions: to_hit, w (a "[W]" header works too; the weapon damage die), damage,
+// crit (can be a sentence), range, usage.
 
 import { partRgb } from '../js/blend.js';
 
@@ -66,25 +67,41 @@ const ACTION = { field: 'type', value: 'Action' };
 const ALLY_ONLY = { unlessHas: ACTION };
 const ACTION_ONLY = { whenHas: ACTION };
 
-// The Action attack row under the art: To Hit, Damage, Crit and [W] in four boxes,
-// shown when any of them has a value (a missing one shows a dash).
-const ATTACK = [['to_hit', 'TO HIT'], ['damage', 'DAMAGE'], ['crit', 'CRIT'], ['w', '[W]']];
+// The Action attack row under the art, shown when any attack stat has a value:
+// To Hit and [W] (the weapon's damage die, like d6 or 1d4+2) as two boxes, and
+// Damage and Crit as labelled lines beside them (Crit can be a whole sentence,
+// so the lines shrink to fit).
 const ATTACK_Y = 53.6;
 const ATTACK_H = 8.4;
-const ATTACK_FIELDS = ATTACK.map(([f]) => f);
+const ATTACK_FIELDS = ['to_hit', 'w', 'damage', 'crit'];
+// Dice keep their lowercase "d", so [W] uses the body font (the title font is all capitals).
+const ATTACK_BOXES = [['to_hit', 'TO HIT', {}], ['w', '[W]', { font: 'body', weight: 'bold', size: 5.6 }]];
+const BOX_W = 14;
 function attackRow() {
-  const gap = 1.33;
-  const w = (90 - gap * (ATTACK.length - 1)) / ATTACK.length;
-  return ATTACK.flatMap(([field, label], i) => {
-    const x = 5 + i * (w + gap);
-    const cond = { ...ACTION_ONLY, when: ATTACK_FIELDS };
+  const cond = { ...ACTION_ONLY, when: ATTACK_FIELDS };
+  const boxes = ATTACK_BOXES.flatMap(([field, label, valueStyle], i) => {
+    const x = 5 + i * (BOX_W + 1.2);
     return [
-      { ...cond, type: 'rect', x, y: ATTACK_Y, w, h: ATTACK_H, fill: GLASS_DARK, stroke: 'rgba(255, 255, 255, 0.22)', strokeWidth: 0.3, radius: 1.2 },
-      { ...cond, type: 'text', text: label, x, y: ATTACK_Y + 0.5, w, h: 2.6, font: 'label', size: 2.6, color: '#d8cfb8', align: 'center', valign: 'middle', baseline: 0.36 },
-      { ...cond, when: field, type: 'text', field, x: x + 0.8, y: ATTACK_Y + 2.9, w: w - 1.6, h: 5, font: 'title', size: 5.2, minSize: 2.6, lineHeight: 0.95, color: NAME, align: 'center', valign: 'middle', shadow: true },
-      { ...cond, unless: field, type: 'text', text: '–', x, y: ATTACK_Y + 2.9, w, h: 5, font: 'title', size: 5.2, color: 'rgba(241, 230, 204, 0.4)', align: 'center', valign: 'middle' },
+      { ...cond, type: 'rect', x, y: ATTACK_Y, w: BOX_W, h: ATTACK_H, fill: GLASS_DARK, stroke: 'rgba(255, 255, 255, 0.22)', strokeWidth: 0.3, radius: 1.2 },
+      { ...cond, type: 'text', text: label, x, y: ATTACK_Y + 0.5, w: BOX_W, h: 2.6, font: 'label', size: 2.6, color: '#d8cfb8', align: 'center', valign: 'middle', baseline: 0.36 },
+      { ...cond, when: field, type: 'text', field, x: x + 0.8, y: ATTACK_Y + 2.9, w: BOX_W - 1.6, h: 5, font: 'title', size: 5.2, minSize: 2.2, lineHeight: 0.95, color: NAME, align: 'center', valign: 'middle', shadow: true, ...valueStyle },
+      { ...cond, unless: field, type: 'text', text: '–', x, y: ATTACK_Y + 2.9, w: BOX_W, h: 5, font: 'title', size: 5.2, color: 'rgba(241, 230, 204, 0.4)', align: 'center', valign: 'middle' },
     ];
   });
+  const linesX = 5 + 2 * (BOX_W + 1.2);
+  const linesW = 95 - linesX;
+  return [
+    ...boxes,
+    { ...cond, type: 'rect', x: linesX, y: ATTACK_Y, w: linesW, h: ATTACK_H, fill: GLASS_PAPER, texture: 'paper', textureStrength: 0.6, radius: 1.2 },
+    {
+      ...cond, type: 'text',
+      parts: [
+        { field: 'damage', label: 'DAMAGE', labelColor: LABEL, labelSep: '' },
+        { field: 'crit', label: 'CRIT', labelColor: LABEL, labelSep: '' },
+      ],
+      x: linesX + 2, y: ATTACK_Y + 0.5, w: linesW - 4, h: ATTACK_H - 1, font: 'body', size: 3.8, minSize: 2, lineHeight: 1.08, color: TEXT, valign: 'middle',
+    },
+  ];
 }
 
 // A full-width strip for a list stat ("IMMUNITIES  Poison, Bleeding"), stacked

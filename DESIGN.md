@@ -331,9 +331,16 @@ the Aura's colors show behind them as well as around the edges.
 
 Actions are a mixed bunch: attacks, moves, stack effects, commands. They use
 the same frame, art, text box, type line and Aura background as allies, with
-two differences. Under the art, an attack row shows To Hit, Damage, Crit and
-[W] in four small boxes, but only when the action has any of them (a missing
-one shows a dash), so a move or a stack effect gets the whole text box. In the
+two differences. Under the art, an attack row appears only when the action has
+any attack stats, so a move or a stack effect gets the whole text box. To Hit
+(usually a number) and [W] (the attack's base weapon damage die, like d6 or
+1d4+2) sit in two small boxes; a missing one shows a dash. Damage (often a
+longer phrase, like "[W] + 3") and Crit (sometimes a whole sentence of effect)
+share the rest of the row as two labelled lines, which shrink to fit. The user
+asked for lines there after a first version gave all four stats equal boxes,
+which was too cramped for the wordier two. The [W] box uses the body font,
+because the title font has only capital letters and dice read better as "d8"
+than "D8". In the
 bottom row, Range and Usage take the corners where an ally has Armor and
 Health, with the Aura boxes between them as on allies. A wordy usage ("Once
 per battle") shrinks and wraps to fit its badge. A spreadsheet header of

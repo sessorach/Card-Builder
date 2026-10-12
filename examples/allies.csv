@@ -6,8 +6,8 @@ The Hollow Sage,1,Allies,Ally,"Undead, Mystic",Inverted Knowledge,0,6,"Shadow, F
 Wildfire Chorus,3,Allies,Ally,"Spirit, Swarm","Instinct, Knowledge, Passion, Discipline",1,4,,,,,,,,,"Counts as every Aura. When this enters play, copy the last action you took this turn.",
 Iron Recruit,4,Allies,Ally,"Human, Soldier",,2,4,,,,,,,,,Guard. *(Enemies must attack Guards first.)*,
 Plague Rat Swarm,2,Allies,Ally,"Beast, Swarm","Instinct 2, Inverted Instinct 1",0,3,,Poison,,,,,,,"When this deals damage, the target is Sickened.",
-Cleaving Strike,2,Actions,Action,"Attack, Melee",Passion,,,,,+4,3,18+,1,Melee,At will,"Hit up to two adjacent enemies. If both are hit, gain 1 Fury.",
-Arcane Bolt,2,Actions,Action,"Attack, Spell",Knowledge,,,,,+5,2,20,,8,1/turn,"On a crit, the target is Dazed until the end of its next turn.",
+Cleaving Strike,2,Actions,Action,"Attack, Melee",Passion,,,,,+4,[W] + 3,The target is knocked prone.,d8,Melee,At will,"Hit up to two adjacent enemies. If both are hit, gain 1 Fury.",
+Arcane Bolt,2,Actions,Action,"Attack, Spell",Knowledge,,,,,+5,"[W] Arcane, ignores Armor","The target is Dazed until the end of its next turn, and you draw a card.",1d4+2,8,1/turn,Choose one enemy you can see.,
 Rally,1,Actions,Action,Command,"Discipline 2, Instinct 1",,,,,,,,,6,Once per battle,Each ally in range removes 1 Fear stack and gains 1 Resolve.,"""Hold the line!"""
 Shadowstep,1,Actions,Action,Move,Inverted Knowledge,,,,,,,,,4,1/turn,Teleport up to 4. Your next attack this turn gets +2 To Hit.,
 Venom Coat,1,Actions,Action,Stack,"Instinct, Inverted Instinct",,,,,,,,,,At will,Add 2 Poison stacks to your weapon. Each hit spends one to Poison the target.,
