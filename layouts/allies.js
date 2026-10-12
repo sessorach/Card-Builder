@@ -22,7 +22,7 @@ const AURA = {
 // "Inverted Passion" or "Passion (Inverted)": a blighted version of that color —
 // duller and darker, with a bilious cast and dark veins through its share.
 const BLIGHT = '#4a5a12';
-const MODIFIERS = { inverted: { saturate: 0.75, darken: 0.4, mix: BLIGHT, amount: 0.25, mottle: 0.55 } };
+const MODIFIERS = { inverted: { saturate: 0.92, darken: 0.26, mix: BLIGHT, amount: 0.14, mottle: 0.5 } };
 
 const INK = '#17130f';
 const NAME = '#f1e6cc';
@@ -58,9 +58,25 @@ function badge(field, label, x, fill) {
   ];
 }
 
+// A small labelled box for a list stat (Resistances, Immunities) above the text box.
+function statBox(field, label, x) {
+  return [
+    { when: field, type: 'rect', x, y: 53.6, w: 44, h: 8.4, fill: GLASS_PAPER, texture: 'paper', textureStrength: 0.6, radius: 1.2 },
+    { when: field, type: 'text', text: label, x: x + 2.5, y: 54.2, w: 39, h: 2.8, font: 'label', size: 2.8, color: LABEL, valign: 'middle', baseline: 0.36 },
+    { when: field, type: 'text', field, x: x + 2.5, y: 56.9, w: 39, h: 4.6, font: 'body', weight: 'bold', size: 3.8, minSize: 2.2, lineHeight: 1.05, color: TEXT, valign: 'middle' },
+  ];
+}
+
 // See-through panels, so the aura shows behind the name, type line and text.
 const GLASS_DARK = 'rgba(23, 19, 15, 0.7)';
 const GLASS_PAPER = 'rgba(239, 230, 208, 0.82)';
+
+// The ability text box: full height, or shorter under the stat boxes.
+const TEXT_RECT = { type: 'rect', x: 5, y: 53.6, w: 90, h: 26, fill: GLASS_PAPER, texture: 'paper', textureStrength: 0.6, radius: 1.2 };
+const TEXT_BOX = {
+  type: 'text', parts: ['text', { field: 'flavor', italic: true, color: '#5e5140' }],
+  x: 8, y: 55.2, w: 84, h: 22.8, font: 'body', size: 4.6, minSize: 2.4, lineHeight: 1.18, color: TEXT, valign: 'top',
+};
 
 export default {
   id: 'allies',
@@ -99,17 +115,14 @@ export default {
     // Art
     { type: 'image', x: 5, y: 12.6, w: 90, h: 40, radius: 1, stroke: INK, strokeWidth: 0.6 },
 
-    // Text box: resists and immunities, abilities, flavor.
-    { type: 'rect', x: 5, y: 53.6, w: 90, h: 26, fill: GLASS_PAPER, texture: 'paper', textureStrength: 0.6, radius: 1.2 },
-    {
-      type: 'text',
-      parts: [
-        { join: [labelled('resists', 'Resists'), labelled('immunities', 'Immune')], sep: '   ' },
-        'text',
-        { field: 'flavor', italic: true, color: '#5e5140' },
-      ],
-      x: 8, y: 55.2, w: 84, h: 22.8, font: 'body', size: 4.6, minSize: 2.4, lineHeight: 1.18, color: TEXT, valign: 'top',
-    },
+    // Resistances and Immunities, each in its own small box when the card has it,
+    // then the ability text in the rest of the space (all of it when there are none).
+    ...statBox('resists', 'RESISTANCES', 5),
+    ...statBox('immunities', 'IMMUNITIES', 51),
+    { when: ['resists', 'immunities'], ...TEXT_RECT, y: 63, h: 16.6 },
+    { when: ['resists', 'immunities'], ...TEXT_BOX, y: 64.4, h: 13.8 },
+    { unless: ['resists', 'immunities'], ...TEXT_RECT },
+    { unless: ['resists', 'immunities'], ...TEXT_BOX },
 
     // Type line: "Ally — Beast · Guardian"
     { type: 'rect', x: 5, y: 80.6, w: 90, h: 6, fill: GLASS_DARK, radius: 1 },
