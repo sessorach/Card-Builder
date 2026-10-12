@@ -1,0 +1,41 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { parseBlend, partRgb, quantileThresholds, paintBlend, hashSeed, BLEND_STYLES } from '../../js/blend.js';
+
+const COLORS = { Instinct: '#00ff00', Knowledge: '#0000ff', Passion: '#ff0000' };
+const MODS = { inverted: { mix: '#000000', amount: 0.5 } };
+
+test('reads weights and modifiers from a list cell', () => {
+  const parts = parseBlend('Knowledge 2, Inverted Passion, passion (inverted) 1.5, Nonsense 4, Instinct 0', COLORS, MODS);
+  assert.deepEqual(parts.map((p) => [p.key, p.weight, p.modifiers]), [
+    ['knowledge', 2, []],
+    ['passion', 1, ['inverted']],
+    ['passion', 1.5, ['inverted']],
+  ]);
+  assert.deepEqual(parseBlend('', COLORS), []);
+  assert.deepEqual(partRgb(parts[0], MODS), [0, 0, 255]);
+  assert.deepEqual(partRgb(parts[1], MODS), [128, 0, 0]);
+});
+
+test('each color covers its share of the area', () => {
+  for (const style of BLEND_STYLES.filter((s) => s !== 'solid')) {
+    const w = 60;
+    const h = 84;
+    const data = new Uint8ClampedArray(w * h * 4);
+    const parts = parseBlend('Knowledge 2, Passion 1', COLORS);
+    paintBlend(data, w, h, { parts, rgb: parts.map((p) => partRgb(p)), style, seed: hashSeed('x') });
+    let blue = 0;
+    let red = 0;
+    for (let i = 0; i < w * h; i++) data[i * 4 + 2] > data[i * 4] ? blue++ : red++;
+    assert.ok(Math.abs(blue / (w * h) - 2 / 3) < 0.04, `${style}: ${blue / (w * h)}`);
+  }
+});
+
+test('solid uses the strongest color; thresholds split by weight', () => {
+  const data = new Uint8ClampedArray(4 * 4 * 4);
+  const parts = parseBlend('Instinct 1, Passion 3', COLORS);
+  paintBlend(data, 4, 4, { parts, rgb: parts.map((p) => partRgb(p)), style: 'solid' });
+  assert.deepEqual([...data.slice(0, 3)], [255, 0, 0]);
+  const th = quantileThresholds([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], [1, 2]);
+  assert.deepEqual(th, [3, 11]);
+});

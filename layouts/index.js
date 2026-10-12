@@ -5,8 +5,9 @@ import fullArt from './full-art.js';
 import textOnly from './text-only.js';
 import street from './street.js';
 import flagonquest from './flagonquest.js';
+import allies from './allies.js';
 
-export const LAYOUTS = [defaultLayout, fullArt, textOnly, street, flagonquest];
+export const LAYOUTS = [defaultLayout, fullArt, textOnly, street, flagonquest, allies];
 
 // By id, or by an old id listed in a layout's `aliases` (so renamed layouts keep working).
 export function getLayout(id) {

@@ -81,6 +81,8 @@ ships with these layouts:
 - **Street:** the first layout designed for our game (see below).
 - **FlagonQuest:** reference cards for FlagonQuest techniques and items (see
   below).
+- **Allies** (working name, draft): characters for another tabletop game, with
+  their actions to follow (see below).
 
 **One layout per use case, with variants per card type.** A game or project
 gets one layout under one name, even when it has several kinds of card. The
@@ -306,6 +308,38 @@ Builder-only columns (prereq check syntax, feature budgets, builder notes,
 base item options, crafting notes and so on) are left off the card and the
 hover text, since they drive the site's character builder rather than play at
 the table.
+
+### The Allies layout (draft)
+
+A card game with two kinds of card, allies (characters) and the actions they
+take, in one layout. The ally card is drafted first; actions come next.
+
+An ally has a type ("Ally"), tags (creature and fighter types), Armor and
+Health (in badges at the bottom corners, like power and toughness), Resists,
+Immunities, ability text, and an Aura.
+
+**The Aura colors the card.** The Aura lists up to four types, each with a
+color: Instinct green, Knowledge blue, Passion red and Discipline white. The
+card's background blends them, with each one's number setting its share of the
+card ("Knowledge 2, Passion 1" is two-thirds blue). Without numbers, they share
+equally; an ally with no Aura gets a plain stone gray. An Aura marked Inverted
+("Inverted Passion" or "Passion (Inverted)") turns its share a sickly,
+greenish black. The Aura also appears as colored chips at the top of the text
+box, so it can be read as well as seen.
+
+**Five blend styles, chosen per card.** The user liked all five styles in the
+mockups: a soft gradient, hard diagonal stripes, a tie-dye spiral, marbling,
+and a solid fill in the strongest color. A `blend` column picks one per card,
+and gradient is the default. Every style gives each color exactly its share of
+the area. The swirl and marble patterns are seeded by the card's name, so a
+card always looks the same but two cards with the same Aura don't look
+identical. Colored gems showing the mix were also mocked up and dropped,
+because the Aura chips already say it. A page-level dropdown to switch the
+whole deck's style at once was offered and isn't built yet.
+
+The color blending is general: the layout says which words are colors and
+which words change a color, and the renderer draws any weighted list that way.
+So another layout can blend its own list of colors without new code.
 
 ## Drawing on a canvas
 

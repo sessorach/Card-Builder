@@ -26,5 +26,16 @@
   "flagonquest-items.csv": {
     "layout": "flagonquest",
     "images": []
+  },
+  "allies.csv": {
+    "layout": "allies",
+    "images": [
+      "mossback-warden.jpg",
+      "archivist-of-ash.jpg",
+      "fallen-paladin.jpg",
+      "the-hollow-sage.jpg",
+      "wildfire-chorus.jpg",
+      "iron-recruit.jpg"
+    ]
   }
 }

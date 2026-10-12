@@ -317,6 +317,21 @@ async function run() {
     assert.match(armor.Description, /\[b\]Physical Resist:\[\/b\] 2/);
     assert.match(armor.Description, /\[b\]Might Req:\[\/b\] 5/);
 
+    // Allies: the background blends the Aura colors; Inverted darkens its share.
+    await loadExample(page, 'allies.csv');
+    await page.waitForFunction(() => document.querySelectorAll('.tile canvas').length === 6);
+    assert.equal(await page.inputValue('#layout-select'), 'allies');
+    assert.equal(await page.isHidden('#warnings'), true, 'allies example should load without warnings');
+    for (let i = 0; i < 6; i++) {
+      const png = await page.evaluate((n) => document.querySelectorAll('.tile canvas')[n].toDataURL('image/png'), i);
+      await writeFile(path.join(OUT, `allies-${i}.png`), Buffer.from(png.split(',')[1], 'base64'));
+    }
+    // The pure-Instinct card's edge is green; the Inverted Knowledge card's is near black.
+    const edge = (i) => page.evaluate((n) => [...document.querySelectorAll('.tile canvas')[n].getContext('2d').getImageData(6, 400, 1, 1).data], i);
+    const [r0, g0, b0] = await edge(0);
+    assert.ok(g0 > r0 + 40 && g0 > b0 + 40, `green edge ${[r0, g0, b0]}`);
+    assert.ok((await edge(3)).slice(0, 3).every((v) => v < 70), 'inverted edge is dark');
+
     // Cards sent in the link (FlagonQuest's Character Sheet): picked layout, decks and counts.
     const sent = await encodeHandoff({
       title: 'Aria',

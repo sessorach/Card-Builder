@@ -19,6 +19,7 @@ export function layoutFields(layout) {
   const fields = [];
   for (const el of layout.elements) {
     if (el.type === 'image') fields.push(el.field || 'art');
+    if (el.type === 'blend') fields.push(el.field, el.styleField);
     if (el.type !== 'text' || el.text != null) continue;
     fields.push(...elementEntries(el).map(entryField));
   }

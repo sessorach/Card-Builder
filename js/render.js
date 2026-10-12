@@ -3,6 +3,7 @@
 import { parseRich, joinParts, joinInline, splitList, affix, signed, fitRich, textHeight, chipLayout, ICON_SCALE } from './richtext.js';
 import { FONT_LIBRARY, DEFAULT_FONTS } from './fonts.js';
 import { applyTexture } from './textures.js';
+import { parseBlend, partRgb, paintBlend, hashSeed, BLEND_STYLES } from './blend.js';
 
 // fonts: a layout's role → { font, weight, boldWeight } map; role: e.g. 'title'.
 function fontString(fonts, role, style, px) {
@@ -244,12 +245,47 @@ export function renderCard(card, { layout, px, assets, canvas }) {
       }
     } else if (el.type === 'image') {
       drawImageElement(ctx, card, el, b, { assets, theme, s, color, fonts });
+    } else if (el.type === 'blend') {
+      drawBlendElement(ctx, card, el, b, { s, color });
     } else if (el.type === 'text') {
       drawTextElement(ctx, card, el, b, { assets, s, color, fonts });
     }
     ctx.restore();
   }
   return canvas;
+}
+
+// A background made of weighted colors from a list column (see js/blend.js):
+//   field (the list, e.g. "Instinct 2, Knowledge 1"), colors: { word: color },
+//   modifiers: { word: { mix, amount } } (e.g. "Inverted" darkens that part),
+//   style (default 'gradient') or styleField (a column naming the style per card),
+//   fallback (color when the list has no known colors), radius, texture, textureStrength.
+// Painted at a third of the size and scaled up, which is quicker and softens edges.
+function drawBlendElement(ctx, card, el, b, { s, color }) {
+  const parts = parseBlend(fieldValue(card, el.field), el.colors || {}, el.modifiers || {});
+  const asked = fieldValue(card, el.styleField).toLowerCase().replace(/\s+/g, '-');
+  const style = BLEND_STYLES.includes(asked) ? asked : el.style || 'gradient';
+  ctx.save();
+  roundRectPath(ctx, b.x, b.y, b.w, b.h, s(el.radius || 0));
+  ctx.clip();
+  if (!parts.length) {
+    ctx.fillStyle = color(el.fallback || 'paper');
+    ctx.fillRect(b.x, b.y, b.w, b.h);
+  } else {
+    const w = Math.max(8, Math.round(b.w / 3));
+    const h = Math.max(8, Math.round(b.h / 3));
+    const small = document.createElement('canvas');
+    small.width = w;
+    small.height = h;
+    const sctx = small.getContext('2d');
+    const img = sctx.createImageData(w, h);
+    paintBlend(img.data, w, h, { parts, rgb: parts.map((p) => partRgb(p, el.modifiers || {})), style, seed: hashSeed(card.name) });
+    sctx.putImageData(img, 0, 0);
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(small, b.x, b.y, b.w, b.h);
+  }
+  if (el.texture) applyTexture(ctx, el.texture, b, { strength: el.textureStrength ?? 1, unit: s(1) });
+  ctx.restore();
 }
 
 function drawImageElement(ctx, card, el, b, { assets, theme, s, color, fonts }) {
@@ -305,7 +341,8 @@ function drawImageElement(ctx, card, el, b, { assets, theme, s, color, fonts }) 
 //   signed — show a plain number with its sign ("1" → "+1"); hideZero — skip a value of 0
 //   list, listSep, exclude, itemColors — a comma-separated cell shown as a list,
 //     leaving out `exclude` items and coloring items named in `itemColors`
-//   chip: { fill, stroke } — draw the value (each item, for a list) in a small box, like a badge
+//   chip: { fill, stroke } — draw the value (each item, for a list) in a small box, like a badge;
+//     itemChips: { word: { fill, stroke, color } } styles each list item's chip by a word in it
 //   join, sep — an inline group of entries instead of one field (can be a chip too) }.
 function entryAtoms(card, entry, base) {
   const e = typeof entry === 'string' ? { field: entry } : entry;
@@ -321,10 +358,10 @@ function entryAtoms(card, entry, base) {
   if (e.list) {
     const skip = new Set((e.exclude || []).map((x) => x.toLowerCase()));
     const colors = Object.fromEntries(Object.entries(e.itemColors || {}).map(([k, v]) => [k.toLowerCase(), v]));
-    const items = splitList(value)
-      .filter((item) => !skip.has(item.toLowerCase()))
-      .map((item) => parseRich(affix(item, e), { ...style, color: colors[item.toLowerCase()] ?? style.color }))
-      .map((item) => (e.chip && item.length ? [chipAtom(item, e.chip)] : item));
+    const rawItems = splitList(value).filter((item) => !skip.has(item.toLowerCase()));
+    const items = rawItems
+      .map((item) => parseRich(affix(item, e), { ...style, color: colors[item.toLowerCase()] ?? itemChip(e.itemChips, item).color ?? style.color }))
+      .map((item, i) => (e.chip && item.length ? [chipAtom(item, { ...e.chip, ...itemChip(e.itemChips, rawItems[i]) })] : item));
     atoms = joinInline(items, e.listSep ?? (e.chip ? ' ' : ' · '), style);
     if (e.chip) return atoms;
   } else {
@@ -335,6 +372,15 @@ function entryAtoms(card, entry, base) {
     atoms = [...label, { ...atoms[0], space: true }, ...atoms.slice(1)];
   }
   return e.chip && atoms.length ? [chipAtom(atoms, e.chip)] : atoms;
+}
+
+// itemChips: { word: { fill, stroke, color } } styles a list item's chip by a word in
+// it ("Inverted Passion" matches "inverted"); the first key that matches wins.
+function itemChip(itemChips, item) {
+  if (!itemChips) return {};
+  const words = String(item).toLowerCase().match(/[a-z0-9]+/g) || [];
+  const key = Object.keys(itemChips).find((k) => words.includes(k.toLowerCase()));
+  return key ? itemChips[key] : {};
 }
 
 function chipAtom(atoms, { fill, stroke } = {}) {
