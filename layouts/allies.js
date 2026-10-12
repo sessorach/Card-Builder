@@ -71,9 +71,25 @@ const ACTION = { field: 'type', value: 'Action' };
 const ALLY_ONLY = { unlessHas: ACTION };
 const ACTION_ONLY = { whenHas: ACTION };
 
-// The ally bottom row: Armor, the Aura boxes, Health.
-const ROW_Y = 87.8;
-const ROW_H = 8.6;
+// Sizes of the stat badges ("tiles"), the bars and the text, in one place.
+// Badge heights are % of card height; font sizes are % of card width.
+const SIZE = {
+  badgeH: 7, // ally bottom row
+  actionBadgeH: 7, // action stat row under the art
+  badgeValue: 5,
+  badgeLabel: 2.3,
+  barText: 4.4,
+  barH: 5.2, // one-line bars: Immunities, Resistances
+  skillH: 5.8,
+  damageH: 5.8,
+  critH: 7.2,
+  text: 5.2,
+};
+
+// The ally bottom row: Armor, the Aura boxes, Health, ending at the same place
+// whatever its height.
+const ROW_H = SIZE.badgeH;
+const ROW_Y = 96.4 - ROW_H;
 const LEFT = 5;
 const RIGHT = 77;
 // minSize lets a wordy value ("Once per battle") shrink and wrap to fit; valueStyle
@@ -84,10 +100,12 @@ function badge(field, label, x, fill, cond, { minSize = 3.5, at = {}, ...valueSt
   const c = { ...cond, when: field };
   const y = at.y ?? ROW_Y;
   const w = at.w ?? 18;
+  const h = at.h ?? ROW_H;
+  const labelH = h * 0.3;
   return [
-    { ...c, type: 'rect', x, y, w, h: ROW_H, fill, stroke: '#d8cfb8', strokeWidth: 0.45, radius: 1.6, bevel: true },
-    { ...c, type: 'text', text: label, x, y: y + 0.5, w, h: 2.6, font: 'label', size: 2.6, color: '#d8cfb8', align: 'center', valign: 'middle', baseline: 0.36 },
-    { ...c, type: 'text', field, x: x + 1, y: y + 2.8, w: w - 2, h: 5.4, font: 'title', size: 6, minSize, lineHeight: 0.95, color: '#ffffff', align: 'center', valign: 'middle', shadow: true, ...valueStyle },
+    { ...c, type: 'rect', x, y, w, h, fill, stroke: '#d8cfb8', strokeWidth: 0.45, radius: 1.6, bevel: true },
+    { ...c, type: 'text', text: label, x, y: y + h * 0.06, w, h: labelH, font: 'label', size: SIZE.badgeLabel, color: '#d8cfb8', align: 'center', valign: 'middle', baseline: 0.36 },
+    { ...c, type: 'text', field, x: x + 1, y: y + h * 0.33, w: w - 2, h: h * 0.62, font: 'title', size: SIZE.badgeValue, minSize, lineHeight: 0.95, color: '#ffffff', align: 'center', valign: 'middle', shadow: true, ...valueStyle },
   ];
 }
 
@@ -96,7 +114,7 @@ function badge(field, label, x, fill, cond, { minSize = 3.5, at = {}, ...valueSt
 const ACTION_ROW_Y = 53.6;
 const ACTION_BADGE_W = (90 - 3 * 1.2) / 4;
 const actionBadge = (i, field, label, fill, extra = {}) =>
-  badge(field, label, 5 + i * (ACTION_BADGE_W + 1.2), fill, ACTION_ONLY, { minSize: 2.4, at: { y: ACTION_ROW_Y, w: ACTION_BADGE_W }, ...extra });
+  badge(field, label, 5 + i * (ACTION_BADGE_W + 1.2), fill, ACTION_ONLY, { minSize: 2.4, at: { y: ACTION_ROW_Y, w: ACTION_BADGE_W, h: SIZE.actionBadgeH }, ...extra });
 
 // A bar in the stack above the text box: a labelled stat on a paper strip
 // ("IMMUNITIES Poison, Bleeding"; "DAMAGE 3d6 + 4d10 + 12 Shadow/Cold"). Taller bars
@@ -109,7 +127,7 @@ function bar(field, label, h, extra = {}) {
       { ...PANEL },
       {
         type: 'text', field, label, labelColor: LABEL, labelSep: '', inset: [3, 0.2],
-        font: 'body', weight: 'bold', size: 3.8, minSize: 2.2, lineHeight: 1.02, color: TEXT, valign: 'middle', ...extra,
+        font: 'body', weight: 'bold', size: SIZE.barText, minSize: 2.2, lineHeight: 1.02, color: TEXT, valign: 'middle', ...extra,
       },
     ],
   };
@@ -122,14 +140,15 @@ const TEXT_FILL = {
     { ...PANEL },
     {
       type: 'text', parts: ['text', { field: 'flavor', italic: true, color: '#5e5140' }], inset: [3, 1.4],
-      font: 'body', size: 4.6, minSize: 2.4, lineHeight: 1.18, color: TEXT, valign: 'top',
+      font: 'body', size: SIZE.text, minSize: 2.4, lineHeight: 1.18, color: TEXT, valign: 'top',
     },
   ],
 };
-const MIDDLE_AREA = { type: 'stack', x: 5, y: 53.6, w: 90, h: 26, gap: 0.5 };
+const TYPE_Y = { ally: ROW_Y - 7.2, action: 90.6 };
+const MIDDLE_AREA = { type: 'stack', x: 5, y: 53.6, w: 90, h: TYPE_Y.ally - 1 - 53.6, gap: 0.5 };
 // Actions: below the stat row, down to the type line at the bottom of the card.
-const ACTION_AREA = { type: 'stack', x: 5, y: ACTION_ROW_Y + ROW_H + 0.8, w: 90, h: 89.6 - (ACTION_ROW_Y + ROW_H + 0.8), gap: 0.5 };
-const TYPE_Y = { ally: 80.6, action: 90.6 };
+const ACTION_TOP = ACTION_ROW_Y + SIZE.actionBadgeH + 0.8;
+const ACTION_AREA = { type: 'stack', x: 5, y: ACTION_TOP, w: 90, h: TYPE_Y.action - 1 - ACTION_TOP, gap: 0.5 };
 const typeLine = (y, cond) => [
   { ...cond, type: 'rect', x: 5, y, w: 90, h: 6, fill: GLASS_DARK, radius: 1 },
   {
@@ -185,14 +204,14 @@ export default {
 
     // Between the art and the type line: stat bars, then the text box in the space left.
     // ALLY: Immunities, then Resistances.
-    { ...MIDDLE_AREA, ...ALLY_ONLY, items: [bar('immunities', 'IMMUNITIES', 4.6), bar('resists', 'RESISTANCES', 4.6), TEXT_FILL] },
+    { ...MIDDLE_AREA, ...ALLY_ONLY, items: [bar('immunities', 'IMMUNITIES', SIZE.barH), bar('resists', 'RESISTANCES', SIZE.barH), TEXT_FILL] },
     // ACTION: the stat row, then a Skill Check bar (non-attacks) or Damage and Crit bars
     // (attacks; two smaller lines when long), then the text box down to the type line.
     ...actionBadge(0, 'range', 'RANGE', see('#2c4656', BADGE_K)),
     ...actionBadge(1, 'to_hit', 'TO HIT', see('#5a2624', BADGE_K)),
     ...actionBadge(2, 'w', '[W]', see('#3d2f4f', BADGE_K), { font: 'body', weight: 'bold', size: 6.4 }),
     ...actionBadge(3, 'usage', 'USAGE', see('#5b4524', BADGE_K)),
-    { ...ACTION_AREA, ...ACTION_ONLY, items: [bar('skill_check', 'SKILL CHECK', 5), bar('damage', 'DAMAGE', 5), bar('crit', 'CRIT', 5.6, { weight: undefined }), TEXT_FILL] },
+    { ...ACTION_AREA, ...ACTION_ONLY, items: [bar('skill_check', 'SKILL CHECK', SIZE.skillH), bar('damage', 'DAMAGE', SIZE.damageH), bar('crit', 'CRIT', SIZE.critH, { weight: undefined }), TEXT_FILL] },
 
     // Type line ("Ally — Beast · Guardian"): above the bottom row on allies, at the
     // very bottom on actions.

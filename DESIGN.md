@@ -386,6 +386,14 @@ the names with Cinzel on the type line was also tried; the user preferred it
 the other way round, with the name standing out and the type line in easy to
 read upper and lower case.
 
+**Text size.** The user found the text on these cards a bit small. The stat
+badges were made shorter, with smaller numbers and labels, and the room went to
+bigger text in the bars (about 15%) and the text box (about 13%). A stronger
+version (badges a quarter shorter, text over 20% bigger) was also shown; the
+user chose the moderate one, the same on allies and actions. On allies the
+shorter bottom row puts the Aura boxes on one smaller line. All these sizes
+sit in one table at the top of the layout so they can be tuned together.
+
 **The Aura colors the card.** The Aura lists up to four types, each with a
 color: Instinct green, Knowledge blue, Passion red and Discipline white. The
 card's background blends them, with each one's number setting its share of the
