@@ -119,10 +119,13 @@ function fbm(noise, x, y) {
 // Each style is a value field over the card (u, v in 0..1, aspect = height/width);
 // colors are then assigned by area. `soft` is the blend width between neighbors.
 const FIELDS = {
-  gradient: { soft: 0.12, make: () => (u, v) => u * 0.45 + v * 0.55 },
+  gradient: { soft: 0.17, make: () => (u, v) => u * 0.45 + v * 0.55 },
   split: { soft: 0.006, make: () => (u, v) => u * 0.35 + v * 0.65 },
+  // The spiral's values wrap around (0 and 1 meet), so its last color also borders
+  // its first and that edge gets softened too.
   'tie-dye': {
-    soft: 0.05,
+    soft: 0.11,
+    wrap: true,
     make: (seed, aspect) => {
       const n = makeNoise(seed);
       return (u, v) => {
@@ -181,6 +184,10 @@ export function paintBlend(data, w, h, { parts, rgb, mottle = [], style = 'gradi
   const th = quantileThresholds(values, parts.map((p) => p.weight));
   const soft = spec.soft;
   const last = parts.length - 1;
+  // For a wrapping field: the edge between the last part and the first sits at the
+  // field's ends, so blend across it as well.
+  const lo = spec.wrap ? Math.min(...values) : 0;
+  const hi = spec.wrap ? Math.max(...values) : 0;
   for (let i = 0; i < values.length; i++) {
     const v = values[i];
     let k = th.findIndex((t) => v <= t);
@@ -189,6 +196,8 @@ export function paintBlend(data, w, h, { parts, rgb, mottle = [], style = 'gradi
     // Soften the edge toward the neighboring part.
     if (k < last && th[k] - v < soft) c = mixRgb(c, rgb[k + 1], 0.5 - (th[k] - v) / soft / 2);
     else if (k > 0 && v - th[k - 1] < soft) c = mixRgb(c, rgb[k - 1], 0.5 - (v - th[k - 1]) / soft / 2);
+    else if (spec.wrap && k === 0 && v - lo < soft) c = mixRgb(c, rgb[last], 0.5 - (v - lo) / soft / 2);
+    else if (spec.wrap && k === last && hi - v < soft) c = mixRgb(c, rgb[0], 0.5 - (hi - v) / soft / 2);
     put(i, c, vein(i % w, Math.floor(i / w), mottle[k]));
   }
 }

@@ -40,7 +40,7 @@ const blighted = (color) => hex(partRgb({ color, modifiers: ['inverted'] }, MODI
 // How much of the Aura background shows through everything on the card except the
 // art: 0 = solid, 1 = invisible. Dark panels let a bit more through than light ones,
 // so both read about the same.
-const SHOW_THROUGH = 0.18;
+const SHOW_THROUGH = 0.25;
 const see = (color, k = 1) => {
   const [r, g, b] = [1, 3, 5].map((i) => parseInt(color.slice(i, i + 2), 16));
   return `rgba(${r}, ${g}, ${b}, ${Math.max(0, Math.min(1, 1 - SHOW_THROUGH * k)).toFixed(3)})`;

@@ -328,8 +328,9 @@ the art. Immunities and Resistances started as two half-width
 boxes side by side; the user moved them to stacked strips to save room for
 the ability text without shrinking the art. Everything on the card except the art is slightly see-through (panels,
 bars, badges and Aura boxes alike), so the Aura's colors and patterns show
-behind them as well as around the edges. The user wants it low enough that
-everything stays easy to read. One setting controls the amount for the whole
+behind them as well as around the edges. After comparing 10%, 18%, 28% and 40%, the user set it at 25%: high
+enough for the pattern to show in the panels, low enough that the text stays
+easy to read. One setting controls the amount for the whole
 layout; dark panels let a little more through than light ones so both look
 about the same.
 
@@ -390,7 +391,10 @@ read as well as seen.
 mockups: a soft gradient, hard diagonal stripes, a tie-dye spiral, marbling,
 and a solid fill in the strongest color. A `blend` column picks one per card,
 and gradient is the default. Every style gives each color exactly its share of
-the area. The swirl and marble patterns are seeded by the card's name, so a
+the area. Where colors meet, the gradient and tie-dye styles blend them softly
+(the user asked for a bit more blending there after seeing hard contrasts,
+like white against a blighted red, show through and distract from the text);
+marble keeps crisper edges, which the user liked as they were. The swirl and marble patterns are seeded by the card's name, so a
 card always looks the same but two cards with the same Aura don't look
 identical. Colored gems showing the mix were also mocked up and dropped,
 because the Aura chips already say it. A page-level dropdown to switch the
