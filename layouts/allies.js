@@ -3,11 +3,14 @@
 //
 // The background is the card's Aura: each aura word is a color, its number is its
 // share of the card ("Instinct 2, Knowledge 1" is two-thirds green), and an aura
-// marked Inverted turns its share a sickly black. A `blend` column picks the style
-// per card: gradient (default), split, tie-dye, marble or solid.
+// marked Inverted blights its share: a darker, sickly, veined version of that
+// color. A `blend` column picks the style per card: gradient (default), split,
+// tie-dye, marble or solid.
 //
 // Columns: name, type (Ally), tags, aura, armor, health, resists, immunities,
 // text (abilities), flavor, blend, art (optional; images match by card name).
+
+import { partRgb } from '../js/blend.js';
 
 // Aura colors. Keys are the words looked for in the aura cell (any capitalization).
 const AURA = {
@@ -16,9 +19,10 @@ const AURA = {
   passion: '#c23b2c',
   discipline: '#ece4cf',
 };
-// "Inverted Passion" or "Passion (Inverted)": that part mixed toward a sickly black.
-const SICKLY = '#161d0c';
-const MODIFIERS = { inverted: { mix: SICKLY, amount: 0.82 } };
+// "Inverted Passion" or "Passion (Inverted)": a blighted version of that color —
+// duller and darker, with a bilious cast and dark veins through its share.
+const BLIGHT = '#4a5a12';
+const MODIFIERS = { inverted: { saturate: 0.75, darken: 0.4, mix: BLIGHT, amount: 0.25, mottle: 0.55 } };
 
 const INK = '#17130f';
 const NAME = '#f1e6cc';
@@ -26,9 +30,15 @@ const PAPER = '#efe6d0';
 const TEXT = '#2b241c';
 const LABEL = '#7a5a2a';
 
-// Aura chips in the text box, colored like the background they make.
+// Aura chips in the text box, colored like the background they make. An Inverted
+// aura's chip is that aura's blighted color.
+const hex = (rgb) => `#${rgb.map((v) => v.toString(16).padStart(2, '0')).join('')}`;
+const blighted = (color) => hex(partRgb({ color, modifiers: ['inverted'] }, MODIFIERS));
 const AURA_CHIPS = {
-  inverted: { fill: SICKLY, stroke: '#56632f', color: '#b9c98a' },
+  'inverted instinct': { fill: blighted(AURA.instinct), stroke: '#0e140a', color: '#c8d48e' },
+  'inverted knowledge': { fill: blighted(AURA.knowledge), stroke: '#0e140a', color: '#c8d48e' },
+  'inverted passion': { fill: blighted(AURA.passion), stroke: '#0e140a', color: '#c8d48e' },
+  'inverted discipline': { fill: blighted(AURA.discipline), stroke: '#0e140a', color: '#e3e8c0' },
   instinct: { fill: AURA.instinct, stroke: '#1d5c37', color: '#ffffff' },
   knowledge: { fill: AURA.knowledge, stroke: '#1c4478', color: '#ffffff' },
   passion: { fill: AURA.passion, stroke: '#7d2219', color: '#ffffff' },
@@ -49,7 +59,7 @@ function badge(field, label, x, fill) {
 export default {
   id: 'allies',
   name: 'Allies',
-  description: 'Allies (draft): characters whose background is blended from their Aura. Inverted auras turn their share a sickly black.',
+  description: 'Allies (draft): characters whose background is blended from their Aura. Inverted auras blight their share of the color.',
   defaultColor: '#6b5a45',
   matchColumns: ['aura', 'armor', 'health'],
   fonts: {

@@ -8,7 +8,9 @@ import { splitList } from './richtext.js';
 export const BLEND_STYLES = ['gradient', 'split', 'tie-dye', 'marble', 'solid'];
 
 // value: a list cell like "Instinct 2, Inverted Passion".
-// colors: { word: color } (case-insensitive); modifiers: { word: { mix, amount } }.
+// colors: { word: color } (case-insensitive); modifiers: { word: modifier }, where a
+// modifier changes that part's color: { saturate (1 = unchanged), darken (0–1),
+// mix + amount (blend toward a color), mottle (0–1: dark veins through that part) }.
 // Each item needs one color word; a number in it is its weight (default 1); any
 // modifier words in it change that part's color. Returns [{ key, weight, color, modifiers }].
 export function parseBlend(value, colors, modifiers = {}) {
@@ -36,17 +38,30 @@ export function hexToRgb(hex) {
   return [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16) || 0);
 }
 
-// A part's final color: its base color, mixed toward each modifier's color.
+// A part's final color: its base color, changed by each of its modifiers in turn
+// (saturation, then darkening, then a mix toward another color).
 export function partRgb(part, modifiers = {}) {
   let rgb = hexToRgb(part.color);
   for (const m of part.modifiers) {
     const mod = lookup(modifiers, m);
     if (!mod) continue;
-    const to = hexToRgb(mod.mix);
-    const t = mod.amount ?? 0.6;
-    rgb = rgb.map((v, i) => Math.round(v + (to[i] - v) * t));
+    if (mod.saturate != null) {
+      const gray = rgb[0] * 0.3 + rgb[1] * 0.59 + rgb[2] * 0.11;
+      rgb = rgb.map((v) => gray + (v - gray) * mod.saturate);
+    }
+    if (mod.darken) rgb = rgb.map((v) => v * (1 - mod.darken));
+    if (mod.mix) {
+      const to = hexToRgb(mod.mix);
+      const t = mod.amount ?? 0.6;
+      rgb = rgb.map((v, i) => v + (to[i] - v) * t);
+    }
   }
-  return rgb;
+  return rgb.map((v) => Math.max(0, Math.min(255, Math.round(v))));
+}
+
+// How strongly a part is veined (the largest `mottle` among its modifiers).
+export function partMottle(part, modifiers = {}) {
+  return Math.max(0, ...part.modifiers.map((m) => lookup(modifiers, m)?.mottle || 0));
 }
 
 // Thresholds that split a field of values so each part covers its share of the
@@ -136,16 +151,27 @@ const FIELDS = {
 
 // Paints the blend into a w×h ImageData-like buffer (Uint8ClampedArray, RGBA).
 // parts: from parseBlend; rgb: each part's color. Pure apart from the buffer.
-export function paintBlend(data, w, h, { parts, rgb, style = 'gradient', seed = 1 }) {
+// mottle: per part, 0–1, dark veins through that part's area (e.g. a blighted color).
+export function paintBlend(data, w, h, { parts, rgb, mottle = [], style = 'gradient', seed = 1 }) {
   if (!parts.length) return;
-  const fill = (c) => {
-    for (let i = 0; i < w * h; i++) data.set([c[0], c[1], c[2], 255], i * 4);
+  const veinNoise = mottle.some((m) => m > 0) ? makeNoise(seed + 13) : null;
+  // Ridged noise: thin dark lines where the noise crosses its middle.
+  const vein = (x, y, m) => {
+    if (!m || !veinNoise) return 1;
+    const r = 1 - Math.abs(2 * fbm(veinNoise, (x / w) * 7, (y / h) * 7 * (h / w)) - 1);
+    return 1 - m * r ** 6;
+  };
+  const put = (i, c, f) => {
+    data[i * 4] = c[0] * f;
+    data[i * 4 + 1] = c[1] * f;
+    data[i * 4 + 2] = c[2] * f;
+    data[i * 4 + 3] = 255;
   };
   if (style === 'solid' || parts.length === 1) {
     // The strongest part (the first one listed, on a tie).
     let best = 0;
     parts.forEach((p, i) => p.weight > parts[best].weight && (best = i));
-    fill(rgb[best]);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) put(y * w + x, rgb[best], vein(x, y, mottle[best]));
     return;
   }
   const spec = FIELDS[style] || FIELDS.gradient;
@@ -163,10 +189,7 @@ export function paintBlend(data, w, h, { parts, rgb, style = 'gradient', seed = 
     // Soften the edge toward the neighboring part.
     if (k < last && th[k] - v < soft) c = mixRgb(c, rgb[k + 1], 0.5 - (th[k] - v) / soft / 2);
     else if (k > 0 && v - th[k - 1] < soft) c = mixRgb(c, rgb[k - 1], 0.5 - (v - th[k - 1]) / soft / 2);
-    data[i * 4] = c[0];
-    data[i * 4 + 1] = c[1];
-    data[i * 4 + 2] = c[2];
-    data[i * 4 + 3] = 255;
+    put(i, c, vein(i % w, Math.floor(i / w), mottle[k]));
   }
 }
 

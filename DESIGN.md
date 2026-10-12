@@ -323,8 +323,10 @@ color: Instinct green, Knowledge blue, Passion red and Discipline white. The
 card's background blends them, with each one's number setting its share of the
 card ("Knowledge 2, Passion 1" is two-thirds blue). Without numbers, they share
 equally; an ally with no Aura gets a plain stone gray. An Aura marked Inverted
-("Inverted Passion" or "Passion (Inverted)") turns its share a sickly,
-greenish black. The Aura also appears as colored chips at the top of the text
+("Inverted Passion" or "Passion (Inverted)") blights its share: the same color,
+duller and darker with a bilious cast, and veined with dark lines, so it reads
+as an evil version of that Aura. (A first version turned the share nearly
+black; the user wanted it closer to the original color.) The Aura also appears as colored chips at the top of the text
 box, so it can be read as well as seen.
 
 **Five blend styles, chosen per card.** The user liked all five styles in the

@@ -3,7 +3,7 @@
 import { parseRich, joinParts, joinInline, splitList, affix, signed, fitRich, textHeight, chipLayout, ICON_SCALE } from './richtext.js';
 import { FONT_LIBRARY, DEFAULT_FONTS } from './fonts.js';
 import { applyTexture } from './textures.js';
-import { parseBlend, partRgb, paintBlend, hashSeed, BLEND_STYLES } from './blend.js';
+import { parseBlend, partRgb, partMottle, paintBlend, hashSeed, BLEND_STYLES } from './blend.js';
 
 // fonts: a layout's role → { font, weight, boldWeight } map; role: e.g. 'title'.
 function fontString(fonts, role, style, px) {
@@ -257,7 +257,8 @@ export function renderCard(card, { layout, px, assets, canvas }) {
 
 // A background made of weighted colors from a list column (see js/blend.js):
 //   field (the list, e.g. "Instinct 2, Knowledge 1"), colors: { word: color },
-//   modifiers: { word: { mix, amount } } (e.g. "Inverted" darkens that part),
+//   modifiers: { word: { saturate, darken, mix, amount, mottle } } (e.g. "Inverted"
+//     blights that part; see js/blend.js),
 //   style (default 'gradient') or styleField (a column naming the style per card),
 //   fallback (color when the list has no known colors), radius, texture, textureStrength.
 // Painted at a third of the size and scaled up, which is quicker and softens edges.
@@ -279,7 +280,8 @@ function drawBlendElement(ctx, card, el, b, { s, color }) {
     small.height = h;
     const sctx = small.getContext('2d');
     const img = sctx.createImageData(w, h);
-    paintBlend(img.data, w, h, { parts, rgb: parts.map((p) => partRgb(p, el.modifiers || {})), style, seed: hashSeed(card.name) });
+    const mods = el.modifiers || {};
+    paintBlend(img.data, w, h, { parts, rgb: parts.map((p) => partRgb(p, mods)), mottle: parts.map((p) => partMottle(p, mods)), style, seed: hashSeed(card.name) });
     sctx.putImageData(img, 0, 0);
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(small, b.x, b.y, b.w, b.h);
@@ -374,12 +376,13 @@ function entryAtoms(card, entry, base) {
   return e.chip && atoms.length ? [chipAtom(atoms, e.chip)] : atoms;
 }
 
-// itemChips: { word: { fill, stroke, color } } styles a list item's chip by a word in
-// it ("Inverted Passion" matches "inverted"); the first key that matches wins.
+// itemChips: { words: { fill, stroke, color } } styles a list item's chip by words in
+// it: a key matches when all its words are in the item ("inverted passion" matches
+// "Passion (Inverted)"); the first key that matches wins, so list combinations first.
 function itemChip(itemChips, item) {
   if (!itemChips) return {};
   const words = String(item).toLowerCase().match(/[a-z0-9]+/g) || [];
-  const key = Object.keys(itemChips).find((k) => words.includes(k.toLowerCase()));
+  const key = Object.keys(itemChips).find((k) => k.toLowerCase().split(/\s+/).every((w) => words.includes(w)));
   return key ? itemChips[key] : {};
 }
 

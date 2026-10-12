@@ -326,11 +326,18 @@ async function run() {
       const png = await page.evaluate((n) => document.querySelectorAll('.tile canvas')[n].toDataURL('image/png'), i);
       await writeFile(path.join(OUT, `allies-${i}.png`), Buffer.from(png.split(',')[1], 'base64'));
     }
-    // The pure-Instinct card's edge is green; the Inverted Knowledge card's is near black.
-    const edge = (i) => page.evaluate((n) => [...document.querySelectorAll('.tile canvas')[n].getContext('2d').getImageData(6, 400, 1, 1).data], i);
+    // Average color of a strip along the card's left edge.
+    const edge = (i) => page.evaluate((n) => {
+      const d = document.querySelectorAll('.tile canvas')[n].getContext('2d').getImageData(4, 300, 4, 300).data;
+      const sum = [0, 0, 0];
+      for (let k = 0; k < d.length; k += 4) for (let c = 0; c < 3; c++) sum[c] += d[k + c];
+      return sum.map((v) => v / (d.length / 4));
+    }, i);
+    // Pure Instinct is green; Inverted Knowledge is still bluish, but blighted (dark and dull).
     const [r0, g0, b0] = await edge(0);
     assert.ok(g0 > r0 + 40 && g0 > b0 + 40, `green edge ${[r0, g0, b0]}`);
-    assert.ok((await edge(3)).slice(0, 3).every((v) => v < 70), 'inverted edge is dark');
+    const [r3, g3, b3] = await edge(3);
+    assert.ok(b3 >= r3 && b3 >= g3 && r3 + g3 + b3 < 260, `blighted blue edge ${[r3, g3, b3]}`);
 
     // Cards sent in the link (FlagonQuest's Character Sheet): picked layout, decks and counts.
     const sent = await encodeHandoff({

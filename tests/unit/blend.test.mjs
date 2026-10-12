@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseBlend, partRgb, quantileThresholds, paintBlend, hashSeed, BLEND_STYLES } from '../../js/blend.js';
+import { parseBlend, partRgb, partMottle, quantileThresholds, paintBlend, hashSeed, BLEND_STYLES } from '../../js/blend.js';
 
 const COLORS = { Instinct: '#00ff00', Knowledge: '#0000ff', Passion: '#ff0000' };
 const MODS = { inverted: { mix: '#000000', amount: 0.5 } };
@@ -38,4 +38,13 @@ test('solid uses the strongest color; thresholds split by weight', () => {
   assert.deepEqual([...data.slice(0, 3)], [255, 0, 0]);
   const th = quantileThresholds([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], [1, 2]);
   assert.deepEqual(th, [3, 11]);
+});
+
+test('modifiers can desaturate, darken and vein a part', () => {
+  const mods = { blight: { saturate: 0.5, darken: 0.5, mottle: 0.4 }, faint: { mottle: 0.2 } };
+  const [part] = parseBlend('Faint Blight Passion', COLORS, mods);
+  // red → half saturation around its gray (77) → halved
+  assert.deepEqual(partRgb(part, mods), [83, 19, 19]);
+  assert.equal(partMottle(part, mods), 0.4);
+  assert.equal(partMottle(parseBlend('Passion', COLORS, mods)[0], mods), 0);
 });
