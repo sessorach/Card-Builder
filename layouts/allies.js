@@ -41,6 +41,8 @@ const blighted = (color) => hex(partRgb({ color, modifiers: ['inverted'] }, MODI
 // art: 0 = solid, 1 = invisible. Dark panels let a bit more through than light ones,
 // so both read about the same.
 const SHOW_THROUGH = 0.25;
+// How see-through the stat badges are, as a multiple of SHOW_THROUGH (0 = solid).
+const BADGE_K = 1.3;
 const see = (color, k = 1) => {
   const [r, g, b] = [1, 3, 5].map((i) => parseInt(color.slice(i, i + 2), 16));
   return `rgba(${r}, ${g}, ${b}, ${Math.max(0, Math.min(1, 1 - SHOW_THROUGH * k)).toFixed(3)})`;
@@ -185,10 +187,10 @@ export default {
     { ...MIDDLE_AREA, ...ALLY_ONLY, items: [bar('immunities', 'IMMUNITIES', 4.6), bar('resists', 'RESISTANCES', 4.6), TEXT_FILL] },
     // ACTION: the stat row, then a Skill Check bar (non-attacks) or Damage and Crit bars
     // (attacks; two smaller lines when long), then the text box down to the type line.
-    ...actionBadge(0, 'range', 'RANGE', see('#2c4656', 1.3)),
-    ...actionBadge(1, 'to_hit', 'TO HIT', see('#5a2624', 1.3)),
-    ...actionBadge(2, 'w', '[W]', see('#3d2f4f', 1.3), { font: 'body', weight: 'bold', size: 6.4 }),
-    ...actionBadge(3, 'usage', 'USAGE', see('#5b4524', 1.3)),
+    ...actionBadge(0, 'range', 'RANGE', see('#2c4656', BADGE_K)),
+    ...actionBadge(1, 'to_hit', 'TO HIT', see('#5a2624', BADGE_K)),
+    ...actionBadge(2, 'w', '[W]', see('#3d2f4f', BADGE_K), { font: 'body', weight: 'bold', size: 6.4 }),
+    ...actionBadge(3, 'usage', 'USAGE', see('#5b4524', BADGE_K)),
     { ...ACTION_AREA, ...ACTION_ONLY, items: [bar('skill_check', 'SKILL CHECK', 5), bar('damage', 'DAMAGE', 5), bar('crit', 'CRIT', 5.6, { weight: undefined }), TEXT_FILL] },
 
     // Type line ("Ally — Beast · Guardian"): above the bottom row on allies, at the
@@ -198,11 +200,11 @@ export default {
 
     // Bottom row (allies only): Armor, the Aura as colored boxes, Health. Actions
     // don't show their Aura boxes; it only colors the background.
-    ...badge('armor', 'ARMOR', LEFT, see('#3a3d46', 1.3), ALLY_ONLY),
+    ...badge('armor', 'ARMOR', LEFT, see('#3a3d46', BADGE_K), ALLY_ONLY),
     {
       ...ALLY_ONLY, type: 'text', field: 'aura', list: true, listSep: ' ', bold: true, chip: { fill: '#ddd', stroke: '#0003' }, itemChips: AURA_CHIPS,
       x: 24.5, y: ROW_Y, w: 51, h: ROW_H, font: 'body', size: 4.6, minSize: 2.4, lineHeight: 1.4, align: 'center', valign: 'middle',
     },
-    ...badge('health', 'HEALTH', RIGHT, see('#7a2320', 1.3), ALLY_ONLY),
+    ...badge('health', 'HEALTH', RIGHT, see('#7a2320', BADGE_K), ALLY_ONLY),
   ],
 };
