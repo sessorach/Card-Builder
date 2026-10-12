@@ -314,9 +314,15 @@ the table.
 A card game with two kinds of card, allies (characters) and the actions they
 take, in one layout. The ally card is drafted first; actions come next.
 
-An ally has a type ("Ally"), tags (creature and fighter types), Armor and
-Health (in badges at the bottom corners, like power and toughness), Resists,
-Immunities, ability text, and an Aura.
+An ally has a type ("Ally"), tags (creature and fighter types), Armor,
+Health, Resists, Immunities, ability text, and an Aura. From top to bottom the
+card reads: name, art, the text box (Resists and Immunities, then abilities and
+flavor), the type line ("Ally — Human · Knight"), and a bottom row with Armor
+and Health badges in the corners, like power and toughness, and the Aura as
+colored boxes between them. The user chose this order: type, tags and stats
+together at the bottom, with the text between them and the art. The name bar,
+type line and text box are slightly see-through, so the Aura's colors show
+behind them as well as around the edges.
 
 **The Aura colors the card.** The Aura lists up to four types, each with a
 color: Instinct green, Knowledge blue, Passion red and Discipline white. The
@@ -326,8 +332,8 @@ equally; an ally with no Aura gets a plain stone gray. An Aura marked Inverted
 ("Inverted Passion" or "Passion (Inverted)") blights its share: the same color,
 duller and darker with a bilious cast, and veined with dark lines, so it reads
 as an evil version of that Aura. (A first version turned the share nearly
-black; the user wanted it closer to the original color.) The Aura also appears as colored chips at the top of the text
-box, so it can be read as well as seen.
+black; the user wanted it closer to the original color.) The Aura also appears as colored boxes in the bottom row (an
+Inverted one in its blighted color), so it can be read as well as seen.
 
 **Five blend styles, chosen per card.** The user liked all five styles in the
 mockups: a soft gradient, hard diagonal stripes, a tie-dye spiral, marbling,

@@ -35,10 +35,10 @@ const LABEL = '#7a5a2a';
 const hex = (rgb) => `#${rgb.map((v) => v.toString(16).padStart(2, '0')).join('')}`;
 const blighted = (color) => hex(partRgb({ color, modifiers: ['inverted'] }, MODIFIERS));
 const AURA_CHIPS = {
-  'inverted instinct': { fill: blighted(AURA.instinct), stroke: '#0e140a', color: '#c8d48e' },
-  'inverted knowledge': { fill: blighted(AURA.knowledge), stroke: '#0e140a', color: '#c8d48e' },
-  'inverted passion': { fill: blighted(AURA.passion), stroke: '#0e140a', color: '#c8d48e' },
-  'inverted discipline': { fill: blighted(AURA.discipline), stroke: '#0e140a', color: '#e3e8c0' },
+  'inverted instinct': { fill: blighted(AURA.instinct), stroke: '#9aab55', color: '#d6e09c' },
+  'inverted knowledge': { fill: blighted(AURA.knowledge), stroke: '#9aab55', color: '#d6e09c' },
+  'inverted passion': { fill: blighted(AURA.passion), stroke: '#9aab55', color: '#d6e09c' },
+  'inverted discipline': { fill: blighted(AURA.discipline), stroke: '#9aab55', color: '#eef2cf' },
   instinct: { fill: AURA.instinct, stroke: '#1d5c37', color: '#ffffff' },
   knowledge: { fill: AURA.knowledge, stroke: '#1c4478', color: '#ffffff' },
   passion: { fill: AURA.passion, stroke: '#7d2219', color: '#ffffff' },
@@ -47,14 +47,20 @@ const AURA_CHIPS = {
 
 const labelled = (field, label) => ({ field, label, labelColor: LABEL });
 
-// A stat badge at the bottom corners, like a power/toughness box.
+// The bottom row: Armor (left) and Health (right) badges, like a power/toughness box.
+const ROW_Y = 87.8;
+const ROW_H = 8.6;
 function badge(field, label, x, fill) {
   return [
-    { when: field, type: 'rect', x, y: 88.2, w: 20, h: 8.4, fill, stroke: '#d8cfb8', strokeWidth: 0.45, radius: 1.6, bevel: true },
-    { when: field, type: 'text', text: label, x, y: 88.7, w: 20, h: 2.6, font: 'label', size: 2.6, color: '#d8cfb8', align: 'center', valign: 'middle', baseline: 0.36 },
-    { when: field, type: 'text', field, x, y: 90.9, w: 20, h: 5.4, font: 'title', size: 6, minSize: 3.5, lineHeight: 0.9, color: '#ffffff', align: 'center', valign: 'middle', shadow: true },
+    { when: field, type: 'rect', x, y: ROW_Y, w: 18, h: ROW_H, fill, stroke: '#d8cfb8', strokeWidth: 0.45, radius: 1.6, bevel: true },
+    { when: field, type: 'text', text: label, x, y: ROW_Y + 0.5, w: 18, h: 2.6, font: 'label', size: 2.6, color: '#d8cfb8', align: 'center', valign: 'middle', baseline: 0.36 },
+    { when: field, type: 'text', field, x, y: ROW_Y + 2.8, w: 18, h: 5.4, font: 'title', size: 6, minSize: 3.5, lineHeight: 0.9, color: '#ffffff', align: 'center', valign: 'middle', shadow: true },
   ];
 }
+
+// See-through panels, so the aura shows behind the name, type line and text.
+const GLASS_DARK = 'rgba(23, 19, 15, 0.7)';
+const GLASS_PAPER = 'rgba(239, 230, 208, 0.82)';
 
 export default {
   id: 'allies',
@@ -87,34 +93,37 @@ export default {
     { type: 'rect', x: 2.2, y: 1.6, w: 95.6, h: 96.8, stroke: 'rgba(15, 12, 9, 0.55)', strokeWidth: 0.5, radius: 2.6 },
 
     // Name bar
-    { type: 'rect', x: 5, y: 3.4, w: 90, h: 8.2, fill: INK, stroke: 'rgba(255, 255, 255, 0.18)', strokeWidth: 0.3, radius: 1.2, bevel: true },
-    { type: 'text', field: 'name', x: 7.5, y: 3.4, w: 85, h: 8.2, font: 'title', size: 6.2, minSize: 3.5, color: NAME, valign: 'middle' },
+    { type: 'rect', x: 5, y: 3.4, w: 90, h: 8.2, fill: GLASS_DARK, stroke: 'rgba(255, 255, 255, 0.18)', strokeWidth: 0.3, radius: 1.2 },
+    { type: 'text', field: 'name', x: 7.5, y: 3.4, w: 85, h: 8.2, font: 'title', size: 6.2, minSize: 3.5, color: NAME, valign: 'middle', shadow: true },
 
     // Art
     { type: 'image', x: 5, y: 12.6, w: 90, h: 40, radius: 1, stroke: INK, strokeWidth: 0.6 },
 
-    // Type line: "Ally — Beast · Guardian"
-    { type: 'rect', x: 5, y: 53.6, w: 90, h: 6, fill: INK, radius: 1 },
-    {
-      type: 'text', join: ['type', { field: 'tags', list: true }], sep: ' — ',
-      x: 7.5, y: 53.6, w: 85, h: 6, font: 'label', size: 4.2, minSize: 2.6, color: NAME, valign: 'middle', baseline: 0.36,
-    },
-
-    // Text box: aura chips, resists and immunities, abilities, flavor.
-    { type: 'rect', x: 5, y: 60.6, w: 90, h: 28.6, fill: PAPER, texture: 'paper', textureStrength: 0.8, radius: 1.2 },
+    // Text box: resists and immunities, abilities, flavor.
+    { type: 'rect', x: 5, y: 53.6, w: 90, h: 26, fill: GLASS_PAPER, texture: 'paper', textureStrength: 0.6, radius: 1.2 },
     {
       type: 'text',
       parts: [
-        { field: 'aura', list: true, listSep: ' ', bold: true, chip: { fill: '#ddd', stroke: '#0003' }, itemChips: AURA_CHIPS },
         { join: [labelled('resists', 'Resists'), labelled('immunities', 'Immune')], sep: '   ' },
         'text',
-        { field: 'flavor', italic: true, color: '#6a5d4a' },
+        { field: 'flavor', italic: true, color: '#5e5140' },
       ],
-      x: 8, y: 62.2, w: 84, h: 25.2, font: 'body', size: 4.6, minSize: 2.4, lineHeight: 1.18, color: TEXT, valign: 'top',
+      x: 8, y: 55.2, w: 84, h: 22.8, font: 'body', size: 4.6, minSize: 2.4, lineHeight: 1.18, color: TEXT, valign: 'top',
     },
 
-    // Armor and Health
+    // Type line: "Ally — Beast · Guardian"
+    { type: 'rect', x: 5, y: 80.6, w: 90, h: 6, fill: GLASS_DARK, radius: 1 },
+    {
+      type: 'text', join: ['type', { field: 'tags', list: true }], sep: ' — ',
+      x: 7.5, y: 80.6, w: 85, h: 6, font: 'label', size: 4.2, minSize: 2.6, color: NAME, valign: 'middle', baseline: 0.36, shadow: true,
+    },
+
+    // Bottom row: Armor, the Aura as colored boxes, Health.
     ...badge('armor', 'ARMOR', 5, '#3a3d46'),
-    ...badge('health', 'HEALTH', 75, '#7a2320'),
+    {
+      type: 'text', field: 'aura', list: true, listSep: ' ', bold: true, chip: { fill: '#ddd', stroke: '#0003' }, itemChips: AURA_CHIPS,
+      x: 24.5, y: ROW_Y, w: 51, h: ROW_H, font: 'body', size: 4.6, minSize: 2.4, lineHeight: 1.4, align: 'center', valign: 'middle',
+    },
+    ...badge('health', 'HEALTH', 77, '#7a2320'),
   ],
 };
