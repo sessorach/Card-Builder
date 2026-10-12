@@ -324,11 +324,14 @@ Health, Resists, Immunities, ability text, and an Aura. From top to bottom the
 card reads: name, art, Immunities and then Resistances, each in a thin
 full-width strip ("IMMUNITIES Poison, Bleeding") only when the card has it, the
 ability text and flavor in the box below them (taking the whole space when
-there are neither), the type line ("Ally — Human · Knight"), and a bottom row with Armor and Health badges
-in the corners, like power and toughness, and the Aura as colored boxes
-between them, with their numbers ("Knowledge 2"). The user chose this order:
+there are neither), the type line ("Ally — Human · Knight"), and a bottom row with the Aura as colored boxes
+on the left, with their numbers ("Knowledge 2"), and the Armor and Health
+badges side by side on the right. The user chose this order:
 type, tags and stats together at the bottom, with the text between them and
-the art. Immunities and Resistances started as two half-width
+the art. The bottom row started with Armor and Health in the two corners and
+the Aura boxes between them; the user then moved the Aura boxes to the left
+and put Armor beside Health on the right, so the two stats read together.
+Immunities and Resistances started as two half-width
 boxes side by side; the user moved them to stacked strips to save room for
 the ability text without shrinking the art. Everything on the card except the art is slightly see-through (panels,
 bars, badges and Aura boxes alike), so the Aura's colors and patterns show

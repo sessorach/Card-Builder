@@ -87,12 +87,12 @@ const SIZE = {
   text: 5.2,
 };
 
-// The ally bottom row: Armor, the Aura boxes, Health, ending at the same place
-// whatever its height.
+// The ally bottom row: the Aura boxes on the left, then Armor and Health side by
+// side on the right, ending at the same place whatever its height.
 const ROW_H = SIZE.badgeH;
 const ROW_Y = 96.4 - ROW_H;
-const LEFT = 5;
-const RIGHT = 77;
+const RIGHT = 77; // Health
+const ARMOR_X = RIGHT - 18 - 1.5;
 // minSize lets a wordy value ("Once per battle") shrink and wrap to fit; valueStyle
 // can change the value's font (dice keep their lowercase "d" in the body font, since
 // the title font has only capitals).
@@ -221,13 +221,14 @@ export default {
     ...typeLine(TYPE_Y.ally, ALLY_ONLY),
     ...typeLine(TYPE_Y.action, ACTION_ONLY),
 
-    // Bottom row (allies only): Armor, the Aura as colored boxes, Health. Actions
-    // don't show their Aura boxes; it only colors the background.
-    ...badge('armor', 'ARMOR', LEFT, see('#3a3d46', BADGE_K), ALLY_ONLY),
+    // Bottom row (allies only): the Aura as colored boxes on the left, then Armor and
+    // Health together on the right. Actions don't show their Aura boxes; it only
+    // colors the background.
     {
       ...ALLY_ONLY, type: 'text', field: 'aura', list: true, listSep: ' ', bold: true, chip: { fill: '#ddd', stroke: '#0003' }, itemChips: AURA_CHIPS,
-      x: 24.5, y: ROW_Y, w: 51, h: ROW_H, font: 'body', size: 4.6, minSize: 2.4, lineHeight: 1.4, align: 'center', valign: 'middle',
+      x: 5.5, y: ROW_Y, w: ARMOR_X - 7, h: ROW_H, font: 'body', size: 4.6, minSize: 2.4, lineHeight: 1.4, align: 'left', valign: 'middle',
     },
+    ...badge('armor', 'ARMOR', ARMOR_X, see('#3a3d46', BADGE_K), ALLY_ONLY),
     ...badge('health', 'HEALTH', RIGHT, see('#7a2320', BADGE_K), ALLY_ONLY),
   ],
 };
