@@ -126,6 +126,7 @@ const cardPx = () => sizePx(getSize(settings.size));
 // ---- Loading inputs -----------------------------------------------------------
 
 async function loadSpreadsheet(file, options = {}) {
+  const token = options.token ?? ++loadToken;
   try {
     let rows;
     if (/\.xlsx$/i.test(file.name)) {
@@ -136,6 +137,7 @@ async function loadSpreadsheet(file, options = {}) {
       const text = await file.text();
       rows = parseDelimited(text, detectDelimiter(text, file.name));
     }
+    if (token !== loadToken) return; // a newer spreadsheet arrived while this one was read
     await applyRows(rows, file.name, options);
   } catch (err) {
     console.error(err);
@@ -145,7 +147,7 @@ async function loadSpreadsheet(file, options = {}) {
 }
 
 // Shows a spreadsheet's rows (header row first) as cards. `name` labels them in the page.
-async function applyRows(rows, name, { layoutChosen = false, example = '' } = {}) {
+async function applyRows(rows, name, { layoutChosen = false, example = '', keepTab = false } = {}) {
   const { cards, warnings, columns, headers } = rowsToCards(rows);
   // A spreadsheet that fits a layout's known columns (e.g. FlagonQuest's techniques
   // sheet) picks that layout, unless it chooses layouts itself with a layout column.
@@ -165,7 +167,7 @@ async function applyRows(rows, name, { layoutChosen = false, example = '' } = {}
   document.querySelector('[data-drop="sheet"]').classList.toggle('loaded', cards.length > 0);
   const total = cards.reduce((n, c) => n + c.count, 0);
   $('sheet-status').textContent = `${name} · ${cards.length} card${cards.length === 1 ? '' : 's'} (${total} with copies)`;
-  if (currentTab() !== 'data') showTab('cards');
+  if (!keepTab && currentTab() !== 'data') showTab('cards');
   await rerender();
 }
 
@@ -177,6 +179,7 @@ async function loadHandoff() {
     const { title, layout, rows } = await decodeHandoff(data);
     const chosen = getLayout(layout);
     if (chosen) setLayout(chosen.id);
+    loadToken++; // an example still loading mustn't replace the sent cards
     await applyRows(rows, title || 'Sent cards', { layoutChosen: !!chosen });
     setStatus(`Loaded ${state.cards.length} cards${title ? ` for ${title}` : ''}.`);
   } catch (err) {
@@ -190,7 +193,7 @@ async function addArt(files, { render = true, fromExample = false } = {}) {
   const images = files.filter((f) => IMAGE_EXT.test(f.name));
   if (!images.length) return;
   state.exampleArt = fromExample && (state.exampleArt || !state.assets.size);
-  setStatus(`Loading ${images.length} images…`);
+  if (!fromExample) setStatus(`Loading ${images.length} images…`);
   const failed = [];
   await Promise.all(
     images.map(async (f) => {
@@ -204,7 +207,7 @@ async function addArt(files, { render = true, fromExample = false } = {}) {
   if (failed.length) state.sheetWarnings.push(`Couldn't open: ${failed.join(', ')}`);
   document.querySelector('[data-drop="art"]').classList.add('loaded');
   $('clear-art').hidden = false;
-  setStatus('');
+  if (!fromExample) setStatus('');
   if (render) await rerender();
 }
 
@@ -232,17 +235,24 @@ const examplesFor = (manifest, layoutId) => Object.keys(manifest).filter((f) => 
 
 // Loads an example spreadsheet and its pictures. `layout` keeps the look the user
 // picked when the example serves several (Default, Full Art and Text Only share one).
-async function loadExample(file, { layout } = {}) {
-  showTab('cards');
+// Each spreadsheet load takes a number; an example still downloading when a newer
+// load starts (your own file, or another example) gives up instead of replacing it.
+let loadToken = 0;
+async function loadExample(file, { layout, keepTab = false } = {}) {
+  if (!keepTab) showTab('cards');
+  const token = ++loadToken;
   try {
     const manifest = await getManifest();
     const entry = manifest[file] || {};
     const text = await (await fetch(`examples/${file}`)).text();
+    const art = await exampleArt(entry);
+    if (token !== loadToken) return;
     setLayout(layout && (entry.for || []).includes(layout) ? layout : entry.layout || layout || settings.layout);
     // Another example's pictures go; pictures you dropped in stay.
     if (state.exampleArt) state.assets = new AssetStore();
-    await addArt(await exampleArt(entry), { render: false, fromExample: true });
-    await loadSpreadsheet(new File([text], file, { type: 'text/csv' }), { layoutChosen: true, example: file });
+    await addArt(art, { render: false, fromExample: true });
+    if (token !== loadToken) return;
+    await loadSpreadsheet(new File([text], file, { type: 'text/csv' }), { layoutChosen: true, example: file, token, keepTab });
   } catch (err) {
     console.error(err);
     setStatus(`Couldn't load the example: ${err.message}`);
@@ -267,7 +277,8 @@ async function changeLook(id) {
   setLayout(id);
   if (!state.cards.length || state.example) {
     const [main] = examplesFor(await getManifest(), id);
-    if (main && main !== state.example) return loadExample(main, { layout: id });
+    // Stay on the tab you're reading (e.g. the guide, which now shows the new look).
+    if (main && main !== state.example) return loadExample(main, { layout: id, keepTab: true });
   }
   await rerender();
 }
