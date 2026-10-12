@@ -717,6 +717,11 @@ cards instead. Default, Full Art and Text Only share one example deck; its
 cards no longer pick their own layouts, so each of the three looks shows all
 eight cards in that look (the two spells got pictures for this).
 
+The gallery shows the general looks (Default, Full Art, Text Only) and the
+project looks (FlagonQuest, RossQuest). Street stays in the Look picker, last
+in the list, but isn't in the gallery: the user sees it as an outlier next to
+the other designs. The picker lists the looks in that grouped order.
+
 **Template & guide** is about the chosen look only: its name and description,
 five steps for making your own cards (get the template, fill it in, name the
 pictures, drop them in, download), its examples to load or download, and every

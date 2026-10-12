@@ -81,7 +81,7 @@ async function run() {
 
     // The empty page shows a sample card for every look; clicking one shows its example.
     await page.waitForFunction(() => document.querySelectorAll('#looks .look canvas').length === document.querySelectorAll('#looks .look').length);
-    assert.equal(await page.locator('#looks .look').count(), 6);
+    assert.deepEqual(await page.$$eval('#looks .look', (els) => els.map((el) => el.dataset.look)), ['default', 'full-art', 'text-only', 'flagonquest', 'rossquest']);
     await page.screenshot({ path: path.join(OUT, 'start.png') });
     // Example deck: 8 unique cards in two decks, art loaded.
     await page.click('.look[data-look="default"]');
@@ -258,7 +258,7 @@ async function run() {
     // After a reload, unchanged images get their links back without re-uploading.
     await page.reload();
     await page.waitForSelector('body[data-ready="true"]');
-    await page.click('.look[data-look="street"]');
+    await page.selectOption('#layout-select', 'street'); // Street isn't in the gallery; the picker loads its example
     await page.waitForFunction(() => document.querySelectorAll('.tile canvas').length === 5);
     assert.equal(await page.isChecked('input[name="tts-mode"][value="cloud"]'), true);
     // The uploaded back from earlier was lost in the reload; add it again so the images match.

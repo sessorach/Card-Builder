@@ -820,7 +820,7 @@ async function renderLooks() {
   const box = $('looks');
   const manifest = await getManifest();
   const px = { width: 240, height: 335 };
-  for (const layout of LAYOUTS) {
+  for (const layout of LAYOUTS.filter((l) => l.gallery !== false)) {
     const fig = document.createElement('button');
     fig.type = 'button';
     fig.className = 'look';

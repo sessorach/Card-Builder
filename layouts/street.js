@@ -91,6 +91,8 @@ function equipBox() {
 export default {
   id: 'street',
   name: 'Street',
+  // Left out of the "Pick a look" gallery; still in the Look picker.
+  gallery: false,
   description: 'Graffiti style: name bar, uncropped art, $ cost, type bar with tags, stat row for Thugs and Bling.',
   defaultColor: '#ffcc1a',
   // Card color comes from the type (a `color` column on a card still overrides it).
