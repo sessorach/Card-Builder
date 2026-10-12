@@ -375,6 +375,17 @@ on actions), top to bottom with no gaps for missing ones, then the text box in
 the rest of the space. Stacking is a general layout feature, so other layouts
 can use it too.
 
+**Fonts.** Names and stat numbers are in Cinzel (carved capitals), the text in
+Crimson Pro, and the type line in Philosopher. The setting is mostly fantasy
+with some forgotten high technology, so the user looked at six title and body
+pairings, from classic fantasy to wide "ancient machine" capitals. They kept
+Cinzel and Crimson, which they still liked, and took Philosopher, whose letters
+look old but slightly engineered, for the type line, which had been in a narrow
+condensed font (Bebas) they didn't like on any of the samples. Philosopher on
+the names with Cinzel on the type line was also tried; the user preferred it
+the other way round, with the name standing out and the type line in easy to
+read upper and lower case.
+
 **The Aura colors the card.** The Aura lists up to four types, each with a
 color: Instinct green, Knowledge blue, Passion red and Discipline white. The
 card's background blends them, with each one's number setting its share of the

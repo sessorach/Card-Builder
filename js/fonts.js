@@ -69,6 +69,11 @@ export const FONT_LIBRARY = {
     google: 'Barlow:ital,wght@0,500;0,700;1,500;1,700',
     faces: ['500', '700', 'italic 500', 'italic 700'],
   },
+  philosopher: {
+    stack: '"Philosopher", Georgia, serif',
+    google: 'Philosopher:wght@700',
+    faces: ['700'],
+  },
 };
 
 // Font roles used by layouts that don't declare their own.

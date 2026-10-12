@@ -134,7 +134,7 @@ const typeLine = (y, cond) => [
   { ...cond, type: 'rect', x: 5, y, w: 90, h: 6, fill: GLASS_DARK, radius: 1 },
   {
     ...cond, type: 'text', join: ['type', { field: 'tags', list: true }], sep: ' — ',
-    x: 7.5, y, w: 85, h: 6, font: 'label', size: 4.2, minSize: 2.6, color: NAME, valign: 'middle', baseline: 0.36, shadow: true,
+    x: 7.5, y, w: 85, h: 6, font: 'type', size: 4.2, minSize: 2.6, color: NAME, valign: 'middle', shadow: true,
   },
 ];
 
@@ -148,6 +148,7 @@ export default {
     title: { font: 'cinzel', weight: 700 },
     body: { font: 'crimson', weight: 400, boldWeight: 700 },
     label: { font: 'bebas', weight: 400, boldWeight: 400 },
+    type: { font: 'philosopher', weight: 700, boldWeight: 700 },
   },
   hover: [
     { field: 'type', bold: true },
