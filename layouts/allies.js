@@ -42,7 +42,7 @@ const blighted = (color) => hex(partRgb({ color, modifiers: ['inverted'] }, MODI
 // so both read about the same.
 const SHOW_THROUGH = 0.25;
 // How see-through the stat badges are, as a multiple of SHOW_THROUGH (0 = solid).
-const BADGE_K = 1.3;
+const BADGE_K = 1;
 const see = (color, k = 1) => {
   const [r, g, b] = [1, 3, 5].map((i) => parseInt(color.slice(i, i + 2), 16));
   return `rgba(${r}, ${g}, ${b}, ${Math.max(0, Math.min(1, 1 - SHOW_THROUGH * k)).toFixed(3)})`;

@@ -330,7 +330,9 @@ the ability text without shrinking the art. Everything on the card except the ar
 bars, badges and Aura boxes alike), so the Aura's colors and patterns show
 behind them as well as around the edges. After comparing 10%, 18%, 28% and 40%, the user set it at 25%: high
 enough for the pattern to show in the panels, low enough that the text stays
-easy to read. One setting controls the amount for the whole
+easy to read. The badges use the same amount as everything else; solid badges and
+slightly more see-through ones were tried and set aside, so the whole card
+reads as one piece. One setting controls the amount for the whole
 layout; dark panels let a little more through than light ones so both look
 about the same.
 
