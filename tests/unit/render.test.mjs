@@ -45,3 +45,26 @@ test('accent: color column, then the layout colorBy map, then nothing', () => {
   assert.equal(cardAccent(card('A', { type: 'Other' }), layout), '');
   assert.equal(cardAccent(card('A', { type: 'Thug' }), {}), '');
 });
+
+test('stacks place the items a card has and give the rest to the fill item', async () => {
+  const { expandStacks } = await import('../../js/render.js');
+  const stack = {
+    type: 'stack', x: 5, y: 50, w: 90, h: 30, gap: 1,
+    items: [
+      { when: 'a', h: 5, elements: [{ type: 'rect', id: 'a' }] },
+      { when: 'b', h: 6, elements: [{ type: 'rect', id: 'b' }] },
+      { fill: true, elements: [{ type: 'text', id: 'fill', inset: [2, 1] }] },
+    ],
+  };
+  const card = (fields) => ({ name: 'x', fields });
+  const both = expandStacks([stack], card({ a: '1', b: '2' }));
+  assert.deepEqual(both.map((e) => [e.id, e.x, e.y, e.w, e.h]), [
+    ['a', 5, 50, 90, 5],
+    ['b', 5, 56, 90, 6],
+    ['fill', 7, 64, 86, 15],
+  ]);
+  const onlyB = expandStacks([stack], card({ b: '2' }));
+  assert.deepEqual(onlyB.map((e) => [e.id, e.y, e.h]), [['b', 50, 6], ['fill', 58, 21]]);
+  const none = expandStacks([{ type: 'rect', id: 'plain' }, stack], card({}));
+  assert.deepEqual(none.map((e) => [e.id, e.y, e.h]), [['plain', undefined, undefined], ['fill', 51, 28]]);
+});
