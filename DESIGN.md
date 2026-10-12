@@ -335,26 +335,32 @@ type and tags the spreadsheet gives ("Action — Attack · Melee"), since the fu
 list of types and tags isn't settled. Actions use the same frame, art, text
 box, type line and Aura background as allies, with these differences:
 
-- To Hit, Damage and Crit each get their own bar at the top of the text area,
-  only when the action has them, so a move or a stack effect keeps the whole
-  text box. Damage can be long ("3d6 + 4d10 + 12 Shadow/Slash/Cold") and Crit
-  can be a sentence of effect, so their bars fit two lines and the text
-  shrinks to fit. The text box takes whatever space the bars leave; the user
-  expects action text to be short once the stats have their own places.
-- The bottom row holds Range, [W] (the attack's base weapon damage die, like
-  d6 or 1d4+2) and Usage. [W] uses the body font, because the title font has
-  only capital letters and dice read better as "d8" than "D8". A wordy usage
-  ("Once per battle") shrinks and wraps to fit its badge.
-- Actions don't show their Aura boxes; the Aura only colors the background.
+- Under the art, a row of four badges: Range, To Hit, [W] (the attack's base
+  weapon damage die, like d6 or 1d4+2) and Usage, each only when the action
+  has it. The slots stay in place, so Range and Usage are always in the same
+  spot. [W] uses the body font, because the title font has only capital
+  letters and dice read better as "d8" than "D8". Wordy values ("Once per
+  battle") shrink and wrap to fit.
+- Then Damage and Crit each get a bar, only when the action has them. Damage
+  can be long ("3d6 + 4d10 + 12 Shadow/Slash/Cold") and Crit can be a sentence
+  of effect, so their bars fit two lines and the text shrinks to fit.
+- Then the text box, in whatever space is left; the user expects action text
+  to be short once the stats have their own places.
+- The type line sits at the very bottom, since actions have no bottom row of
+  badges: their Aura only colors the background, and its boxes aren't shown.
+- The badges are see-through like the panels, so the Aura shows through them
+  too.
 
-These replaced two earlier attempts: four equal stat boxes under the art
-(too cramped for Damage and Crit), then To Hit and [W] boxes beside two
-Damage/Crit lines (still too tight for the longest damage strings). A
-spreadsheet header of "[W]" is read as the `w` column.
+This is the fourth arrangement. Four equal stat boxes were too cramped for
+Damage and Crit; two boxes beside two lines were still too tight for the
+longest damage strings; separate bars for To Hit, Damage and Crit with Range,
+[W] and Usage in the bottom row gave To Hit (almost always a short number) a
+whole bar and split the stats between the top and bottom of the card. The
+user then moved To Hit into a badge and put all four badges together at the
+top. A spreadsheet header of "[W]" is read as the `w` column.
 
 The middle of both card types is a vertical stack: the stat bars that the
-card has (Immunities and Resistances on allies; To Hit, Damage and Crit on
-actions), top to bottom with no gaps for missing ones, then the text box in
+card has (Immunities and Resistances on allies; Damage and Crit on actions), top to bottom with no gaps for missing ones, then the text box in
 the rest of the space. Stacking is a general layout feature, so other layouts
 can use it too.
 

@@ -59,24 +59,32 @@ const ACTION = { field: 'type', value: 'Action' };
 const ALLY_ONLY = { unlessHas: ACTION };
 const ACTION_ONLY = { whenHas: ACTION };
 
-// The bottom row: three badge slots (left corner, middle, right corner).
-// Allies: Armor, the Aura boxes, Health. Actions: Range, [W], Usage.
+// The ally bottom row: Armor, the Aura boxes, Health.
 const ROW_Y = 87.8;
 const ROW_H = 8.6;
 const LEFT = 5;
-const MIDDLE = 41;
 const RIGHT = 77;
 // minSize lets a wordy value ("Once per battle") shrink and wrap to fit; valueStyle
 // can change the value's font (dice keep their lowercase "d" in the body font, since
 // the title font has only capitals).
-function badge(field, label, x, fill, cond, { minSize = 3.5, ...valueStyle } = {}) {
+// Placement defaults to the bottom row; `at` moves it ({ x, y, w }).
+function badge(field, label, x, fill, cond, { minSize = 3.5, at = {}, ...valueStyle } = {}) {
   const c = { ...cond, when: field };
+  const y = at.y ?? ROW_Y;
+  const w = at.w ?? 18;
   return [
-    { ...c, type: 'rect', x, y: ROW_Y, w: 18, h: ROW_H, fill, stroke: '#d8cfb8', strokeWidth: 0.45, radius: 1.6, bevel: true },
-    { ...c, type: 'text', text: label, x, y: ROW_Y + 0.5, w: 18, h: 2.6, font: 'label', size: 2.6, color: '#d8cfb8', align: 'center', valign: 'middle', baseline: 0.36 },
-    { ...c, type: 'text', field, x: x + 1, y: ROW_Y + 2.8, w: 16, h: 5.4, font: 'title', size: 6, minSize, lineHeight: 0.95, color: '#ffffff', align: 'center', valign: 'middle', shadow: true, ...valueStyle },
+    { ...c, type: 'rect', x, y, w, h: ROW_H, fill, stroke: '#d8cfb8', strokeWidth: 0.45, radius: 1.6, bevel: true },
+    { ...c, type: 'text', text: label, x, y: y + 0.5, w, h: 2.6, font: 'label', size: 2.6, color: '#d8cfb8', align: 'center', valign: 'middle', baseline: 0.36 },
+    { ...c, type: 'text', field, x: x + 1, y: y + 2.8, w: w - 2, h: 5.4, font: 'title', size: 6, minSize, lineHeight: 0.95, color: '#ffffff', align: 'center', valign: 'middle', shadow: true, ...valueStyle },
   ];
 }
+
+// ACTION stat row under the art: Range, To Hit, [W] (the weapon damage die) and
+// Usage as four see-through badges, each only when the action has it.
+const ACTION_ROW_Y = 53.6;
+const ACTION_BADGE_W = (90 - 3 * 1.2) / 4;
+const actionBadge = (i, field, label, fill, extra = {}) =>
+  badge(field, label, 5 + i * (ACTION_BADGE_W + 1.2), fill, ACTION_ONLY, { minSize: 2.4, at: { y: ACTION_ROW_Y, w: ACTION_BADGE_W }, ...extra });
 
 // A bar in the stack above the text box: a labelled stat on a paper strip
 // ("IMMUNITIES Poison, Bleeding"; "DAMAGE 3d6 + 4d10 + 12 Shadow/Cold"). Taller bars
@@ -107,6 +115,16 @@ const TEXT_FILL = {
   ],
 };
 const MIDDLE_AREA = { type: 'stack', x: 5, y: 53.6, w: 90, h: 26, gap: 0.5 };
+// Actions: below the stat row, down to the type line at the bottom of the card.
+const ACTION_AREA = { type: 'stack', x: 5, y: ACTION_ROW_Y + ROW_H + 0.8, w: 90, h: 89.6 - (ACTION_ROW_Y + ROW_H + 0.8), gap: 0.5 };
+const TYPE_Y = { ally: 80.6, action: 90.6 };
+const typeLine = (y, cond) => [
+  { ...cond, type: 'rect', x: 5, y, w: 90, h: 6, fill: GLASS_DARK, radius: 1 },
+  {
+    ...cond, type: 'text', join: ['type', { field: 'tags', list: true }], sep: ' — ',
+    x: 7.5, y, w: 85, h: 6, font: 'label', size: 4.2, minSize: 2.6, color: NAME, valign: 'middle', baseline: 0.36, shadow: true,
+  },
+];
 
 export default {
   id: 'allies',
@@ -154,29 +172,26 @@ export default {
     // Between the art and the type line: stat bars, then the text box in the space left.
     // ALLY: Immunities, then Resistances.
     { ...MIDDLE_AREA, ...ALLY_ONLY, items: [bar('immunities', 'IMMUNITIES', 4.6), bar('resists', 'RESISTANCES', 4.6), TEXT_FILL] },
-    // ACTION: To Hit, Damage, then Crit (Damage and Crit fit two smaller lines when long).
-    {
-      ...MIDDLE_AREA, ...ACTION_ONLY,
-      items: [bar('to_hit', 'TO HIT', 4.2), bar('damage', 'DAMAGE', 5), bar('crit', 'CRIT', 5.6, { weight: undefined }), TEXT_FILL],
-    },
+    // ACTION: the stat row, then Damage and Crit (two smaller lines when long), then
+    // the text box down to the type line.
+    ...actionBadge(0, 'range', 'RANGE', 'rgba(44, 70, 86, 0.78)'),
+    ...actionBadge(1, 'to_hit', 'TO HIT', 'rgba(90, 38, 36, 0.78)'),
+    ...actionBadge(2, 'w', '[W]', 'rgba(61, 47, 79, 0.78)', { font: 'body', weight: 'bold', size: 6.4 }),
+    ...actionBadge(3, 'usage', 'USAGE', 'rgba(91, 69, 36, 0.78)'),
+    { ...ACTION_AREA, ...ACTION_ONLY, items: [bar('damage', 'DAMAGE', 5), bar('crit', 'CRIT', 5.6, { weight: undefined }), TEXT_FILL] },
 
-    // Type line: "Ally — Beast · Guardian"
-    { type: 'rect', x: 5, y: 80.6, w: 90, h: 6, fill: GLASS_DARK, radius: 1 },
-    {
-      type: 'text', join: ['type', { field: 'tags', list: true }], sep: ' — ',
-      x: 7.5, y: 80.6, w: 85, h: 6, font: 'label', size: 4.2, minSize: 2.6, color: NAME, valign: 'middle', baseline: 0.36, shadow: true,
-    },
+    // Type line ("Ally — Beast · Guardian"): above the bottom row on allies, at the
+    // very bottom on actions.
+    ...typeLine(TYPE_Y.ally, ALLY_ONLY),
+    ...typeLine(TYPE_Y.action, ACTION_ONLY),
 
-    // Bottom row. Allies: Armor, the Aura as colored boxes, Health. Actions: Range,
-    // [W] (the weapon damage die), Usage; their Aura only colors the background.
+    // Bottom row (allies only): Armor, the Aura as colored boxes, Health. Actions
+    // don't show their Aura boxes; it only colors the background.
     ...badge('armor', 'ARMOR', LEFT, '#3a3d46', ALLY_ONLY),
     {
       ...ALLY_ONLY, type: 'text', field: 'aura', list: true, listSep: ' ', bold: true, chip: { fill: '#ddd', stroke: '#0003' }, itemChips: AURA_CHIPS,
       x: 24.5, y: ROW_Y, w: 51, h: ROW_H, font: 'body', size: 4.6, minSize: 2.4, lineHeight: 1.4, align: 'center', valign: 'middle',
     },
     ...badge('health', 'HEALTH', RIGHT, '#7a2320', ALLY_ONLY),
-    ...badge('range', 'RANGE', LEFT, '#2c4656', ACTION_ONLY, { minSize: 2.4 }),
-    ...badge('w', '[W]', MIDDLE, '#3d2f4f', ACTION_ONLY, { minSize: 2.4, font: 'body', weight: 'bold', size: 6.4 }),
-    ...badge('usage', 'USAGE', RIGHT, '#5b4524', ACTION_ONLY, { minSize: 2.4 }),
   ],
 };
