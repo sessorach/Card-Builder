@@ -81,8 +81,9 @@ ships with these layouts:
 - **Street:** the first layout designed for our game (see below).
 - **FlagonQuest:** reference cards for FlagonQuest techniques and items (see
   below).
-- **Allies** (working name, draft): characters for another tabletop game, with
-  their actions to follow (see below).
+- **RossQuest** (draft): allies and the actions they take, for another
+  tabletop game (see below). Its working name was Allies; spreadsheets that
+  name `allies` in their layout column still get it.
 
 **One layout per use case, with variants per card type.** A game or project
 gets one layout under one name, even when it has several kinds of card. The
@@ -91,8 +92,8 @@ that have stats, and FlagonQuest switches between its technique and item
 versions by whether the row has a Category. The user prefers this to a
 separate layout per card type because the main thing is a consistent look
 across a game's cards; the kinds of card can differ in what they show, but
-they share the frame, colors and fonts. New projects (such as the planned
-allies-and-actions cards) follow the same pattern.
+they share the frame, colors and fonts. New projects (such as RossQuest's allies and
+actions) follow the same pattern.
 
 Positions in a layout are percentages of the card rather than pixels or
 millimeters. Text sizes are percentages of the card's width. That way the same
@@ -309,7 +310,10 @@ base item options, crafting notes and so on) are left off the card and the
 hover text, since they drive the site's character builder rather than play at
 the table.
 
-### The Allies layout (draft)
+### The RossQuest layout (draft)
+
+The user renamed it from its working name, Allies, to RossQuest. The old id
+keeps working.
 
 A card game with two kinds of card, allies (characters) and the actions they
 take, in one layout. A row whose type is "Action" is drawn as an action; any
@@ -424,6 +428,18 @@ whole deck's style at once was offered and isn't built yet.
 The color blending is general: the layout says which words are colors and
 which words change a color, and the renderer draws any weighted list that way.
 So another layout can blend its own list of colors without new code.
+
+**A guide on the page.** RossQuest's colors and two card types take more
+explaining than the other layouts, and the user wants someone who finds the
+page with no context to manage on their own. So the Templates & examples tab
+has a RossQuest guide: getting started in five steps, every column with an
+example (for all cards, allies only, actions only), the Aura explained with
+small painted samples (each color, weighted mixes, Inverted, no Aura), the five
+blend styles side by side, and one ally and one action written out as
+spreadsheet rows. The user said this can be longer than the page's usual text
+as long as it stays simple. The samples are painted by the layout itself, so
+they always match the cards. A misspelled Aura word or an unknown blend style
+is listed under "things to check" rather than quietly leaving a color out.
 
 ## Drawing on a canvas
 
@@ -710,7 +726,11 @@ sidebar's main flow.
 
 Outward-facing writing stays short and is about using the tool, not about how
 it was built. The README is a concise how-to for people making cards, with no
-change notes or development process. Commit messages describe the work in
+change notes or development process. Examples in the README, change notes and
+similar writing come from FlagonQuest where possible, and the Street layout is
+never used as an example on the public page or in the README (the user's
+request); Street's own column reference stays, without example values.
+Commit messages describe the work in
 general terms ("layout work", "font testing") rather than listing
 layout-specific details. The detailed reasoning lives here in DESIGN.md.
 

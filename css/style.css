@@ -503,3 +503,10 @@ table.data { border-collapse: collapse; font-size: 0.82rem; }
   .site-header { padding: 14px 16px; }
   .grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
 }
+
+.sheet h3 { font-size: 0.95rem; margin: 18px 0 6px; }
+.swatches { display: flex; flex-wrap: wrap; gap: 14px; margin: 10px 0 14px; }
+.swatch { margin: 0; width: 120px; text-align: center; font-size: 0.8rem; color: var(--muted); }
+.swatch canvas { display: block; width: 84px; height: 118px; margin: 0 auto 6px; border-radius: 6px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35); }
+.swatch figcaption code { display: block; color: var(--text); white-space: normal; overflow-wrap: anywhere; }
+.example-rows td { padding-right: 14px; vertical-align: top; }

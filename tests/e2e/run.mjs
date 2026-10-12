@@ -317,14 +317,17 @@ async function run() {
     assert.match(armor.Description, /\[b\]Physical Resist:\[\/b\] 2/);
     assert.match(armor.Description, /\[b\]Might Req:\[\/b\] 5/);
 
-    // Allies: the background blends the Aura colors; Inverted darkens its share.
-    await loadExample(page, 'allies.csv');
+    // RossQuest: the background blends the Aura colors; Inverted darkens its share.
+    await loadExample(page, 'rossquest.csv');
     await page.waitForFunction(() => document.querySelectorAll('.tile canvas').length === 14);
-    assert.equal(await page.inputValue('#layout-select'), 'allies');
-    assert.equal(await page.isHidden('#warnings'), true, 'allies example should load without warnings');
+    assert.equal(await page.inputValue('#layout-select'), 'rossquest');
+    assert.equal(await page.isHidden('#warnings'), true, 'RossQuest example should load without warnings');
+    // The guide's color samples are painted by the layout itself.
+    const swatches = await page.evaluate(() => [document.querySelectorAll('.swatch').length, document.querySelectorAll('.swatch canvas').length]);
+    assert.ok(swatches[0] >= 10 && swatches[0] === swatches[1], `guide swatches drawn: ${swatches}`);
     for (let i = 0; i < 14; i++) {
       const png = await page.evaluate((n) => document.querySelectorAll('.tile canvas')[n].toDataURL('image/png'), i);
-      await writeFile(path.join(OUT, `allies-${i}.png`), Buffer.from(png.split(',')[1], 'base64'));
+      await writeFile(path.join(OUT, `rossquest-${i}.png`), Buffer.from(png.split(',')[1], 'base64'));
     }
     // Average color of a strip along the card's left edge.
     const edge = (i) => page.evaluate((n) => {
@@ -338,6 +341,13 @@ async function run() {
     assert.ok(g0 > r0 + 40 && g0 > b0 + 40, `green edge ${[r0, g0, b0]}`);
     const [r3, g3, b3] = await edge(3);
     assert.ok(b3 >= r3 && b3 >= g3 && r3 + g3 + b3 < 260, `blighted blue edge ${[r3, g3, b3]}`);
+    // The old id still works; a misspelled Aura word or blend style is pointed out.
+    await page.setInputFiles('#sheet-input', { name: 'aura.csv', mimeType: 'text/csv', buffer: Buffer.from('name,layout,aura,blend\nOops,allies,"Instict 2, Passion",zigzag\n') });
+    await page.waitForSelector('#warnings:not([hidden])');
+    const auraWarnings = await page.textContent('#warnings');
+    assert.doesNotMatch(auraWarnings, /unknown layout/);
+    assert.match(auraWarnings, /"Instict 2" in aura isn't one of Instinct, Knowledge, Passion, Discipline/);
+    assert.match(auraWarnings, /blend "zigzag" isn't a style/);
 
     // Cards sent in the link (FlagonQuest's Character Sheet): picked layout, decks and counts.
     const sent = await encodeHandoff({

@@ -1,5 +1,6 @@
-// Allies (working name): characters and the actions they take, in one layout
-// with a variant per card type. Draft.
+// RossQuest: characters (allies) and the actions they take, in one layout with a
+// variant per card type. Draft. (Called "Allies" while it was being drawn up; the
+// old id still works.)
 //
 // The background is the card's Aura: each aura word is a color, its number is its
 // share of the card ("Instinct 2, Knowledge 1" is two-thirds green), and an aura
@@ -158,9 +159,11 @@ const typeLine = (y, cond) => [
 ];
 
 export default {
-  id: 'allies',
-  name: 'Allies',
-  description: 'Allies (draft): characters and their actions, with backgrounds blended from their Aura. Inverted auras blight their share of the color.',
+  id: 'rossquest',
+  name: 'RossQuest',
+  description: 'RossQuest (draft): allies and actions, with backgrounds blended from each card\'s Aura colors. See the RossQuest guide in Templates & examples.',
+  // Its working name; spreadsheets naming it still work.
+  aliases: ['allies'],
   defaultColor: '#6b5a45',
   matchColumns: [['aura', 'armor', 'health'], ['aura', 'usage']],
   fonts: {

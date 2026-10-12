@@ -27,8 +27,8 @@
     "layout": "flagonquest",
     "images": []
   },
-  "allies.csv": {
-    "layout": "allies",
+  "rossquest.csv": {
+    "layout": "rossquest",
     "images": [
       "mossback-warden.jpg",
       "archivist-of-ash.jpg",

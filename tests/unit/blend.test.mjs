@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseBlend, partRgb, partMottle, quantileThresholds, paintBlend, hashSeed, BLEND_STYLES } from '../../js/blend.js';
+import { unknownBlendItems, parseBlend, partRgb, partMottle, quantileThresholds, paintBlend, hashSeed, BLEND_STYLES } from '../../js/blend.js';
 
 const COLORS = { Instinct: '#00ff00', Knowledge: '#0000ff', Passion: '#ff0000' };
 const MODS = { inverted: { mix: '#000000', amount: 0.5 } };
@@ -47,4 +47,9 @@ test('modifiers can desaturate, darken and vein a part', () => {
   assert.deepEqual(partRgb(part, mods), [83, 19, 19]);
   assert.equal(partMottle(part, mods), 0.4);
   assert.equal(partMottle(parseBlend('Passion', COLORS, mods)[0], mods), 0);
+});
+
+test('finds list items that name no color', () => {
+  assert.deepEqual(unknownBlendItems('Knowledge 2, Instict 1, inverted PASSION, 3', COLORS), ['Instict 1', '3']);
+  assert.deepEqual(unknownBlendItems('', COLORS), []);
 });

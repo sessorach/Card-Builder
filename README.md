@@ -7,7 +7,7 @@ your browser: **https://sessorach.github.io/Card-Builder/**
 
 1. **Drop in your spreadsheet** (`.csv` or `.xlsx`), one row per card.
 2. **Drop in your card images**, each named after its card
-   (`Block Party Boss.png`). You can drop a whole folder at once.
+   (`Battle Maneuver.png`). You can drop a whole folder at once.
 3. **Drop in a card back** (optional).
 4. **Pick a layout.**
 5. **Download** one of:
@@ -33,6 +33,8 @@ template for each layout and example decks to load.
   the FlagonQuest repo as-is; the page picks the FlagonQuest layout by itself.
   To make cards for one character, use **Make cards** on the FlagonQuest
   Character Sheet: it opens this page with that character's cards loaded.
+- New to RossQuest? The **Templates & examples** tab has a step-by-step
+  RossQuest guide, including how the Aura colors work.
 
 ## Playing with friends
 

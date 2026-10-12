@@ -5,6 +5,7 @@ import { LAYOUTS, getLayout, matchesColumns } from '../layouts/index.js';
 import { CARD_SIZES, DEFAULT_SIZE_ID, getSize, sizePx } from './sizes.js';
 import { AssetStore, decodeImage, renderCard, renderBack, findArt, cardAccent } from './render.js';
 import { loadFonts } from './fonts.js';
+import { unknownBlendItems, BLEND_STYLES } from './blend.js';
 import { buildImagesZip, buildTtsZip, prepareTtsImages, cloudFiles, buildUploadZip } from './export.js';
 import { templateCsv } from './template.js';
 import { handoffData, decodeHandoff } from './handoff.js';
@@ -312,6 +313,7 @@ async function rerender() {
     for (const [i, card] of deck.cards.entries()) {
       const { layout, unknown } = resolveLayout(card);
       if (unknown) extra.push(`Row ${card.row}: unknown layout "${unknown}"; using ${layout.name}.`);
+      extra.push(...blendWarnings(card, layout));
       if (needsArt(card) && !findArt(card, state.assets)) {
         if (card.art) missingArt.add(card.art);
         else if (state.assets.size) unmatched.push(card.name);
@@ -356,6 +358,26 @@ async function rerender() {
   }
   renderWarnings(extra);
   updateExportButtons();
+}
+
+// A blend background's list (e.g. RossQuest's aura) with words it doesn't know, or a
+// blend style that doesn't exist: say which, rather than quietly leaving a color out.
+function blendWarnings(card, layout) {
+  const out = [];
+  for (const el of layout.elements) {
+    if (el.type !== 'blend') continue;
+    const value = card.fields[el.field] ?? '';
+    const bad = unknownBlendItems(value, el.colors || {});
+    if (bad.length) {
+      const known = Object.keys(el.colors || {}).map((k) => k[0].toUpperCase() + k.slice(1));
+      out.push(`Row ${card.row} (${card.name}): "${bad.join('", "')}" in ${el.field} isn't one of ${known.join(', ')}, so it was left out of the colors.`);
+    }
+    const style = String(card.fields[el.styleField] ?? '').trim();
+    if (el.styleField && style && !BLEND_STYLES.includes(style.toLowerCase().replace(/\s+/g, '-'))) {
+      out.push(`Row ${card.row} (${card.name}): ${el.styleField} "${style}" isn't a style; use ${BLEND_STYLES.join(', ')}. Using ${el.style || 'gradient'}.`);
+    }
+  }
+  return out;
 }
 
 const needsArt = (card) => resolveLayout(card).layout.elements.some((e) => e.type === 'image');
@@ -699,6 +721,22 @@ function renderTemplateList() {
   }
 }
 
+// Small background samples in a layout's guide (e.g. RossQuest's Aura colors):
+// <figure data-swatch="layout-id" data-value="Knowledge 2, Passion 1" data-style="marble">
+// is drawn with that layout's own blend element, so the guide can't drift from the cards.
+function renderSwatches() {
+  for (const fig of document.querySelectorAll('[data-swatch]')) {
+    const layout = getLayout(fig.dataset.swatch);
+    const blend = layout?.elements.find((e) => e.type === 'blend');
+    if (!blend) continue;
+    const fields = { [blend.field]: fig.dataset.value || '' };
+    if (blend.styleField) fields[blend.styleField] = fig.dataset.style || '';
+    const card = { name: fig.dataset.value || 'none', fields };
+    const canvas = renderCard(card, { layout: { ...layout, elements: [blend] }, px: { width: 168, height: 236 } });
+    fig.prepend(canvas);
+  }
+}
+
 // Chooses a layout from code (no re-render; the caller renders next).
 function setLayout(id) {
   const layout = getLayout(id);
@@ -724,6 +762,7 @@ function setupControls() {
     rerender();
   });
   renderTemplateList();
+  renderSwatches();
   $('layout-ids').innerHTML = LAYOUTS.map((l) => `<code>${l.id}</code>`).join(', ');
 
   const sizeSelect = $('size-select');

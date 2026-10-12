@@ -104,7 +104,7 @@
         <div id="decks">
           <div class="empty">
             <p class="empty-title">Drop a spreadsheet and your card art anywhere on the page.</p>
-            <p>Or try an example: <button type="button" class="chip" data-example="example-cards.csv">Default</button> <button type="button" class="chip" data-example="street-cards.csv">Street</button> <button type="button" class="chip" data-example="flagonquest-techniques.csv">FlagonQuest techniques</button> <button type="button" class="chip" data-example="flagonquest-items.csv">FlagonQuest items</button> <button type="button" class="chip" data-example="allies.csv">Allies</button></p>
+            <p>Or try an example: <button type="button" class="chip" data-example="example-cards.csv">Default</button> <button type="button" class="chip" data-example="street-cards.csv">Street</button> <button type="button" class="chip" data-example="flagonquest-techniques.csv">FlagonQuest techniques</button> <button type="button" class="chip" data-example="flagonquest-items.csv">FlagonQuest items</button> <button type="button" class="chip" data-example="rossquest.csv">RossQuest</button></p>
             <p>Starting from scratch? Blank templates are under <button type="button" class="link" data-tab-link="start">Templates &amp; examples</button>.</p>
           </div>
         </div>
@@ -269,15 +269,122 @@
             <td class="actions"><button type="button" class="small" data-example="flagonquest-items.csv">Load</button> <a class="small" href="examples/flagonquest-items.csv" download>Download .csv</a></td>
           </tr>
           <tr>
-            <th>Allies</th>
-            <td>Draft: six characters showing how the Aura colors the card.</td>
-            <td class="actions"><button type="button" class="small" data-example="allies.csv">Load</button> <a class="small" href="examples/allies.csv" download>Download .csv</a></td>
+            <th>RossQuest</th>
+            <td>Draft: seven allies and seven actions, showing how the Aura colors each card. New to it? Read the <a href="#rossquest-guide">RossQuest guide</a> below.</td>
+            <td class="actions"><button type="button" class="small" data-example="rossquest.csv">Load</button> <a class="small" href="examples/rossquest.csv" download>Download .csv</a></td>
           </tr>
         </table>
 
         <h2>Blank templates</h2>
         <p class="lead">A spreadsheet with just the header row: every column the layout uses, in the order it draws them.</p>
         <table class="list" id="template-list"></table>
+
+        <h2 id="rossquest-guide">RossQuest guide</h2>
+        <p class="lead">RossQuest makes two kinds of cards: <b>allies</b> (characters) and <b>actions</b> (the things they do). Each card's background is painted in its Aura colors. Here is everything you need, step by step.</p>
+
+        <h3>Get started</h3>
+        <ol class="guide">
+          <li>Click <b>Load</b> next to RossQuest in the Examples list above to see finished cards.</li>
+          <li>Click <b>Download .csv</b> next to it to get that spreadsheet.</li>
+          <li>Open it in Excel, Google Sheets or LibreOffice. Change the rows into your own cards. Keep the first row (the column names) as it is.</li>
+          <li>Save it as <b>.csv</b> (or .xlsx) and drop it onto this page.</li>
+          <li>Drop in your card pictures. Name each picture after its card, for example <code>Fallen Paladin.png</code>.</li>
+        </ol>
+        <p>Allies and actions go in the same spreadsheet. The <code>type</code> column decides which is which: write <code>Action</code> for an action. Anything else (like <code>Ally</code>) makes an ally card.</p>
+
+        <h3>Columns for every card</h3>
+        <table class="columns">
+          <tr><th>name</th><td>The card's name, at the top. Example: <code>Mossback Warden</code></td></tr>
+          <tr><th>count</th><td>How many copies go in the Tabletop Simulator deck. Leave it empty for 1.</td></tr>
+          <tr><th>deck</th><td>Which deck the card goes in. The example uses <code>Allies</code> and <code>Actions</code>, so they become two separate decks.</td></tr>
+          <tr><th>type</th><td><code>Ally</code> or <code>Action</code>. Shown at the start of the type line.</td></tr>
+          <tr><th>tags</th><td>Shown after the type, separated by commas. Example: <code>Beast, Guardian</code> shows “Ally — Beast · Guardian”.</td></tr>
+          <tr><th>aura</th><td>The card's colors. See <b>The Aura</b> below. Example: <code>Knowledge 2, Passion 1</code></td></tr>
+          <tr><th>blend</th><td>Optional. How the colors are mixed: <code>gradient</code> (the default), <code>split</code>, <code>tie-dye</code>, <code>marble</code> or <code>solid</code>. See the pictures below.</td></tr>
+          <tr><th>text</th><td>What the card does. You can write <code>**bold**</code> and <code>*italic*</code>.</td></tr>
+          <tr><th>flavor</th><td>Optional story text, shown in italics under the rules.</td></tr>
+          <tr><th>art</th><td>Optional. Only needed if a picture isn't named after its card. Example: <code>shared-wolf.png</code></td></tr>
+        </table>
+
+        <h3>Columns for allies</h3>
+        <p>Leave any of these empty and that part isn't shown.</p>
+        <table class="columns">
+          <tr><th>armor</th><td>A number in the bottom-left badge. Example: <code>3</code></td></tr>
+          <tr><th>health</th><td>A number in the bottom-right badge. Example: <code>9</code></td></tr>
+          <tr><th>immunities</th><td>A strip under the picture. Example: <code>Poison, Bleeding</code></td></tr>
+          <tr><th>resists</th><td>A strip under Immunities (shown as Resistances). Example: <code>Shadow, Frost</code></td></tr>
+        </table>
+        <p>The ally's Aura also appears as small colored boxes between Armor and Health.</p>
+
+        <h3>Columns for actions</h3>
+        <p>Leave any of these empty and that part isn't shown. The four badges under the picture always keep their places.</p>
+        <table class="columns">
+          <tr><th>range</th><td>First badge. Example: <code>8</code> or <code>Melee</code></td></tr>
+          <tr><th>to_hit</th><td>Second badge. Example: <code>+5</code></td></tr>
+          <tr><th>[W]</th><td>Third badge: the weapon damage die. Example: <code>d8</code> or <code>1d4+2</code>. The column can be called <code>[W]</code> or <code>w</code>.</td></tr>
+          <tr><th>usage</th><td>Fourth badge. Example: <code>1/turn</code> or <code>Once per battle</code></td></tr>
+          <tr><th>skill_check</th><td>A bar under the badges, for actions that aren't attacks. Example: <code>Acrobatics 10 + 1d6, with Advantage</code></td></tr>
+          <tr><th>damage</th><td>A bar for the damage. Long ones are fine. Example: <code>3d6 + 4d10 + 12 Shadow/Slash/Cold</code></td></tr>
+          <tr><th>crit</th><td>A bar for what a critical hit does. Can be a whole sentence.</td></tr>
+        </table>
+
+        <h3 id="rossquest-aura">The Aura</h3>
+        <p>There are four Aura colors. Write one or more of them in the <code>aura</code> column, separated by commas. Capital letters don't matter.</p>
+        <div class="swatches">
+          <figure class="swatch" data-swatch="rossquest" data-value="Instinct"><figcaption><code>Instinct</code>green</figcaption></figure>
+          <figure class="swatch" data-swatch="rossquest" data-value="Knowledge"><figcaption><code>Knowledge</code>blue</figcaption></figure>
+          <figure class="swatch" data-swatch="rossquest" data-value="Passion"><figcaption><code>Passion</code>red</figcaption></figure>
+          <figure class="swatch" data-swatch="rossquest" data-value="Discipline"><figcaption><code>Discipline</code>white</figcaption></figure>
+        </div>
+        <p><b>Mixing colors.</b> With more than one, they share the card equally. Add a number after a color to give it a bigger share. The numbers are parts, not percentages: <code>Knowledge 2, Passion 1</code> means 2 parts blue to 1 part red, so the card is two-thirds blue.</p>
+        <div class="swatches">
+          <figure class="swatch" data-swatch="rossquest" data-value="Instinct, Knowledge"><figcaption><code>Instinct, Knowledge</code>half and half</figcaption></figure>
+          <figure class="swatch" data-swatch="rossquest" data-value="Knowledge 2, Passion 1"><figcaption><code>Knowledge 2, Passion 1</code>two-thirds blue</figcaption></figure>
+          <figure class="swatch" data-swatch="rossquest" data-value="Passion 3, Discipline 1"><figcaption><code>Passion 3, Discipline 1</code>three-quarters red</figcaption></figure>
+          <figure class="swatch" data-swatch="rossquest" data-value="Instinct, Knowledge, Passion, Discipline"><figcaption><code>Instinct, Knowledge, Passion, Discipline</code>all four</figcaption></figure>
+        </div>
+        <p><b>Inverted.</b> Put <code>Inverted</code> in front of a color (or <code>(Inverted)</code> after it) for a corrupted version of it: darker and sickly, with dark veins through its share.</p>
+        <div class="swatches">
+          <figure class="swatch" data-swatch="rossquest" data-value="Inverted Knowledge"><figcaption><code>Inverted Knowledge</code></figcaption></figure>
+          <figure class="swatch" data-swatch="rossquest" data-value="Discipline 2, Inverted Passion 1"><figcaption><code>Discipline 2, Inverted Passion 1</code></figcaption></figure>
+          <figure class="swatch" data-swatch="rossquest" data-value="Instinct 2, Inverted Instinct 1"><figcaption><code>Instinct 2, Inverted Instinct 1</code></figcaption></figure>
+        </div>
+        <p><b>No Aura.</b> Leave the column empty for a plain metallic gray.</p>
+        <div class="swatches">
+          <figure class="swatch" data-swatch="rossquest" data-value=""><figcaption><code>(empty)</code>metallic gray</figcaption></figure>
+        </div>
+        <p>If a word in the <code>aura</code> column isn't one of the four colors (a typo like <code>Instict</code>), the page lists it under “things to check” so you can fix it.</p>
+
+        <h3 id="rossquest-blend">Blend styles</h3>
+        <p>The <code>blend</code> column picks how the colors are mixed, one card at a time. Leave it empty for <code>gradient</code>. Every style gives each color the same share; only the pattern changes. Here is <code>Instinct 2, Knowledge 1, Passion 1</code> in each style:</p>
+        <div class="swatches">
+          <figure class="swatch" data-swatch="rossquest" data-value="Instinct 2, Knowledge 1, Passion 1" data-style="gradient"><figcaption><code>gradient</code>soft fade (default)</figcaption></figure>
+          <figure class="swatch" data-swatch="rossquest" data-value="Instinct 2, Knowledge 1, Passion 1" data-style="split"><figcaption><code>split</code>sharp stripes</figcaption></figure>
+          <figure class="swatch" data-swatch="rossquest" data-value="Instinct 2, Knowledge 1, Passion 1" data-style="tie-dye"><figcaption><code>tie-dye</code>spiral</figcaption></figure>
+          <figure class="swatch" data-swatch="rossquest" data-value="Instinct 2, Knowledge 1, Passion 1" data-style="marble"><figcaption><code>marble</code>swirled veins</figcaption></figure>
+          <figure class="swatch" data-swatch="rossquest" data-value="Instinct 2, Knowledge 1, Passion 1" data-style="solid"><figcaption><code>solid</code>biggest share only</figcaption></figure>
+        </div>
+        <p>Tie-dye and marble patterns are different on every card (they follow the card's name), but a card always looks the same each time you make it.</p>
+
+        <h3>Example rows</h3>
+        <p>One ally and one action, as they'd look in your spreadsheet (empty columns left out):</p>
+        <table class="columns example-rows">
+          <tr><th>name</th><td>Fallen Paladin</td><td>Ruinous Barrage</td></tr>
+          <tr><th>deck</th><td>Allies</td><td>Actions</td></tr>
+          <tr><th>type</th><td>Ally</td><td>Action</td></tr>
+          <tr><th>tags</th><td>Human, Knight</td><td>Attack, Spell</td></tr>
+          <tr><th>aura</th><td>Discipline 2, Inverted Passion 1</td><td>Passion, Inverted Knowledge</td></tr>
+          <tr><th>armor</th><td>4</td><td></td></tr>
+          <tr><th>health</th><td>8</td><td></td></tr>
+          <tr><th>immunities</th><td>Fear</td><td></td></tr>
+          <tr><th>range</th><td></td><td>10</td></tr>
+          <tr><th>to_hit</th><td></td><td>+2</td></tr>
+          <tr><th>[W]</th><td></td><td>2d10</td></tr>
+          <tr><th>usage</th><td></td><td>Once per battle</td></tr>
+          <tr><th>damage</th><td></td><td>3d6 + 4d10 + 12 Shadow/Slash/Cold</td></tr>
+          <tr><th>crit</th><td></td><td>Every enemy within 2 of the target takes half damage and becomes Frightened.</td></tr>
+          <tr><th>text</th><td>Your other allies with Discipline get +1 Armor. Once per turn, when an ally falls, heal 2.</td><td>Spend 3 Fury.</td></tr>
+        </table>
 
         <h2 id="columns">Spreadsheet columns</h2>
         <p class="lead">The first row holds column names. Only <code>name</code> is needed; everything else is optional.</p>
@@ -286,16 +393,17 @@
           <tr><th>count</th><td>Copies in the deck (default 1; 0 leaves the card out).</td></tr>
           <tr><th>deck</th><td>Which deck the card belongs to. Each deck becomes its own TTS object.</td></tr>
           <tr><th>art</th><td>Optional. Images match cards by name; use this to pick a different file, e.g. <code>shared-art.png</code>.</td></tr>
-          <tr><th>cost</th><td>Shown in a badge in the corner (Street shows it as <code>$3</code>).</td></tr>
+          <tr><th>cost</th><td>Shown in a badge in the corner. FlagonQuest techniques show it on their Cost line, e.g. <code>Discard a card</code>.</td></tr>
           <tr><th>type, subtype</th><td>Type line, e.g. “Creature — Imp”.</td></tr>
-          <tr><th>tags</th><td>Street: tags shown after the type, all in one cell separated by commas, e.g. <code>Crew, Leader</code>.</td></tr>
+          <tr><th>tags</th><td>Tags, all in one cell separated by commas, e.g. <code>Martial, Buildable, Encounter</code> on a FlagonQuest technique.</td></tr>
           <tr><th>text</th><td>Rules text. Supports <code>**bold**</code>, <code>*italic*</code>, <code>{icon}</code> and line breaks.</td></tr>
           <tr><th>flavor</th><td>Italic flavor text under the rules.</td></tr>
           <tr><th>stats</th><td>Default, Full Art, Text Only: one badge, e.g. <code>3 / 2</code>.</td></tr>
-          <tr><th>strengf, helf, steal</th><td>Street: the three Thug stats, each in its own box. Leave them empty on other cards and the rules box grows to fill the space.</td></tr>
-          <tr><th>color</th><td>Optional card color: a name (<code>crimson</code>) or hex (<code>#3b5b7a</code>). Street colors cards by type unless this is set.</td></tr>
+          <tr><th>strengf, helf, steal</th><td>Street: three stats, each in its own box.</td></tr>
+          <tr><th>color</th><td>Optional card color: a name (<code>crimson</code>) or hex (<code>#3b5b7a</code>). Some layouts pick a color by type unless this is set.</td></tr>
           <tr><th>layout</th><td>Override the layout for this card: <span id="layout-ids"></span>.</td></tr>
         </table>
+        <p>RossQuest's columns are explained in the <a href="#rossquest-guide">RossQuest guide</a> above.</p>
         <p><b>Icons:</b> <code>{fire}</code> in text draws an uploaded image named <code>fire.png</code> or <code>icon-fire.png</code>. Without one, it draws a ringed letter.</p>
       </div>
     </section>

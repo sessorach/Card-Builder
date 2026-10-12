@@ -30,6 +30,16 @@ export function parseBlend(value, colors, modifiers = {}) {
   return out;
 }
 
+// Items in a list cell that name none of the colors ("Instict 2" for a typo), so the
+// page can say why a part of the blend is missing.
+export function unknownBlendItems(value, colors) {
+  const colorKeys = Object.keys(colors).map((k) => k.toLowerCase());
+  return splitList(value).filter((item) => {
+    const words = item.toLowerCase().match(/[a-z]+/g) || [];
+    return !words.some((w) => colorKeys.includes(w));
+  });
+}
+
 const lookup = (obj, key) => Object.entries(obj).find(([k]) => k.toLowerCase() === key)?.[1];
 
 export function hexToRgb(hex) {
