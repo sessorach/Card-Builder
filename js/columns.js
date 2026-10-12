@@ -90,8 +90,8 @@ export const COLUMN_HELP = {
   // RossQuest
   aura: 'The card\'s colors: Instinct, Knowledge, Passion and/or Discipline, separated by commas, with optional numbers and Inverted. See The Aura below.',
   blend: 'Optional. How the colors are mixed: gradient (the default), split, tie-dye, marble or solid.',
-  armor: 'Allies: a number in the bottom-left badge.',
-  health: 'Allies: a number in the bottom-right badge.',
+  armor: 'Allies: a number in the bottom-right corner, next to Health.',
+  health: 'Allies: a number in the last badge, bottom right.',
   immunities: 'Allies: a strip under the picture, e.g. Poison, Bleeding.',
   resists: 'Allies: a strip under Immunities, shown as Resistances.',
   to_hit: 'Actions: the second badge, e.g. +5.',
