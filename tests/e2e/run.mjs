@@ -381,6 +381,21 @@ async function run() {
     await page.locator('.mk-blend-row').nth(1).locator('select').selectOption('Knowledge');
     await page.locator('.mk-blend-row').nth(1).locator('input[type=checkbox]').check();
     assert.match(await page.textContent('.mk-blend-result'), /Passion 2, Inverted Knowledge/);
+    // Drag the second color above the first by its handle; then put it back with the keyboard.
+    const handleBox = await page.locator('.mk-blend-row >> nth=1 >> .mk-handle').boundingBox();
+    const firstBox = await page.locator('.mk-blend-row >> nth=0').boundingBox();
+    await page.mouse.move(handleBox.x + handleBox.width / 2, handleBox.y + handleBox.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(handleBox.x + handleBox.width / 2, firstBox.y + 2, { steps: 5 });
+    await page.mouse.up();
+    assert.match(await page.textContent('.mk-blend-result'), /Inverted Knowledge, Passion 2/);
+    await page.focus('.mk-blend-row >> nth=0 >> .mk-handle');
+    await page.keyboard.press('ArrowDown');
+    assert.match(await page.textContent('.mk-blend-result'), /Passion 2, Inverted Knowledge/);
+    // A typed 1 stays on the card; blank is just the name.
+    await page.locator('.mk-blend-row').nth(1).locator('input[type=number]').fill('1');
+    assert.match(await page.textContent('.mk-blend-result'), /Passion 2, Inverted Knowledge 1/);
+    await page.locator('.mk-blend-row').nth(1).locator('input[type=number]').fill('');
     await page.screenshot({ path: path.join(OUT, 'maker.png'), fullPage: true });
     await page.click('#maker-save');
     assert.equal(await page.textContent('#maker-count'), '1');

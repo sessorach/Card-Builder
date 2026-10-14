@@ -49,11 +49,14 @@ test('the color picker reads and writes blend cells', () => {
   const rows = blendRows('knowledge 2, Inverted passion, Instinct (inverted) 1.5', ross.elements[0].colors, ross.elements[0].modifiers);
   assert.deepEqual(rows, [
     { color: 'Knowledge', weight: 2, modifiers: [] },
-    { color: 'Passion', weight: 1, modifiers: ['Inverted'] },
+    { color: 'Passion', weight: null, modifiers: ['Inverted'] },
     { color: 'Instinct', weight: 1.5, modifiers: ['Inverted'] },
   ]);
   assert.equal(blendText(rows), 'Knowledge 2, Inverted Passion, Inverted Instinct 1.5');
   assert.equal(blendText([{ color: 'Passion', weight: 0, modifiers: [] }]), '');
+  // A 1 that was typed stays on the card; a blank is just the name.
+  assert.equal(blendText([{ color: 'Instinct', weight: 1, modifiers: [] }, { color: 'Passion', weight: '', modifiers: [] }]), 'Instinct 1, Passion');
+  assert.deepEqual(blendRows('Instinct 1', ross.elements[0].colors).map((r) => r.weight), [1]);
 });
 
 test('the CSV reads back as the same cards', () => {

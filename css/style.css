@@ -566,3 +566,8 @@ table.data { border-collapse: collapse; font-size: 0.82rem; }
 .tile .tile-edit { position: absolute; top: 8px; right: 8px; padding: 3px 10px; opacity: 0; transition: opacity 0.15s; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5); }
 .tile:hover .tile-edit, .tile .tile-edit:focus-visible { opacity: 1; }
 @media (hover: none) { .tile .tile-edit { opacity: 0.9; } }
+
+.mk-handle { flex: none; width: 26px; height: 32px; padding: 0; border: 0; background: none; color: var(--muted); font-size: 1.1rem; cursor: grab; touch-action: none; }
+.mk-handle:hover, .mk-handle:focus-visible { color: var(--text); }
+.mk-blend-row.dragging { opacity: 0.6; }
+.mk-blend-row.dragging .mk-handle { cursor: grabbing; }

@@ -170,7 +170,7 @@ export function setupMaker(deps) {
 
   const blendHelp = (field) => {
     const mods = Object.keys(field.modifiers).map((m) => m[0].toUpperCase() + m.slice(1));
-    return `Add a row for each color. A bigger number gives that color more of the card: 2 and 1 makes it two-thirds the first color.${mods.length ? ` Tick ${mods.join(' or ')} to change that share.` : ''}`;
+    return `Add a row for each color, and drag ⠿ to change their order. Leave the number blank for an even share (the card shows just the name), or give one: a bigger number gives that color more of the card, so 2 and 1 makes it two-thirds the first color.${mods.length ? ` Tick ${mods.join(' or ')} to change that share.` : ''}`;
   };
 
   // Weighted colors as rows: [color ▾] [number] [Inverted] [×], then "Add a color".
@@ -184,19 +184,21 @@ export function setupMaker(deps) {
     const write = () => {
       const picked = [...rows.children].map((row) => ({
         color: row.querySelector('select').value,
-        weight: Number(row.querySelector('input[type=number]').value) || 0,
+        weight: row.querySelector('input[type=number]').value, // '' = no number, an even share
         modifiers: [...row.querySelectorAll('input[type=checkbox]')].filter((c) => c.checked).map((c) => c.value),
       }));
       const text = blendText(picked);
       result.replaceChildren('In the spreadsheet: ', text ? el('code', { textContent: text }) : el('i', { textContent: 'empty (no colors)' }));
       change(field.column, text);
     };
-    const addRow = (row = { color: colors[0], weight: 1, modifiers: [] }) => {
+    const addRow = (row = { color: colors[0], weight: null, modifiers: [] }) => {
       const select = el('select', { title: 'Color' });
       for (const c of colors) select.add(new Option(c, c));
       select.value = row.color;
-      const weight = el('input', { type: 'number', min: 1, step: 1, value: row.weight, title: 'Share of the card' });
-      const line = el('div', { className: 'mk-blend-row' }, select, weight);
+      const weight = el('input', { type: 'number', min: 1, step: 1, value: row.weight ?? '', placeholder: 'even', title: 'Share of the card. Leave it blank for an even share; the card then shows just the name.' });
+      const handle = el('button', { type: 'button', className: 'mk-handle', textContent: '⠿', title: 'Drag to reorder (or use the arrow keys)' });
+      dragToReorder(handle, () => line, write);
+      const line = el('div', { className: 'mk-blend-row' }, handle, select, weight);
       for (const m of mods) {
         const box = el('input', { type: 'checkbox', value: m, checked: row.modifiers.includes(m) });
         line.append(el('label', { className: 'mk-check' }, box, ` ${m}`));
@@ -224,6 +226,45 @@ export function setupMaker(deps) {
       result.replaceChildren('In the spreadsheet: ', value ? el('code', { textContent: value }) : el('i', { textContent: 'empty (no colors)' }));
     };
     return wrap;
+  }
+
+  // Drag a row by its handle to move it among its siblings (mouse, pen or touch);
+  // with the handle focused, the up and down arrow keys move it too.
+  function dragToReorder(handle, getRow, done) {
+    // Listens on the window: moving the row in the page would drop a pointer capture.
+    handle.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      const row = getRow();
+      row.classList.add('dragging');
+      const move = (ev) => {
+        const others = [...row.parentNode.children].filter((r) => r !== row);
+        const below = others.find((r) => {
+          const box = r.getBoundingClientRect();
+          return ev.clientY < box.top + box.height / 2;
+        });
+        if (below) row.parentNode.insertBefore(row, below);
+        else row.parentNode.append(row);
+      };
+      const up = () => {
+        window.removeEventListener('pointermove', move);
+        window.removeEventListener('pointerup', up);
+        window.removeEventListener('pointercancel', up);
+        row.classList.remove('dragging');
+        done();
+      };
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', up);
+      window.addEventListener('pointercancel', up);
+    });
+    handle.addEventListener('keydown', (e) => {
+      const row = getRow();
+      if (e.key === 'ArrowUp' && row.previousElementSibling) row.parentNode.insertBefore(row, row.previousElementSibling);
+      else if (e.key === 'ArrowDown' && row.nextElementSibling) row.parentNode.insertBefore(row.nextElementSibling, row);
+      else return;
+      e.preventDefault();
+      handle.focus();
+      done();
+    });
   }
 
   function fillForm() {

@@ -12,7 +12,8 @@ export const BLEND_STYLES = ['gradient', 'split', 'tie-dye', 'marble', 'solid'];
 // modifier changes that part's color: { saturate (1 = unchanged), darken (0–1),
 // mix + amount (blend toward a color), mottle (0–1: dark veins through that part) }.
 // Each item needs one color word; a number in it is its weight (default 1); any
-// modifier words in it change that part's color. Returns [{ key, weight, color, modifiers }].
+// modifier words in it change that part's color. Returns [{ key, weight, weighted,
+// color, modifiers }], where weighted says whether the item gave a number.
 export function parseBlend(value, colors, modifiers = {}) {
   const colorKeys = Object.keys(colors).map((k) => k.toLowerCase());
   const modKeys = Object.keys(modifiers).map((k) => k.toLowerCase());
@@ -25,7 +26,7 @@ export function parseBlend(value, colors, modifiers = {}) {
     const weight = num ? Number(num) : 1;
     if (!(weight > 0)) continue;
     const mods = words.filter((w) => modKeys.includes(w));
-    out.push({ key, weight, color: lookup(colors, key), modifiers: mods });
+    out.push({ key, weight, weighted: !!num, color: lookup(colors, key), modifiers: mods });
   }
   return out;
 }

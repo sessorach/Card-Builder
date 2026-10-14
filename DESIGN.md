@@ -781,6 +781,13 @@ the type changes. The page works this out from the layout itself, so a new
 look gets a working Card maker with no extra code; a layout can add drop-down
 choices and an order for its boxes.
 
+In the Aura picker each color row has a handle to drag it into a new order
+(the arrow keys work too), since the order sets where each color sits in the
+blend and in the Aura boxes. The share box can be left blank: the card then
+shows just the color's name and it gets an even share, while any number typed,
+1 included, is written and shown on the card ("Instinct 1"). The user asked for
+this so a card can show that it has one point of an Aura.
+
 **Editing cards already made.** Every card in the Cards tab has an Edit button
 (it appears when you point at the card). It opens the card in the Card maker,
 bringing the rest of the cards on show into the maker's list with it, and from

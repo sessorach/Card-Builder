@@ -107,22 +107,26 @@ export function visibleFields(layout, fields) {
 const capital = (word) => word[0].toUpperCase() + word.slice(1);
 
 // A blend cell ("Knowledge 2, Inverted Passion") as rows for the picker:
-// [{ color: 'Knowledge', weight: 2, modifiers: [] }, { color: 'Passion', weight: 1, modifiers: ['Inverted'] }].
+// [{ color: 'Knowledge', weight: 2, modifiers: [] }, { color: 'Passion', weight: null, modifiers: ['Inverted'] }].
+// weight is null when the item gives no number (an even share; the card shows just the name).
 // Colors and modifiers come back spelled as the layout spells them.
 export function blendRows(value, colors, modifiers = {}) {
   const spell = (obj, key) => Object.keys(obj).find((k) => k.toLowerCase() === key) || key;
   return parseBlend(value, colors, modifiers).map((p) => ({
     color: capital(spell(colors, p.key)),
-    weight: p.weight,
+    weight: p.weighted ? p.weight : null,
     modifiers: p.modifiers.map((m) => capital(spell(modifiers, m))),
   }));
 }
 
-// The picker's rows back as a cell. A weight of 1 is left out.
+// The picker's rows back as a cell. A blank weight (null or '') writes just the name,
+// which counts as an even share of 1; any number given is written, 1 included, so
+// the card's Aura boxes show it. A weight of 0 leaves the row out.
 export function blendText(rows) {
+  const blank = (w) => w == null || w === '';
   return rows
-    .filter((r) => r.color && r.weight > 0)
-    .map((r) => [...(r.modifiers || []), r.color, r.weight === 1 ? '' : String(r.weight)].filter(Boolean).join(' '))
+    .filter((r) => r.color && (blank(r.weight) || Number(r.weight) > 0))
+    .map((r) => [...(r.modifiers || []), r.color, blank(r.weight) ? '' : String(Number(r.weight))].join(' ').trim())
     .join(', ');
 }
 
