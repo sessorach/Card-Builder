@@ -8,7 +8,10 @@ your browser: **https://sessorach.github.io/Card-Builder/**
 1. **Pick a look.** The page shows a sample of each; click one to see
    example cards in it, and switch looks any time.
 2. **Get the template.** The **Template & guide** tab has a blank spreadsheet
-   for the look you picked, its examples, and what every column does.
+   for the look you picked, its examples, and what every column does. Or skip
+   the spreadsheet: the **Card maker** tab has boxes to fill in, one card at a
+   time, with the card drawn as you type, and turns your cards into a
+   spreadsheet for you.
 3. **Drop in your spreadsheet** (`.csv` or `.xlsx`), one row per card.
 4. **Drop in your card images**, each named after its card
    (`Battle Maneuver.png`). You can drop a whole folder at once.

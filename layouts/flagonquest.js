@@ -99,6 +99,9 @@ export default {
   defaultColor: GOLD,
   // Picked automatically for a spreadsheet with either set of columns (and no layout column).
   matchColumns: [['level_min', 'action', 'prereqs'], [ITEM, 'slot', 'damage']],
+  // In the Card maker: Category decides between the technique and item boxes.
+  formOrder: ['name', ITEM, 'tags'],
+  form: { [ITEM]: { switches: true, options: ['Weapon', 'Armor', 'Masterwork', 'Material', 'Potion', 'Grenade'] } },
   fonts: {
     title: { font: 'medievalsharp', weight: 400, boldWeight: 400 },
     body: { font: 'barlow', weight: 500, boldWeight: 700 },

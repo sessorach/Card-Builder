@@ -166,6 +166,11 @@ export default {
   aliases: ['allies'],
   defaultColor: '#6b5a45',
   matchColumns: [['aura', 'armor', 'health'], ['aura', 'usage']],
+  // Suggestions in the Card maker's boxes.
+  form: { type: { choices: ['Ally', 'Action'] } },
+  // The Card maker's boxes in reading order: what the card is, its colors, then its
+  // stats (ally ones, then action ones; only one set shows at a time).
+  formOrder: ['name', 'type', 'tags', 'aura', 'blend', 'armor', 'health', 'immunities', 'resists', 'range', 'to_hit', 'w', 'usage', 'skill_check', 'damage', 'crit', 'text', 'flavor', 'count', 'deck'],
   fonts: {
     title: { font: 'cinzel', weight: 700 },
     body: { font: 'crimson', weight: 400, boldWeight: 700 },

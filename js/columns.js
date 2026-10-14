@@ -20,7 +20,7 @@ export const COLUMN_HELP = {
   type: {
     all: 'The type line, e.g. Creature.',
     street: 'Shown in the type bar near the bottom.',
-    rossquest: 'Ally or Action. Write Action for an action card; anything else makes an ally.',
+    rossquest: 'Ally or Action. Allies get Armor, Health and the Aura boxes; actions get the stat badges and bars. In a spreadsheet, anything but Action makes an ally.',
   },
   subtype: 'Shown after the type: Creature and Imp make “Creature — Imp”.',
   tags: {

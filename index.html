@@ -94,6 +94,7 @@
     <section class="main" data-tab="cards">
       <nav class="tabs" role="tablist" aria-label="View">
         <button type="button" role="tab" data-tab="cards" aria-selected="true">Cards <span class="tab-count" id="card-count"></span></button>
+        <button type="button" role="tab" data-tab="maker" aria-selected="false">Card maker</button>
         <button type="button" role="tab" data-tab="data" aria-selected="false">Data</button>
         <button type="button" role="tab" data-tab="tts" aria-selected="false">TTS export</button>
         <button type="button" role="tab" data-tab="start" aria-selected="false">Template &amp; guide</button>
@@ -107,7 +108,41 @@
             <p class="empty-title">Pick a look</p>
             <p>Click one to see example cards in that style. You can switch any time under <b>Look</b> on the left.</p>
             <div class="looks" id="looks"></div>
-            <p>Already have a spreadsheet? Drop it and your card art anywhere on the page.</p>
+            <p>Already have a spreadsheet? Drop it and your card art anywhere on the page. No spreadsheet yet? Fill in boxes one card at a time in the <button type="button" class="link" data-tab-link="maker">Card maker</button>.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-panel="maker" role="tabpanel" hidden>
+        <div class="maker">
+          <div class="maker-form">
+            <h2>Make cards in the <span id="maker-look"></span> look</h2>
+            <p class="lead">Fill in the boxes and the card on the right changes as you type. When it looks right, save it and start the next one. At the end, download your cards as a spreadsheet, or show them in the Cards tab to download pictures or a Tabletop Simulator deck. Your cards stay in this browser until you remove them, so you can come back later.</p>
+            <form id="maker-fields" onsubmit="return false"></form>
+            <div class="mk-field mk-picture">
+              <label for="maker-picture">Picture</label>
+              <input type="file" id="maker-picture" accept="image/*">
+              <p class="mk-help">Optional. Picked picture: <span id="maker-art-name"></span>. Keep the file: when you load the spreadsheet later, drop the pictures in with it.</p>
+            </div>
+            <div class="maker-actions">
+              <button type="button" class="primary" id="maker-save" disabled>Save card and start the next</button>
+              <button type="button" class="secondary" id="maker-cancel" hidden>Stop editing</button>
+              <button type="button" class="secondary" id="maker-new">Clear the boxes</button>
+            </div>
+            <p class="status" id="maker-status" role="status" aria-live="polite"></p>
+
+            <h3>Your cards (<span id="maker-count">0</span>)</h3>
+            <ul class="maker-list" id="maker-list"></ul>
+            <div class="maker-actions">
+              <button type="button" class="secondary" id="maker-show" disabled>Show them in the Cards tab</button>
+              <button type="button" class="secondary" id="maker-download" disabled>Download spreadsheet (.csv)</button>
+              <button type="button" class="mini" id="maker-copy" hidden>Copy in the cards on show</button>
+              <button type="button" class="mini" id="maker-clear" hidden>Remove all</button>
+            </div>
+          </div>
+          <div class="maker-preview">
+            <canvas id="maker-canvas" width="744" height="1039" aria-label="Preview of the card being made"></canvas>
+            <p class="hint">Boxes that don't apply to this card are hidden; they come back if you change its type.</p>
           </div>
         </div>
       </div>
@@ -252,7 +287,7 @@
 
         <h3>Make your own cards in this look</h3>
         <ol class="guide" id="look-steps">
-          <li>Get the spreadsheet: <button type="button" class="small" id="template-download" data-template="">Download blank template</button><span class="help-sub">It has a column for everything this look shows. Or start from an example's spreadsheet below.</span></li>
+          <li>Get the spreadsheet: <button type="button" class="small" id="template-download" data-template="">Download blank template</button><span class="help-sub">It has a column for everything this look shows. Or start from an example's spreadsheet below, or skip the spreadsheet and fill in boxes in the <button type="button" class="link" data-tab-link="maker">Card maker</button>.</span></li>
           <li>Open it in Excel, Google Sheets or LibreOffice. Fill in one row per card. Keep the first row (the column names) as it is.<span class="help-sub">Save it as .csv or .xlsx. The columns are explained below.</span></li>
           <li data-needs-art>Get a picture for each card. Name each picture after its card, for example <code id="look-art-name">Battle Maneuver.png</code>.<span class="help-sub">Capitals, spaces and punctuation in the name don't matter.</span></li>
           <li>Drop the spreadsheet<span data-needs-art> and the pictures</span> anywhere on this page, or use <b>Your files</b> on the left. Your cards appear in the <button type="button" class="link" data-tab-link="cards">Cards</button> tab.</li>

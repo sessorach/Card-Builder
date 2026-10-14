@@ -752,6 +752,34 @@ section or on a tab, not in the sidebar's main flow.
   gives the cards the most room, but less is visible at a glance, and the
   Steam Cloud steps would be hidden in a drawer.
 
+## The Card maker
+
+Downloading a template and filling in a spreadsheet is a lot to ask of someone
+trying the page for the first time, so the user asked for a way to build cards
+one at a time on the page itself. The Card maker tab shows a box for each
+column of the chosen look, with what the column does under it, and the card
+redraws beside the boxes as you type. "Save card and start the next" adds it to
+a list (each can be edited or removed later), keeping the deck and type for the
+next card since a run of cards usually shares them. The list downloads as a
+spreadsheet, or goes straight to the Cards tab for pictures and Tabletop
+Simulator decks. The cards on show (an example, or a loaded spreadsheet) can be
+copied in to start from.
+
+The boxes hold your hand where a column has its own format. RossQuest's Aura is
+a row per color, each with a number for its share and an Inverted tick box, and
+the page writes the cell ("Passion 2, Inverted Knowledge") and shows it, so the
+format is learned by watching. The blend style is a drop-down, and so is
+RossQuest's type. Boxes that don't apply to the card being made are hidden
+(Armor on an action, technique lines on a FlagonQuest item); they come back when
+the type changes. The page works this out from the layout itself, so a new
+look gets a working Card maker with no extra code; a layout can add drop-down
+choices and an order for its boxes.
+
+The maker's cards are kept in the browser, separately for each look, so a
+reload or a look switch doesn't lose them. They aren't uploaded anywhere. It is
+a draft for getting used to the tool and trying things out; the spreadsheet
+stays the way to manage a whole deck.
+
 ## Documentation
 
 Outward-facing writing stays short and is about using the tool, not about how

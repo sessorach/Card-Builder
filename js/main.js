@@ -9,6 +9,7 @@ import { unknownBlendItems, BLEND_STYLES } from './blend.js';
 import { buildImagesZip, buildTtsZip, prepareTtsImages, cloudFiles, buildUploadZip } from './export.js';
 import { templateCsv, templateColumns } from './template.js';
 import { columnHelp } from './columns.js';
+import { setupMaker } from './maker-ui.js';
 import { handoffData, decodeHandoff } from './handoff.js';
 import { cleanInput, savedObjectsFolder, localImagesFolder, isLink, looksLikeSteamCloud, cardDescription } from './tts.js';
 
@@ -320,6 +321,24 @@ function renderWarnings(extra = []) {
   box.append(details);
 }
 
+// The Card maker tab (js/maker-ui.js), set up in setupControls.
+let maker = null;
+function startMaker() {
+  maker = setupMaker({
+    layout: () => getLayout(settings.layout) || LAYOUTS[0],
+    assets: () => state.assets,
+    addPicture: (file) => addArt([file]),
+    download,
+    loadedRows: () => state.cards.map((card) => ({ ...card.fields })),
+    showCards: (csv) => {
+      loadToken++; // an example still loading mustn't replace these
+      showTab('cards');
+      applyRows(parseDelimited(csv, ','), 'Card maker cards', { layoutChosen: true });
+    },
+  });
+  maker.refresh();
+}
+
 // The empty page (the looks to pick from), kept to show again if the cards go away.
 const EMPTY = document.querySelector('#decks .empty');
 
@@ -346,6 +365,8 @@ async function rerender() {
   renderArtStatus();
   renderData();
   $('card-count').textContent = state.cards.length || '';
+  maker?.redraw();
+  maker?.setCopyable(state.cards.length);
   if (!state.cards.length) {
     container.replaceChildren(EMPTY);
     renderWarnings();
@@ -779,6 +800,7 @@ function describeLayout() {
     tr.insertCell().textContent = columnHelp(column, layout.id);
   }
   renderLookExamples(layout);
+  maker?.refresh();
 }
 
 async function renderLookExamples(layout) {
@@ -885,6 +907,7 @@ function setupControls() {
     download(new Blob([templateCsv(layout)], { type: 'text/csv' }), `${layout.id}-template.csv`);
   });
   renderSwatches();
+  startMaker();
   $('layout-ids').innerHTML = LAYOUTS.map((l) => `<code>${l.id}</code>`).join(', ');
 
   const sizeSelect = $('size-select');
@@ -983,6 +1006,7 @@ async function init() {
   await loadFonts();
   drawBackPreview();
   renderLooks();
+  maker.redraw();
   await loadHandoff();
   // The sending site reuses this tab for the next batch, which only changes the link's "#" part.
   window.addEventListener('hashchange', loadHandoff);

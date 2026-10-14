@@ -366,6 +366,35 @@ async function run() {
     assert.match(auraWarnings, /"Instict 2" in aura isn't one of Instinct, Knowledge, Passion, Discipline/);
     assert.match(auraWarnings, /blend "zigzag" isn't a style/);
 
+    // Card maker: boxes for the chosen look, a live preview, saved cards become a spreadsheet.
+    await tab(page, 'maker');
+    assert.equal(await page.textContent('#maker-look'), 'RossQuest');
+    await page.fill('#mk-field-name', 'Searing Word');
+    await page.selectOption('#mk-field-type', 'Action');
+    assert.equal(await page.isVisible('#mk-field-to_hit'), true, 'action boxes show for an action');
+    assert.equal(await page.isHidden('#mk-field-armor'), true, 'ally boxes hide for an action');
+    await page.fill('#mk-field-to_hit', '+3');
+    await page.click('.mk-blend .mini:has-text("Add a color")');
+    await page.click('.mk-blend .mini:has-text("Add a color")');
+    await page.locator('.mk-blend-row').nth(0).locator('select').selectOption('Passion');
+    await page.locator('.mk-blend-row').nth(0).locator('input[type=number]').fill('2');
+    await page.locator('.mk-blend-row').nth(1).locator('select').selectOption('Knowledge');
+    await page.locator('.mk-blend-row').nth(1).locator('input[type=checkbox]').check();
+    assert.match(await page.textContent('.mk-blend-result'), /Passion 2, Inverted Knowledge/);
+    await page.screenshot({ path: path.join(OUT, 'maker.png'), fullPage: true });
+    await page.click('#maker-save');
+    assert.equal(await page.textContent('#maker-count'), '1');
+    assert.equal(await page.inputValue('#mk-field-type'), 'Action', 'the type carries over to the next card');
+    assert.equal(await page.inputValue('#mk-field-name'), '');
+    const [makerCsv] = await Promise.all([page.waitForEvent('download'), page.click('#maker-download')]);
+    assert.equal(makerCsv.suggestedFilename(), 'rossquest-cards.csv');
+    const makerFile = path.join(OUT, 'rossquest-cards.csv');
+    await makerCsv.saveAs(makerFile);
+    assert.equal(await readFile(makerFile, 'utf8'), 'name,aura,to_hit,type\r\nSearing Word,"Passion 2, Inverted Knowledge",+3,Action\r\n');
+    await page.click('#maker-show');
+    await page.waitForFunction(() => /Card maker cards · 1 card/.test(document.getElementById('sheet-status').textContent));
+    assert.equal(await page.isVisible('[data-panel="cards"]'), true);
+
     // Cards sent in the link (FlagonQuest's Character Sheet): picked layout, decks and counts.
     const sent = await encodeHandoff({
       title: 'Aria',
