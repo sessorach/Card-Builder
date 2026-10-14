@@ -196,9 +196,10 @@ export default {
     { field: 'flavor', italic: true },
   ],
   elements: [
-    // The aura background, then a thin dark line just inside the edge.
+    // The aura background, then a thin dark line just inside the edge. A color the
+    // card names in its color column replaces the blend (the Aura boxes still show).
     {
-      type: 'blend', field: 'aura', colors: AURA, modifiers: MODIFIERS, styleField: 'blend',
+      type: 'blend', field: 'aura', colors: AURA, modifiers: MODIFIERS, styleField: 'blend', override: 'color',
       fallback: ['#55595e', '#8d9298', '#5f6368', '#4c5055'], x: 0, y: 0, w: 100, h: 100, texture: 'grit', textureStrength: 0.35,
     },
     { type: 'rect', x: 2.2, y: 1.6, w: 95.6, h: 96.8, stroke: 'rgba(15, 12, 9, 0.55)', strokeWidth: 0.5, radius: 2.6 },

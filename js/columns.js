@@ -38,7 +38,10 @@ export const COLUMN_HELP = {
     flagonquest: 'Not printed on the card (as on the Character Sheet); it shows when you hover over the card in Tabletop Simulator.',
   },
   stats: 'One badge in the corner, e.g. 3 / 2.',
-  color: 'Optional card color: a name (crimson) or a hex code (#3b5b7a).',
+  color: {
+    all: 'Optional card color: a name (crimson) or a hex code (#3b5b7a).',
+    rossquest: 'Optional. One background color in place of the Aura blend: a name (crimson) or a hex code (#3b5b7a). The Aura boxes still show.',
+  },
 
   // Street
   strengf: 'A stat in its own box. Cards without stats get a taller rules box.',

@@ -309,6 +309,16 @@ function drawBlendElement(ctx, card, el, b, { s, color }) {
   ctx.save();
   roundRectPath(ctx, b.x, b.y, b.w, b.h, s(el.radius || 0));
   ctx.clip();
+  // override: a column (e.g. color) that, when filled in, paints the whole area that
+  // one color instead of the blend.
+  const override = el.override ? fieldValue(card, el.override) : '';
+  if (override) {
+    ctx.fillStyle = color(override);
+    ctx.fillRect(b.x, b.y, b.w, b.h);
+    if (el.texture) applyTexture(ctx, el.texture, b, { strength: el.textureStrength ?? 1, unit: s(1) });
+    ctx.restore();
+    return;
+  }
   // fallback: a color, or a list of colors blended evenly (e.g. a metallic sheen).
   const fallback = !parts.length && Array.isArray(el.fallback) ? el.fallback.map((c) => ({ color: c, weight: 1, modifiers: [] })) : null;
   const drawn = fallback || parts;

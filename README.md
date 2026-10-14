@@ -29,6 +29,8 @@ your browser: **https://sessorach.github.io/Card-Builder/**
 - Only `name` is required. `count` sets how many copies go in the TTS deck,
   and `deck` splits cards into separate decks.
 - Card text can use `**bold**`, `*italic*` and line breaks.
+- Point at a card in the **Cards** tab and click **Edit** to change it in the
+  **Card maker**; download the edited spreadsheet from there.
 - The **Data** tab shows your spreadsheet as the page read it, and which cards
   are missing art.
 - The columns for each look are explained in the **Template & guide** tab.

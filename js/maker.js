@@ -38,7 +38,8 @@ function drawnFields(el) {
 
 // Which boxes the form shows: the look's columns, each with the kind of box it needs.
 //   kind: 'text' (one line), 'long' (several lines), 'list' (comma-separated),
-//   'blend' (weighted colors, e.g. RossQuest's aura), 'style' (a blend style).
+//   'blend' (weighted colors, e.g. RossQuest's aura), 'style' (a blend style),
+//   'color' (a color name or code, with a picker).
 // options: suggested values, from conditions that test for a value (RossQuest's
 // type "Action"); choices: a fixed list from the layout's `form` hints, shown as a
 // drop-down. Columns that switch other parts of the card on or off (`switches`,
@@ -68,6 +69,7 @@ export function formFields(layout) {
     const blend = blends.find((el) => el.field === column);
     if (blend) return { column, kind: 'blend', colors: blend.colors || {}, modifiers: blend.modifiers || {} };
     if (blends.some((el) => el.styleField === column)) return { column, kind: 'style' };
+    if (column === 'color') return { column, kind: 'color' };
     const kind = LONG.has(column) ? 'long' : lists.has(column) ? 'list' : 'text';
     // A column whose own value turns parts on or off; one that's only tested for
     // having a value (Immunities shows its strip when filled) doesn't count.

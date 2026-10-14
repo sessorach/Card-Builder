@@ -432,6 +432,12 @@ The color blending is general: the layout says which words are colors and
 which words change a color, and the renderer draws any weighted list that way.
 So another layout can blend its own list of colors without new code.
 
+**A chosen color wins over the Aura.** When a card fills in its `color`
+column, the background is that one color instead of the Aura blend, at the
+user's request; the Aura boxes in the bottom row still show the Aura. The
+Card maker gives the color column a color picker as well as a box to type a
+name or code.
+
 **A guide on the page.** RossQuest's colors and two card types take more
 explaining than the other layouts, and the user wants someone who finds the
 page with no context to manage on their own. So the Template & guide tab
@@ -774,6 +780,17 @@ RossQuest's type. Boxes that don't apply to the card being made are hidden
 the type changes. The page works this out from the layout itself, so a new
 look gets a working Card maker with no extra code; a layout can add drop-down
 choices and an order for its boxes.
+
+**Editing cards already made.** Every card in the Cards tab has an Edit button
+(it appears when you point at the card). It opens the card in the Card maker,
+bringing the rest of the cards on show into the maker's list with it, and from
+then on saving there updates the Cards tab as well, so the maker works as an
+editor for a whole spreadsheet, an example included. The list can also copy a
+card (to make a variant), move cards up and down, and remove them. The maker
+keeps any columns it doesn't draw, such as a spreadsheet's ID column, so
+editing never loses them. Renaming a card whose picture was found by its name
+records the picture's file name, so the picture stays. The preview takes about
+a third of the tab, so the card can be read while it's being made.
 
 The maker's cards are kept in the browser, separately for each look, so a
 reload or a look switch doesn't lose them. They aren't uploaded anywhere. It is

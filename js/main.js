@@ -22,6 +22,7 @@ const SHEET_EXT = /\.(csv|tsv|txt|xlsx)$/i;
 const state = {
   sheetName: '',
   example: '', // the example spreadsheet on show, if the cards are an example
+  fromMaker: false, // the cards on show are the Card maker's (its saves update them)
   exampleArt: false, // every loaded image came with an example (so switching examples can drop them)
   cards: [],
   columns: [], // normalized column names, as rowsToCards returns them
@@ -148,7 +149,7 @@ async function loadSpreadsheet(file, options = {}) {
 }
 
 // Shows a spreadsheet's rows (header row first) as cards. `name` labels them in the page.
-async function applyRows(rows, name, { layoutChosen = false, example = '', keepTab = false } = {}) {
+async function applyRows(rows, name, { layoutChosen = false, example = '', keepTab = false, fromMaker = false } = {}) {
   const { cards, warnings, columns, headers } = rowsToCards(rows);
   // A spreadsheet that fits a layout's known columns (e.g. FlagonQuest's techniques
   // sheet) picks that layout, unless it chooses layouts itself with a layout column.
@@ -161,6 +162,7 @@ async function applyRows(rows, name, { layoutChosen = false, example = '', keepT
   }
   state.sheetName = name;
   state.example = example;
+  state.fromMaker = fromMaker;
   state.cards = cards;
   state.columns = columns;
   state.headers = headers;
@@ -330,13 +332,28 @@ function startMaker() {
     addPicture: (file) => addArt([file]),
     download,
     loadedRows: () => state.cards.map((card) => ({ ...card.fields })),
-    showCards: (csv) => {
+    // The maker's cards in the Cards tab. Once there, they stay linked: saving in the
+    // maker updates them, until another spreadsheet is loaded.
+    showCards: (csv, name, { keepTab = false } = {}) => {
       loadToken++; // an example still loading mustn't replace these
-      showTab('cards');
-      applyRows(parseDelimited(csv, ','), 'Card maker cards', { layoutChosen: true });
+      if (!keepTab) showTab('cards');
+      return applyRows(parseDelimited(csv, ','), name, { layoutChosen: true, keepTab: true, fromMaker: true });
     },
+    linked: () => state.fromMaker,
   });
   maker.refresh();
+}
+
+// A card from the Cards tab into the Card maker. When the cards on show are the
+// maker's, their spreadsheet row is their place in its list (row 2 is the first card).
+function editCard(card) {
+  const rows = state.cards.map((c) => {
+    const { ...fields } = c.fields;
+    for (const k of Object.keys(fields)) if (fields[k] === '') delete fields[k];
+    return fields;
+  });
+  const index = state.fromMaker ? card.row - 2 : state.cards.indexOf(card);
+  if (maker.editCard({ rows, index, source: state.sheetName })) showTab('maker');
 }
 
 // The empty page (the looks to pick from), kept to show again if the cards go away.
@@ -415,7 +432,17 @@ async function rerender() {
         copies.textContent = `×${card.count}`;
         cap.append(copies);
       }
-      fig.append(canvas, cap);
+      // Edit opens the card in the Card maker.
+      const edit = document.createElement('button');
+      edit.type = 'button';
+      edit.className = 'mini tile-edit';
+      edit.textContent = 'Edit';
+      edit.title = `Edit ${card.name} in the Card maker`;
+      edit.addEventListener('click', (e) => {
+        e.stopPropagation();
+        editCard(card);
+      });
+      fig.append(canvas, cap, edit);
       fig.addEventListener('click', () => openLightbox(canvas));
       grid.append(fig);
 

@@ -394,6 +394,19 @@ async function run() {
     await page.click('#maker-show');
     await page.waitForFunction(() => /Card maker cards · 1 card/.test(document.getElementById('sheet-status').textContent));
     assert.equal(await page.isVisible('[data-panel="cards"]'), true);
+    // Edit from the Cards tab: the card opens in the maker, and saving updates the Cards tab.
+    await page.hover('.tile >> nth=0');
+    await page.click('.tile >> nth=0 >> .tile-edit');
+    assert.equal(await page.isVisible('[data-panel="maker"]'), true);
+    assert.equal(await page.inputValue('#mk-field-name'), 'Searing Word');
+    await page.fill('#mk-field-name', 'Searing Command');
+    // A color replaces the Aura blend on RossQuest.
+    await page.fill('#mk-field-color', '#2050c0');
+    await page.click('#maker-save');
+    await page.waitForFunction(() => document.querySelector('.tile figcaption span')?.textContent === 'Searing Command');
+    const [cr, cg, cb] = await page.evaluate(() => [...document.querySelector('.tile canvas').getContext('2d').getImageData(6, 500, 1, 1).data]);
+    assert.ok(cb > 140 && cr < 90, `color column paints the background: ${[cr, cg, cb]}`);
+    assert.equal(await page.textContent('#maker-count'), '1', 'editing replaces the card rather than adding one');
 
     // Cards sent in the link (FlagonQuest's Character Sheet): picked layout, decks and counts.
     const sent = await encodeHandoff({
