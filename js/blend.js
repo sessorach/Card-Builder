@@ -11,7 +11,9 @@ export const BLEND_STYLES = ['gradient', 'split', 'tie-dye', 'marble', 'solid'];
 // colors: { word: color } (case-insensitive); modifiers: { word: modifier }, where a
 // modifier changes that part's color: { saturate (1 = unchanged), darken (0–1),
 // mix + amount (blend toward a color), mottle (0–1: dark veins through that part) }.
-// Each item needs one color word; a number in it is its weight (default 1); any
+// Each item needs one color word; a number in it is its weight; an item with no
+// number gets the average of the numbered items' weights (so Blue 6, Red 4 and a
+// plain Green make Green 5; with no numbers at all, every item weighs 1); any
 // modifier words in it change that part's color. Returns [{ key, weight, weighted,
 // color, modifiers }], where weighted says whether the item gave a number.
 export function parseBlend(value, colors, modifiers = {}) {
@@ -27,6 +29,11 @@ export function parseBlend(value, colors, modifiers = {}) {
     if (!(weight > 0)) continue;
     const mods = words.filter((w) => modKeys.includes(w));
     out.push({ key, weight, weighted: !!num, color: lookup(colors, key), modifiers: mods });
+  }
+  const numbered = out.filter((p) => p.weighted);
+  if (numbered.length) {
+    const average = numbered.reduce((sum, p) => sum + p.weight, 0) / numbered.length;
+    for (const p of out) if (!p.weighted) p.weight = average;
   }
   return out;
 }

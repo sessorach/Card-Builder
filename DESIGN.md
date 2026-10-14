@@ -784,9 +784,13 @@ choices and an order for its boxes.
 In the Aura picker each color row has a handle to drag it into a new order
 (the arrow keys work too), since the order sets where each color sits in the
 blend and in the Aura boxes. The share box can be left blank: the card then
-shows just the color's name and it gets an even share, while any number typed,
+shows just the color's name, while any number typed,
 1 included, is written and shown on the card ("Instinct 1"). The user asked for
-this so a card can show that it has one point of an Aura.
+this so a card can show that it has one point of an Aura. A color without a number
+gets the average of the numbered colors' shares (Blue 6, Red 4 and a plain
+Green make Green 5); an earlier version gave it a share of 1, which the user
+found let the numbered colors swamp it. With no numbers at all, the colors
+share equally.
 
 **Editing cards already made.** Every card in the Cards tab has an Edit button
 (it appears when you point at the card). It opens the card in the Card maker,

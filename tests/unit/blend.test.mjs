@@ -9,7 +9,7 @@ test('reads weights and modifiers from a list cell', () => {
   const parts = parseBlend('Knowledge 2, Inverted Passion, passion (inverted) 1.5, Nonsense 4, Instinct 0', COLORS, MODS);
   assert.deepEqual(parts.map((p) => [p.key, p.weight, p.modifiers]), [
     ['knowledge', 2, []],
-    ['passion', 1, ['inverted']],
+    ['passion', 1.75, ['inverted']], // no number: the average of 2 and 1.5
     ['passion', 1.5, ['inverted']],
   ]);
   assert.deepEqual(parseBlend('', COLORS), []);
@@ -52,4 +52,10 @@ test('modifiers can desaturate, darken and vein a part', () => {
 test('finds list items that name no color', () => {
   assert.deepEqual(unknownBlendItems('Knowledge 2, Instict 1, inverted PASSION, 3', COLORS), ['Instict 1', '3']);
   assert.deepEqual(unknownBlendItems('', COLORS), []);
+});
+
+test('an item with no number takes the average share of the numbered ones', () => {
+  const parts = parseBlend('Knowledge 6, Passion 4, Instinct', COLORS);
+  assert.deepEqual(parts.map((p) => p.weight), [6, 4, 5]);
+  assert.deepEqual(parseBlend('Knowledge, Passion', COLORS).map((p) => p.weight), [1, 1]);
 });

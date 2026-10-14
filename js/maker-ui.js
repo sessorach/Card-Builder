@@ -170,7 +170,7 @@ export function setupMaker(deps) {
 
   const blendHelp = (field) => {
     const mods = Object.keys(field.modifiers).map((m) => m[0].toUpperCase() + m.slice(1));
-    return `Add a row for each color, and drag ⠿ to change their order. Leave the number blank for an even share (the card shows just the name), or give one: a bigger number gives that color more of the card, so 2 and 1 makes it two-thirds the first color.${mods.length ? ` Tick ${mods.join(' or ')} to change that share.` : ''}`;
+    return `Add a row for each color, and drag ⠿ to change their order. Leave the number blank and that color gets the average of the others' numbers (the card shows just its name), or give one: a bigger number gives that color more of the card, so 2 and 1 makes it two-thirds the first color.${mods.length ? ` Tick ${mods.join(' or ')} to change that share.` : ''}`;
   };
 
   // Weighted colors as rows: [color ▾] [number] [Inverted] [×], then "Add a color".
@@ -184,7 +184,7 @@ export function setupMaker(deps) {
     const write = () => {
       const picked = [...rows.children].map((row) => ({
         color: row.querySelector('select').value,
-        weight: row.querySelector('input[type=number]').value, // '' = no number, an even share
+        weight: row.querySelector('input[type=number]').value, // '' = no number: the average of the others' shares
         modifiers: [...row.querySelectorAll('input[type=checkbox]')].filter((c) => c.checked).map((c) => c.value),
       }));
       const text = blendText(picked);
@@ -195,7 +195,7 @@ export function setupMaker(deps) {
       const select = el('select', { title: 'Color' });
       for (const c of colors) select.add(new Option(c, c));
       select.value = row.color;
-      const weight = el('input', { type: 'number', min: 1, step: 1, value: row.weight ?? '', placeholder: 'even', title: 'Share of the card. Leave it blank for an even share; the card then shows just the name.' });
+      const weight = el('input', { type: 'number', min: 1, step: 1, value: row.weight ?? '', placeholder: 'avg', title: 'Share of the card. Leave it blank for the average of the other colors\' shares; the card then shows just the name.' });
       const handle = el('button', { type: 'button', className: 'mk-handle', textContent: '⠿', title: 'Drag to reorder (or use the arrow keys)' });
       dragToReorder(handle, () => line, write);
       const line = el('div', { className: 'mk-blend-row' }, handle, select, weight);
