@@ -29,6 +29,9 @@ export function layoutFields(layout) {
     if (el.type !== 'text' || el.text != null) continue;
     fields.push(...elementEntries(el).map(entryField));
   }
+  // Colors taken from a column ({ field } or { readableOn: { field } }), e.g. a box color.
+  const colorField = (c) => (c && typeof c === 'object' ? c.field || colorField(c.readableOn) : null);
+  for (const el of elements) fields.push(...['fill', 'stroke', 'color', 'background'].map((k) => colorField(el[k])));
   // Columns that only switch elements on or off, or pick the card color.
   for (const el of elements) {
     fields.push(...[].concat(el.when || [], el.unless || [], el.whenAll || [], el.unlessAll || []), el.whenHas?.field, el.unlessHas?.field);
@@ -47,10 +50,13 @@ export function listFields(layout) {
   return fields;
 }
 
+// A layout's `lastColumns` (optional extras, like Street's look columns) go at the
+// end, in that order, rather than where they're drawn.
 export function templateColumns(layout) {
-  const columns = [...ALWAYS, ...layoutFields(layout).filter((f) => !LEFT_OUT.has(f))];
+  const last = layout.lastColumns || [];
+  const columns = [...ALWAYS, ...layoutFields(layout).filter((f) => !LEFT_OUT.has(f) && !last.includes(f))];
   if (!layout.colorBy) columns.push('color'); // otherwise the card color comes from colorBy
-  return [...new Set(columns)];
+  return [...new Set([...columns, ...last])];
 }
 
 const csvCell = (value) => (/[",\n\r]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value);

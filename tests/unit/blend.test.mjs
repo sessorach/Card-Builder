@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { unknownBlendItems, parseBlend, partRgb, partMottle, quantileThresholds, paintBlend, hashSeed, BLEND_STYLES } from '../../js/blend.js';
+import { parseColorList, unknownBlendItems, parseBlend, partRgb, partMottle, quantileThresholds, paintBlend, hashSeed, BLEND_STYLES } from '../../js/blend.js';
 
 const COLORS = { Instinct: '#00ff00', Knowledge: '#0000ff', Passion: '#ff0000' };
 const MODS = { inverted: { mix: '#000000', amount: 0.5 } };
@@ -58,4 +58,15 @@ test('an item with no number takes the average share of the numbered ones', () =
   const parts = parseBlend('Knowledge 6, Passion 4, Instinct', COLORS);
   assert.deepEqual(parts.map((p) => p.weight), [6, 4, 5]);
   assert.deepEqual(parseBlend('Knowledge, Passion', COLORS).map((p) => p.weight), [1, 1]);
+});
+
+test('a free list of colors: names or codes, optional shares', () => {
+  const parts = parseColorList('purple 6, #d4a72c 4, dark slate gray');
+  assert.deepEqual(parts.map((p) => [p.color, p.weight, p.weighted]), [
+    ['purple', 6, true],
+    ['#d4a72c', 4, true],
+    ['dark slate gray', 5, false],
+  ]);
+  assert.deepEqual(parseColorList('crimson').map((p) => p.weight), [1]);
+  assert.deepEqual(parseColorList(''), []);
 });

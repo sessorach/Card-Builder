@@ -168,7 +168,28 @@ export function setupMaker(deps) {
     return wrap;
   }
 
+  // A text box for a color name or code with a color picker beside it, kept in step.
+  // (For a blend row; the row's own listeners write the value.)
+  function colorChooser(value) {
+    const text = el('input', { type: 'text', autocomplete: 'off', value, placeholder: 'purple or #8a5cf5', title: 'Color' });
+    const pick = el('input', { type: 'color', title: 'Pick a color' });
+    const probe = document.createElement('canvas').getContext('2d');
+    const sync = () => {
+      probe.fillStyle = '#000000';
+      probe.fillStyle = text.value.trim().replace(/\s+/g, '') || '#000000';
+      if (/^#[0-9a-f]{6}$/i.test(probe.fillStyle)) pick.value = probe.fillStyle;
+    };
+    text.addEventListener('input', sync);
+    pick.addEventListener('input', () => {
+      text.value = pick.value;
+      text.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    sync();
+    return el('span', { className: 'mk-color mk-color-inline' }, pick, text);
+  }
+
   const blendHelp = (field) => {
+    if (field.anyColor) return 'Add a row for each color: type a name (purple, gold, hot pink) or a code (#8a5cf5), or pick one. Drag ⠿ to change their order. Leave the number blank and that color gets the average of the others\' numbers, or give one: a bigger number gives that color more of the card. Leave it all empty for the usual look.';
     const mods = Object.keys(field.modifiers).map((m) => m[0].toUpperCase() + m.slice(1));
     return `Add a row for each color, and drag ⠿ to change their order. Leave the number blank and that color gets the average of the others' numbers (the card shows just its name), or give one: a bigger number gives that color more of the card, so 2 and 1 makes it two-thirds the first color.${mods.length ? ` Tick ${mods.join(' or ')} to change that share.` : ''}`;
   };
@@ -183,7 +204,7 @@ export function setupMaker(deps) {
     const result = el('p', { className: 'mk-blend-result' });
     const write = () => {
       const picked = [...rows.children].map((row) => ({
-        color: row.querySelector('select').value,
+        color: (row.querySelector('select') || row.querySelector('input[type=text]')).value.trim(),
         weight: row.querySelector('input[type=number]').value, // '' = no number: the average of the others' shares
         modifiers: [...row.querySelectorAll('input[type=checkbox]')].filter((c) => c.checked).map((c) => c.value),
       }));
@@ -191,10 +212,16 @@ export function setupMaker(deps) {
       result.replaceChildren('In the spreadsheet: ', text ? el('code', { textContent: text }) : el('i', { textContent: 'empty (no colors)' }));
       change(field.column, text);
     };
-    const addRow = (row = { color: colors[0], weight: null, modifiers: [] }) => {
-      const select = el('select', { title: 'Color' });
-      for (const c of colors) select.add(new Option(c, c));
-      select.value = row.color;
+    const addRow = (row = { color: field.anyColor ? '' : colors[0], weight: null, modifiers: [] }) => {
+      let select;
+      if (field.anyColor) {
+        // Any color: type a name or code, or pick one.
+        select = colorChooser(row.color);
+      } else {
+        select = el('select', { title: 'Color' });
+        for (const c of colors) select.add(new Option(c, c));
+        select.value = row.color;
+      }
       const weight = el('input', { type: 'number', min: 1, step: 1, value: row.weight ?? '', placeholder: 'avg', title: 'Share of the card. Leave it blank for the average of the other colors\' shares; the card then shows just the name.' });
       const handle = el('button', { type: 'button', className: 'mk-handle', textContent: '⠿', title: 'Drag to reorder (or use the arrow keys)' });
       dragToReorder(handle, () => line, write);
@@ -222,7 +249,7 @@ export function setupMaker(deps) {
     // Filled in from the current card by fillForm.
     wrap.fill = (value) => {
       rows.replaceChildren();
-      for (const row of blendRows(value, field.colors, field.modifiers)) addRow(row);
+      for (const row of blendRows(value, field.colors, field.modifiers, field.anyColor)) addRow(row);
       result.replaceChildren('In the spreadsheet: ', value ? el('code', { textContent: value }) : el('i', { textContent: 'empty (no colors)' }));
     };
     return wrap;

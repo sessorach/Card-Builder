@@ -5,7 +5,7 @@
 
 import { templateColumns, listFields } from './template.js';
 import { shows } from './render.js';
-import { parseBlend } from './blend.js';
+import { parseBlend, parseColorList } from './blend.js';
 
 // Columns written in a big box rather than a one-line one.
 const LONG = new Set(['text', 'flavor', 'choice_effects', 'built_features', 'picks', 'powers', 'special', 'crit']);
@@ -67,9 +67,9 @@ export function formFields(layout) {
   }
   const fields = templateColumns(layout).map((column) => {
     const blend = blends.find((el) => el.field === column);
-    if (blend) return { column, kind: 'blend', colors: blend.colors || {}, modifiers: blend.modifiers || {} };
+    if (blend) return { column, kind: 'blend', colors: blend.colors || {}, modifiers: blend.modifiers || {}, anyColor: !!blend.anyColor };
     if (blends.some((el) => el.styleField === column)) return { column, kind: 'style' };
-    if (column === 'color') return { column, kind: 'color' };
+    if (column === 'color' || column.endsWith('_color')) return { column, kind: 'color' };
     const kind = LONG.has(column) ? 'long' : lists.has(column) ? 'list' : 'text';
     // A column whose own value turns parts on or off; one that's only tested for
     // having a value (Immunities shows its strip when filled) doesn't count.
@@ -111,7 +111,8 @@ const capital = (word) => word[0].toUpperCase() + word.slice(1);
 // weight is null when the item gives no number (it gets the average of the numbered
 // items' shares; the card shows just the name).
 // Colors and modifiers come back spelled as the layout spells them.
-export function blendRows(value, colors, modifiers = {}) {
+export function blendRows(value, colors, modifiers = {}, anyColor = false) {
+  if (anyColor) return parseColorList(value).map((p) => ({ color: p.color, weight: p.weighted ? p.weight : null, modifiers: [] }));
   const spell = (obj, key) => Object.keys(obj).find((k) => k.toLowerCase() === key) || key;
   return parseBlend(value, colors, modifiers).map((p) => ({
     color: capital(spell(colors, p.key)),

@@ -5,7 +5,10 @@
 // space, so all cards keep the same overall shape.
 //
 // Columns: name, cost, art, text, flavor, type, tags (comma-separated),
-// strengf, helf, steal, equip_cost.
+// strengf, helf, steal, equip_cost, and three optional look columns any card can
+// use, whatever its type: background (one color, or several with shares, blended
+// like RossQuest's Aura), blend (the blend style) and box_color (the rules box).
+// Text in the rules box turns black or white to stay readable on it.
 
 // The three Thug stats, left to right. Spellings are the game's own; keep them.
 const STATS = [
@@ -22,11 +25,19 @@ const EQUIP = { field: 'equip_cost', label: 'EQUIP COST', prefix: '$' };
 const STAT_FIELDS = [...THUG_FIELDS, EQUIP.field];
 
 const INK = '#16151a';
-const PANEL = '#24222b';
-const NAME_BAR = '#1d1b22';
+// How much of the background shows through the dark panels (name bar, the picture's
+// letterbox, stat boxes): 0 = solid. On the default dark background it looks the same.
+const SEE_THROUGH = 0.3;
+const see = (hex) => `rgba(${[1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(', ')}, ${1 - SEE_THROUGH})`;
+const PANEL = see('#24222b');
+const NAME_BAR = see('#1d1b22');
 const PAPER = '#f3e9d2';
 const PAPER_INK = '#16151a';
 const WHITE = '#fbf8f1';
+
+// The rules box: the card's box_color, else worn paper; its text black or white to match.
+const BOX = { field: 'box_color', fallback: PAPER };
+const BOX_TEXT = { readableOn: BOX, dark: PAPER_INK, light: WHITE };
 
 // Surfaces: worn paper for the rules box, spray-paint grit for bars and boxes.
 const GRIT = { texture: 'grit', bevel: true };
@@ -39,13 +50,13 @@ function bottomSection(hasStats) {
   const textBottom = hasStats ? 79 : 89.5;
   const barY = hasStats ? 80.2 : 90.7;
   return [
-    { ...condition, type: 'rect', x: 4, y: 58.8, w: 92, h: textBottom - 58.8, fill: PAPER, ...PAPER_SURFACE, stroke: '#000', strokeWidth: 0.6, radius: 1.6 },
+    { ...condition, type: 'rect', x: 4, y: 58.8, w: 92, h: textBottom - 58.8, fill: BOX, ...PAPER_SURFACE, stroke: '#000', strokeWidth: 0.6, radius: 1.6 },
     {
       ...condition,
       type: 'text',
       parts: ['text', { field: 'flavor', italic: true }],
       x: 7, y: 59.9, w: 86, h: textBottom - 61,
-      font: 'body', size: 5.4, minSize: 3, lineHeight: 1.16, color: PAPER_INK, valign: 'middle',
+      font: 'body', size: 5.4, minSize: 3, lineHeight: 1.16, color: BOX_TEXT, valign: 'middle',
     },
     { ...condition, type: 'rect', x: 4, y: barY, w: 92, h: 6.3, fill: 'accent', ...GRIT, stroke: '#000', strokeWidth: 0.6, radius: 1.2 },
     {
@@ -95,6 +106,8 @@ export default {
   gallery: false,
   description: 'Graffiti style: name bar, uncropped art, $ cost, type bar with tags, stat row for Thugs and Bling.',
   defaultColor: '#ffcc1a',
+  // The optional look columns go at the end of the template, together.
+  lastColumns: ['background', 'blend', 'box_color'],
   // Card color comes from the type (a `color` column on a card still overrides it).
   colorBy: {
     field: 'type',
@@ -113,7 +126,8 @@ export default {
     stat: { font: 'rubik-wet-paint', weight: 400, boldWeight: 400 },
   },
   elements: [
-    { type: 'rect', x: 0, y: 0, w: 100, h: 100, fill: INK, texture: 'grit', textureStrength: 0.7 },
+    // Background: the card's background colors (one, or several blended), else dark ink.
+    { type: 'blend', field: 'background', anyColor: true, styleField: 'blend', fallback: INK, x: 0, y: 0, w: 100, h: 100, texture: 'grit', textureStrength: 0.7 },
     { type: 'rect', x: 1.8, y: 1.3, w: 96.4, h: 97.4, stroke: 'accent', strokeWidth: 0.9, radius: 3 },
 
     // Name bar: solid, above the art.

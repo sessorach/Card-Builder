@@ -4,16 +4,17 @@ import { templateColumns, templateCsv } from '../../js/template.js';
 import { parseDelimited, rowsToCards } from '../../js/spreadsheet.js';
 import { LAYOUTS, getLayout } from '../../layouts/index.js';
 
-test('Street template lists its columns in drawing order, without art or color', () => {
+test('Street template lists its columns in drawing order, without art or color, look columns last', () => {
   assert.deepEqual(templateColumns(getLayout('street')), [
     'name', 'count', 'deck', 'cost', 'text', 'flavor', 'type', 'tags', 'strengf', 'helf', 'steal', 'equip_cost',
+    'background', 'blend', 'box_color',
   ]);
 });
 
 test('list columns carry a note in the template header, and it reads back cleanly', () => {
   const csv = templateCsv(getLayout('street'));
-  assert.equal(csv, 'name,count,deck,cost,text,flavor,type,tags (separate with commas),strengf,helf,steal,equip_cost\r\n');
-  const { cards, columns } = rowsToCards(parseDelimited(`${csv}Boss,1,,5,,,Thug,"Crew, Leader",4,3,2,\r\n`));
+  assert.equal(csv, 'name,count,deck,cost,text,flavor,type,tags (separate with commas),strengf,helf,steal,equip_cost,background,blend,box_color\r\n');
+  const { cards, columns } = rowsToCards(parseDelimited(`${csv}Boss,1,,5,,,Thug,"Crew, Leader",4,3,2,,,,\r\n`));
   assert.ok(columns.includes('tags'));
   assert.equal(cards[0].fields.tags, 'Crew, Leader');
 });
@@ -41,4 +42,6 @@ test('fixed labels and condition-only fields are handled', () => {
     ],
   };
   assert.deepEqual(templateColumns(layout), ['name', 'count', 'deck', 'type', 'tags', 'rarity', 'color']);
+  // A color taken from a column counts as a column too.
+  assert.deepEqual(templateColumns({ elements: [{ type: 'rect', fill: { field: 'box_color', fallback: '#fff' } }] }), ['name', 'count', 'deck', 'box_color', 'color']);
 });

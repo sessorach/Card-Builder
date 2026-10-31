@@ -48,6 +48,29 @@ export function unknownBlendItems(value, colors) {
   });
 }
 
+// A list of any colors ("purple 2, #d4a72c, dark slate gray"), for a blend that
+// isn't tied to a layout's color words. Each item is a color (a name or a hex code)
+// with an optional number for its share; unnumbered items get the average share,
+// as in parseBlend. Returns [{ key, weight, weighted, color, modifiers: [] }] with the
+// color as written; whether it is a real color is the renderer's call.
+export function parseColorList(value) {
+  const out = [];
+  for (const item of splitList(value)) {
+    const m = /^(.*?)(?:\s+(\d+(?:\.\d+)?))?$/.exec(item.trim());
+    const color = m[1].trim();
+    if (!color) continue;
+    const weight = m[2] ? Number(m[2]) : 1;
+    if (!(weight > 0)) continue;
+    out.push({ key: color.toLowerCase(), weight, weighted: !!m[2], color, modifiers: [] });
+  }
+  const numbered = out.filter((p) => p.weighted);
+  if (numbered.length) {
+    const average = numbered.reduce((sum, p) => sum + p.weight, 0) / numbered.length;
+    for (const p of out) if (!p.weighted) p.weight = average;
+  }
+  return out;
+}
+
 const lookup = (obj, key) => Object.entries(obj).find(([k]) => k.toLowerCase() === key)?.[1];
 
 export function hexToRgb(hex) {

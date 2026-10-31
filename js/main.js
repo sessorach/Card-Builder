@@ -3,9 +3,9 @@ import { parseDelimited, detectDelimiter, rowsToCards, groupByDeck } from './spr
 import { readXlsx } from './xlsx.js';
 import { LAYOUTS, getLayout, matchesColumns } from '../layouts/index.js';
 import { CARD_SIZES, DEFAULT_SIZE_ID, getSize, sizePx } from './sizes.js';
-import { AssetStore, decodeImage, renderCard, renderBack, findArt, cardAccent } from './render.js';
+import { AssetStore, decodeImage, renderCard, renderBack, findArt, cardAccent, cssColor } from './render.js';
 import { loadFonts } from './fonts.js';
-import { unknownBlendItems, BLEND_STYLES } from './blend.js';
+import { unknownBlendItems, parseColorList, BLEND_STYLES } from './blend.js';
 import { buildImagesZip, buildTtsZip, prepareTtsImages, cloudFiles, buildUploadZip } from './export.js';
 import { templateCsv, templateColumns } from './template.js';
 import { columnHelp } from './columns.js';
@@ -475,7 +475,11 @@ function blendWarnings(card, layout) {
   for (const el of layout.elements) {
     if (el.type !== 'blend') continue;
     const value = card.fields[el.field] ?? '';
-    const bad = unknownBlendItems(value, el.colors || {});
+    if (el.anyColor) {
+      const bad = parseColorList(value).filter((p) => !cssColor(p.color)).map((p) => p.color);
+      if (bad.length) out.push(`Row ${card.row} (${card.name}): "${bad.join('", "')}" in ${el.field} isn't a color name or code (like purple or #8a5cf5), so it was left out.`);
+    }
+    const bad = el.anyColor ? [] : unknownBlendItems(value, el.colors || {});
     if (bad.length) {
       const known = Object.keys(el.colors || {}).map((k) => k[0].toUpperCase() + k.slice(1));
       out.push(`Row ${card.row} (${card.name}): "${bad.join('", "')}" in ${el.field} isn't one of ${known.join(', ')}, so it was left out of the colors.`);

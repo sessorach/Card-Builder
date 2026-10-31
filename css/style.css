@@ -571,3 +571,4 @@ table.data { border-collapse: collapse; font-size: 0.82rem; }
 .mk-handle:hover, .mk-handle:focus-visible { color: var(--text); }
 .mk-blend-row.dragging { opacity: 0.6; }
 .mk-blend-row.dragging .mk-handle { cursor: grabbing; }
+.mk-color-inline { flex: 1 1 180px; min-width: 0; }

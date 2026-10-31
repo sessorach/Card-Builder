@@ -3,7 +3,7 @@
 import { parseRich, joinParts, joinInline, splitList, affix, signed, fitRich, textHeight, chipLayout, ICON_SCALE } from './richtext.js';
 import { FONT_LIBRARY, DEFAULT_FONTS } from './fonts.js';
 import { applyTexture } from './textures.js';
-import { parseBlend, partRgb, partMottle, paintBlend, hashSeed, BLEND_STYLES } from './blend.js';
+import { parseBlend, parseColorList, partRgb, partMottle, paintBlend, hashSeed, BLEND_STYLES } from './blend.js';
 
 // fonts: a layout's role → { font, weight, boldWeight } map; role: e.g. 'title'.
 function fontString(fonts, role, style, px) {
@@ -93,6 +93,21 @@ function parseColor(value) {
   const m = out.match(/[\d.]+/g);
   return m ? m.slice(0, 3).map(Number) : null;
 }
+
+// A CSS color as "#rrggbb", or null if it isn't one. Spaces are forgiven, so
+// "dark slate gray" works as well as "darkslategray". Browser-only.
+export function cssColor(value) {
+  const text = String(value ?? '').trim();
+  if (!text) return null;
+  const c = parseColor(text) || parseColor(text.replace(/\s+/g, ''));
+  return c ? `#${c.map((v) => Math.round(v).toString(16).padStart(2, '0')).join('')}` : null;
+}
+
+// black or white, whichever reads on this color.
+const readableOn = (c, dark = '#141414', light = '#ffffff') => {
+  const base = parseColor(c) || [0, 0, 0];
+  return 0.299 * base[0] + 0.587 * base[1] + 0.114 * base[2] > 150 ? dark : light;
+};
 
 const mix = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
 const rgb = (c) => `rgb(${c.join(', ')})`;
@@ -248,7 +263,16 @@ export function renderCard(card, { layout, px, assets, canvas }) {
   const H = px.height;
   const box = (el) => ({ x: (el.x / 100) * W, y: (el.y / 100) * H, w: (el.w / 100) * W, h: (el.h / 100) * H });
   const s = (v) => (v / 100) * W;
-  const color = (c) => theme[c] || c;
+  // A color is a theme token, a CSS color, { field, fallback } (the card's own color
+  // from a column, e.g. a text box color, else the fallback), or { readableOn: color,
+  // dark?, light? } (black or white text, whichever reads on that color).
+  const color = (c) => {
+    if (c && typeof c === 'object') {
+      if (c.readableOn) return readableOn(color(c.readableOn), c.dark, c.light);
+      return cssColor(fieldValue(card, c.field)) || color(c.fallback);
+    }
+    return theme[c] || c;
+  };
 
   for (const el of expandStacks(layout.elements, card)) {
     if (!shows(card, el)) continue;
@@ -303,7 +327,12 @@ export function renderCard(card, { layout, px, assets, canvas }) {
 //   even gradient), radius, texture, textureStrength.
 // Painted at a third of the size and scaled up, which is quicker and softens edges.
 function drawBlendElement(ctx, card, el, b, { s, color }) {
-  const parts = parseBlend(fieldValue(card, el.field), el.colors || {}, el.modifiers || {});
+  // anyColor: the column lists any colors (names or codes) rather than the layout's color words.
+  const parts = el.anyColor
+    ? parseColorList(fieldValue(card, el.field))
+        .map((p) => ({ ...p, color: cssColor(p.color) }))
+        .filter((p) => p.color)
+    : parseBlend(fieldValue(card, el.field), el.colors || {}, el.modifiers || {});
   const asked = fieldValue(card, el.styleField).toLowerCase().replace(/\s+/g, '-');
   const style = BLEND_STYLES.includes(asked) ? asked : el.style || 'gradient';
   ctx.save();
@@ -323,7 +352,7 @@ function drawBlendElement(ctx, card, el, b, { s, color }) {
   const fallback = !parts.length && Array.isArray(el.fallback) ? el.fallback.map((c) => ({ color: c, weight: 1, modifiers: [] })) : null;
   const drawn = fallback || parts;
   if (!drawn.length) {
-    ctx.fillStyle = color(el.fallback || 'paper');
+    ctx.fillStyle = color(Array.isArray(el.fallback) ? el.fallback[0] : el.fallback || 'paper');
     ctx.fillRect(b.x, b.y, b.w, b.h);
   } else {
     const w = Math.max(8, Math.round(b.w / 3));
