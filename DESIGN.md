@@ -206,6 +206,10 @@ the `type` column. A `color` column on a card still overrides it, for one-off
 cards. The renderer supports this as a general feature: any layout can color
 cards by any column's value.
 
+**"None" means 0.** In the cost, the three stats and the equip cost, a value
+of None (any capitalization) shows as 0 on the card ($0 for the costs), so
+cards written either way look the same. The spreadsheet keeps what was typed.
+
 **Gender.** A `gender` column shows in its own small dark box over the right
 end of the type bar, a little taller than the bar and outlined in the card
 color, so it reads as separate from the type and tags. The type line gets

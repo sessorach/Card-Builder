@@ -429,6 +429,7 @@ function drawImageElement(ctx, card, el, b, { assets, theme, s, color, fonts }) 
 //     labelBold is false), in its own color
 //     (labelSep replaces the ":", e.g. '' for "Physical Resist +2")
 //   signed — show a plain number with its sign ("1" → "+1"); hideZero — skip a value of 0
+//   none — what to show for a value of "None" (any capitalization), e.g. '0'
 //   list, listSep, exclude, itemColors — a comma-separated cell shown as a list,
 //     leaving out `exclude` items and coloring items named in `itemColors`
 //   chip: { fill, stroke } — draw the value (each item, for a list) in a small box, like a badge;
@@ -441,7 +442,8 @@ function entryAtoms(card, entry, base) {
     const group = joinAtoms(card, e, style);
     return e.chip && group.length ? [chipAtom(group, e.chip)] : group;
   }
-  const raw = fieldValue(card, e.field);
+  let raw = fieldValue(card, e.field);
+  if (e.none != null && raw.toLowerCase() === 'none') raw = String(e.none);
   if (!raw || (e.hideZero && Number(raw) === 0)) return [];
   const value = e.signed ? signed(raw) : raw;
   let atoms;

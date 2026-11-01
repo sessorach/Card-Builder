@@ -14,7 +14,7 @@ export const COLUMN_HELP = {
   deck: 'Which deck the card goes in. Each deck becomes its own Tabletop Simulator object.',
   cost: {
     all: 'Shown in a badge in the corner.',
-    street: 'Shown in the top corner with a $ in front: 3 shows $3.',
+    street: 'Shown in the top corner with a $ in front: 3 shows $3. None shows as $0.',
     flagonquest: 'A technique\'s cost line, e.g. Discard a card.',
   },
   type: {
@@ -46,10 +46,10 @@ export const COLUMN_HELP = {
 
   // Street
   gender: 'Optional. Shown in its own small box on the right end of the type bar, e.g. Female or Male.',
-  strengf: 'A stat in its own box. Cards without stats get a taller rules box.',
-  helf: 'A stat in its own box.',
-  steal: 'A stat in its own box.',
-  equip_cost: 'An equip cost in one box, shown with a $.',
+  strengf: 'A stat in its own box. None shows as 0. Cards without stats get a taller rules box.',
+  helf: 'A stat in its own box. None shows as 0.',
+  steal: 'A stat in its own box. None shows as 0.',
+  equip_cost: 'An equip cost in one box, shown with a $. None shows as $0.',
 
   // FlagonQuest
   level_min: 'The lowest level of a technique, shown in its level badge (Lv 1–4).',

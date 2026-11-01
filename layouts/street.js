@@ -73,6 +73,9 @@ const typeText = (barY, w) => ({
   font: 'label', size: 5.8, minSize: 3.4, color: 'onAccent', valign: 'middle', baseline: 0.36,
 });
 
+// Numbers (cost, stats, equip cost): a value of "None" shows as 0, so cards read the same.
+const NONE = { none: '0' };
+
 const ROW = { y: 87.3, h: 9.9, w: 29, gap: 2.5 };
 const slotX = (i) => 4 + i * (ROW.w + ROW.gap);
 
@@ -83,7 +86,7 @@ function statBox(x, { field, label, prefix }, extra = {}) {
     { ...extra, type: 'rect', x, y, w, h, fill: PANEL, ...GRIT, stroke: 'accent', strokeWidth: 0.6, radius: 1.6 },
     { ...extra, type: 'text', text: label, x, y: y + 0.3, w, h: 2.6, font: 'stat', size: 3.1, minSize: 2.4, color: 'accentLight', align: 'center', valign: 'middle', baseline: 0.34 },
     {
-      ...extra, type: 'text', field, prefix, x, y: y + 3.1, w, h: 6.4,
+      ...extra, type: 'text', field, prefix, ...NONE, x, y: y + 3.1, w, h: 6.4,
       font: 'stat', size: 8, minSize: 4, lineHeight: 0.85, color: WHITE, align: 'center', valign: 'middle', baseline: 0.24,
       outline: '#000', outlineWidth: 0.045, shadow: { color: 'accent', x: 0.05, y: 0.05 },
     },
@@ -143,7 +146,7 @@ export default {
     // Cost sticker: "$" + number.
     { when: 'cost', type: 'rect', x: 76.5, y: 3.8, w: 17, h: 8.2, rotate: 6, fill: 'accent', ...GRIT, stroke: '#000', strokeWidth: 0.8, radius: 1.8 },
     {
-      when: 'cost', type: 'text', field: 'cost', prefix: '$', x: 76.5, y: 3.8, w: 17, h: 8.2, rotate: 6,
+      when: 'cost', type: 'text', field: 'cost', prefix: '$', ...NONE, x: 76.5, y: 3.8, w: 17, h: 8.2, rotate: 6,
       font: 'cost', size: 8, minSize: 4, color: 'onAccent', align: 'center', valign: 'middle',
     },
 
