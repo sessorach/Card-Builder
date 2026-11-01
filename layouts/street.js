@@ -5,7 +5,7 @@
 // space, so all cards keep the same overall shape.
 //
 // Columns: name, cost, art, text, flavor, type, tags (comma-separated),
-// strengf, helf, steal, equip_cost, and color (the outlines, type bar, cost
+// strengf, helf, steal, equip_cost, gender (its own box on the type bar), and color (the outlines, type bar, cost
 // sticker and stat boxes; optional, otherwise set by type). The background is the
 // same dark ink on every card.
 
@@ -50,16 +50,28 @@ function bottomSection(hasStats) {
       font: 'body', size: 5.4, minSize: 3, lineHeight: 1.16, color: PAPER_INK, valign: 'middle',
     },
     { ...condition, type: 'rect', x: 4, y: barY, w: 92, h: 6.3, fill: 'accent', ...GRIT, stroke: '#000', strokeWidth: 0.6, radius: 1.2 },
+    // Type and tags; narrower when a gender box sits on the bar's right end.
+    { ...condition, unless: 'gender', ...typeText(barY, 87) },
+    { ...condition, when: 'gender', ...typeText(barY, GENDER.x - 8) },
+    // Gender: its own dark box over the right end of the type bar, standing a little
+    // proud of it (taller, with an accent outline) so it reads as separate.
+    { ...condition, when: 'gender', type: 'rect', x: GENDER.x, y: barY - 0.6, w: GENDER.w, h: 7.3, fill: PANEL, ...GRIT, stroke: 'accent', strokeWidth: 0.6, radius: 1.4 },
     {
-      ...condition,
-      type: 'text',
-      join: ['type', { field: 'tags', list: true, listSep: ' · ' }],
-      sep: ' — ',
-      x: 6.5, y: barY + 0.2, w: 87, h: 6.1,
-      font: 'label', size: 5.8, minSize: 3.4, color: 'onAccent', valign: 'middle', baseline: 0.36,
+      ...condition, when: 'gender', type: 'text', field: 'gender', x: GENDER.x + 1, y: barY - 0.5, w: GENDER.w - 2, h: 7.1,
+      font: 'label', size: 5.4, minSize: 3, color: WHITE, align: 'center', valign: 'middle', baseline: 0.36,
     },
   ];
 }
+
+// The gender box's place on the type bar (it ends 2% in from the bar's right end).
+const GENDER = { x: 70, w: 24 };
+const typeText = (barY, w) => ({
+  type: 'text',
+  join: ['type', { field: 'tags', list: true, listSep: ' · ' }],
+  sep: ' — ',
+  x: 6.5, y: barY + 0.2, w, h: 6.1,
+  font: 'label', size: 5.8, minSize: 3.4, color: 'onAccent', valign: 'middle', baseline: 0.36,
+});
 
 const ROW = { y: 87.3, h: 9.9, w: 29, gap: 2.5 };
 const slotX = (i) => 4 + i * (ROW.w + ROW.gap);

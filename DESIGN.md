@@ -206,6 +206,11 @@ the `type` column. A `color` column on a card still overrides it, for one-off
 cards. The renderer supports this as a general feature: any layout can color
 cards by any column's value.
 
+**Gender.** A `gender` column shows in its own small dark box over the right
+end of the type bar, a little taller than the bar and outlined in the card
+color, so it reads as separate from the type and tags. The type line gets
+narrower only on cards that have a gender. Cards without one look as before.
+
 **The card color column.** As the user adds new kinds of card, they wanted to
 color cards without the layout deciding which types get which treatment. The
 Street template has a `color` column (at the end) for the outlines, type bar,

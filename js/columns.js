@@ -45,6 +45,7 @@ export const COLUMN_HELP = {
   },
 
   // Street
+  gender: 'Optional. Shown in its own small box on the right end of the type bar, e.g. Female or Male.',
   strengf: 'A stat in its own box. Cards without stats get a taller rules box.',
   helf: 'A stat in its own box.',
   steal: 'A stat in its own box.',
