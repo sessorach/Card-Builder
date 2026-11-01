@@ -71,3 +71,9 @@ test('the CSV reads back as the same cards', () => {
   assert.equal(cards[0].fields.tags, 'Command, "Loud"');
   assert.equal(cards[1].count, 2);
 });
+
+test('columns a layout paints with get a color box', () => {
+  const kinds = Object.fromEntries(formFields(getLayout('street')).map((f) => [f.column, f.kind]));
+  assert.equal(kinds.background, 'color');
+  assert.equal(kinds.color, 'color');
+});

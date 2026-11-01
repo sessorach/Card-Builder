@@ -59,6 +59,11 @@ export function formFields(layout) {
     }
   }
   for (const [field, hint] of Object.entries(layout.form || {})) if (hint.options) suggest(field, hint.options);
+  // Columns a layout paints with ({ field } colors, e.g. Street's background).
+  const colorField = (c) => (c && typeof c === 'object' ? c.field || colorField(c.readableOn) : null);
+  const colorColumns = new Set(
+    placed(layout.elements).flatMap(({ el }) => ['fill', 'stroke', 'color', 'background'].map((k) => colorField(el[k]))).filter(Boolean),
+  );
   const switching = new Set();
   for (const { el, chain } of placed(layout.elements)) {
     for (const c of [el, ...chain]) {
@@ -69,7 +74,7 @@ export function formFields(layout) {
     const blend = blends.find((el) => el.field === column);
     if (blend) return { column, kind: 'blend', colors: blend.colors || {}, modifiers: blend.modifiers || {}, anyColor: !!blend.anyColor };
     if (blends.some((el) => el.styleField === column)) return { column, kind: 'style' };
-    if (column === 'color' || column.endsWith('_color')) return { column, kind: 'color' };
+    if (column === 'color' || column.endsWith('_color') || colorColumns.has(column)) return { column, kind: 'color' };
     const kind = LONG.has(column) ? 'long' : lists.has(column) ? 'list' : 'text';
     // A column whose own value turns parts on or off; one that's only tested for
     // having a value (Immunities shows its strip when filled) doesn't count.

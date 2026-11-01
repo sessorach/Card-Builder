@@ -288,7 +288,7 @@ async function run() {
     assert.equal(templateDownload.suggestedFilename(), 'street-template.csv');
     const templateFile = path.join(OUT, 'street-template.csv');
     await templateDownload.saveAs(templateFile);
-    assert.equal(await readFile(templateFile, 'utf8'), 'name,count,deck,cost,text,flavor,type,tags (separate with commas),strengf,helf,steal,equip_cost,background,blend,box_color\r\n');
+    assert.equal(await readFile(templateFile, 'utf8'), 'name,count,deck,cost,text,flavor,type,tags (separate with commas),strengf,helf,steal,equip_cost,background,color\r\n');
 
     // FlagonQuest: the real techniques spreadsheet layout, picked automatically.
     await page.selectOption('#layout-select', 'default');

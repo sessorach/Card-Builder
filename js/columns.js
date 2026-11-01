@@ -41,11 +41,11 @@ export const COLUMN_HELP = {
   color: {
     all: 'Optional card color: a name (crimson) or a hex code (#3b5b7a).',
     rossquest: 'Optional. One background color in place of the Aura blend: a name (crimson) or a hex code (#3b5b7a). The Aura boxes still show.',
+    street: 'Optional. The outlines, type bar, cost sticker and stat boxes: a name (purple) or a code (#8a5cf5). Empty uses the color for the card\'s type.',
   },
 
   // Street
-  background: "Optional. The card's background: one color (a name like purple, or a code like #8a5cf5), or several separated by commas, with an optional number each for its share (purple 2, gold 1). Empty leaves it dark.",
-  box_color: 'Optional. The rules box color: a name or a code. The text in it turns black or white to stay readable. Empty leaves it paper.',
+  background: "Optional. The card's background color: a name (black, navy) or a code (#16151a). It gets the same grit and shading as the usual dark background, which is what you get when it's empty.",
   strengf: 'A stat in its own box. Cards without stats get a taller rules box.',
   helf: 'A stat in its own box.',
   steal: 'A stat in its own box.',
@@ -94,10 +94,7 @@ export const COLUMN_HELP = {
 
   // RossQuest
   aura: 'The card\'s colors: Instinct, Knowledge, Passion and/or Discipline, separated by commas, with optional numbers and Inverted. See The Aura below.',
-  blend: {
-    all: 'Optional. How the colors are mixed: gradient (the default), split, tie-dye, marble or solid.',
-    street: 'Optional. How several background colors are mixed: gradient (the default), split, tie-dye, marble or solid.',
-  },
+  blend: 'Optional. How the colors are mixed: gradient (the default), split, tie-dye, marble or solid.',
   armor: 'Allies: a number in the bottom-right corner, next to Health.',
   health: 'Allies: a number in the last badge, bottom right.',
   immunities: 'Allies: a strip under the picture, e.g. Poison, Bleeding.',

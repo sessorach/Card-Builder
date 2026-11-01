@@ -154,6 +154,24 @@ function drawContain(ctx, image, x, y, w, h) {
   ctx.drawImage(image, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
 }
 
+// Depth for a flat fill: a little light from the top, darker toward the bottom and
+// the corners. Works on any color, so a one-color background still looks lit.
+function drawShade(ctx, b, strength = 1) {
+  const top = ctx.createLinearGradient(0, b.y, 0, b.y + b.h);
+  top.addColorStop(0, `rgba(255, 255, 255, ${0.1 * strength})`);
+  top.addColorStop(0.45, 'rgba(255, 255, 255, 0)');
+  top.addColorStop(1, `rgba(0, 0, 0, ${0.3 * strength})`);
+  ctx.fillStyle = top;
+  ctx.fillRect(b.x, b.y, b.w, b.h);
+  const cx = b.x + b.w / 2;
+  const cy = b.y + b.h * 0.42;
+  const edge = ctx.createRadialGradient(cx, cy, Math.min(b.w, b.h) * 0.35, cx, cy, Math.hypot(b.w, b.h) * 0.6);
+  edge.addColorStop(0, 'rgba(0, 0, 0, 0)');
+  edge.addColorStop(1, `rgba(0, 0, 0, ${0.45 * strength})`);
+  ctx.fillStyle = edge;
+  ctx.fillRect(b.x, b.y, b.w, b.h);
+}
+
 // A raised edge: a light line along the top of a box fading to a dark line at the bottom.
 function drawBevel(ctx, b, radius, width, strength = 1) {
   const g = ctx.createLinearGradient(0, b.y, 0, b.y + b.h);
@@ -293,10 +311,11 @@ export function renderCard(card, { layout, px, assets, canvas }) {
         ctx.fillStyle = color(el.fill);
         ctx.fill();
       }
-      if (el.texture) {
+      if (el.texture || el.shade) {
         ctx.save();
         ctx.clip();
-        applyTexture(ctx, el.texture, b, { strength: el.textureStrength ?? 1, unit: s(1) });
+        if (el.texture) applyTexture(ctx, el.texture, b, { strength: el.textureStrength ?? 1, unit: s(1) });
+        if (el.shade) drawShade(ctx, b, el.shade === true ? 1 : el.shade);
         ctx.restore();
       }
       if (el.bevel) drawBevel(ctx, b, s(el.radius || 0), s(el.bevel === true ? 0.7 : el.bevel));

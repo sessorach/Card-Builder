@@ -206,19 +206,18 @@ the `type` column. A `color` column on a card still overrides it, for one-off
 cards. The renderer supports this as a general feature: any layout can color
 cards by any column's value.
 
-**Look columns any card can use (draft).** As the user adds new kinds of card,
-they wanted more varied, two-tone cards without the layout deciding which card
-types get which treatment. So Street has three optional columns, open to any
-card of any type: `background` (one color, or several with an optional number
-each for its share, mixed like RossQuest's Aura, with the same `blend` column
-picking gradient, split, tie-dye, marble or solid), and `box_color` for the
-rules box, whose text turns black or white to stay readable. Colors are names
-(purple, hot pink, midnight blue) or codes (#8a5cf5). Left empty, a card looks
-as it always has. The type colors above still set the frame, cost sticker, type
-bar and stat outlines. The dark panels (name bar, the picture's letterbox, stat
-boxes) let 30% of the background show through, so the background reads as more
-than a thin border; the user was shown this next to solid panels and hasn't
-chosen yet. The columns sit at the end of the template, together.
+**Two card colors any card can set.** As the user adds new kinds of card,
+they wanted to color cards without the layout deciding which types get which
+treatment. Each card can set two colors: `background` and `color` (the
+outlines, type bar, cost sticker and stat boxes). Colors are names (black,
+purple, navy) or codes (#8a5cf5). The background gets the same grit texture as
+the usual dark one plus automatic shading (a little light from the top, darker
+toward the bottom and corners), so a flat color still looks like the card the
+user liked. Left empty, the background stays dark and `color` comes from the
+card's type as before. A first draft went further: several background colors
+blended like RossQuest's Aura, a blend style, a separate text box color, and
+see-through panels. The user chose this simpler two-color version instead.
+The two columns sit at the end of the template.
 
 ### The FlagonQuest layout
 
