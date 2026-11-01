@@ -73,7 +73,7 @@ test('the CSV reads back as the same cards', () => {
 });
 
 test('columns a layout paints with get a color box', () => {
-  const kinds = Object.fromEntries(formFields(getLayout('street')).map((f) => [f.column, f.kind]));
-  assert.equal(kinds.background, 'color');
-  assert.equal(kinds.color, 'color');
+  assert.equal(formFields(getLayout('street')).find((f) => f.column === 'color').kind, 'color');
+  const layout = { elements: [{ type: 'rect', fill: { field: 'background', fallback: '#000' } }] };
+  assert.equal(formFields(layout).find((f) => f.column === 'background').kind, 'color');
 });

@@ -5,9 +5,9 @@
 // space, so all cards keep the same overall shape.
 //
 // Columns: name, cost, art, text, flavor, type, tags (comma-separated),
-// strengf, helf, steal, equip_cost, and two optional colors any card can set,
-// whatever its type: background (shaded and textured automatically) and color
-// (the outlines, type bar, cost sticker and stat boxes; otherwise set by type).
+// strengf, helf, steal, equip_cost, and color (the outlines, type bar, cost
+// sticker and stat boxes; optional, otherwise set by type). The background is the
+// same dark ink on every card.
 
 // The three Thug stats, left to right. Spellings are the game's own; keep them.
 const STATS = [
@@ -97,8 +97,8 @@ export default {
   gallery: false,
   description: 'Graffiti style: name bar, uncropped art, $ cost, type bar with tags, stat row for Thugs and Bling.',
   defaultColor: '#ffcc1a',
-  // The two optional card colors go at the end of the template, together.
-  lastColumns: ['background', 'color'],
+  // The optional card color goes at the end of the template.
+  lastColumns: ['color'],
   // Card color comes from the type (a `color` column on a card still overrides it).
   colorBy: {
     field: 'type',
@@ -117,8 +117,7 @@ export default {
     stat: { font: 'rubik-wet-paint', weight: 400, boldWeight: 400 },
   },
   elements: [
-    // Background: the card's background color, else dark ink, with grit and shading.
-    { type: 'rect', x: 0, y: 0, w: 100, h: 100, fill: { field: 'background', fallback: INK }, texture: 'grit', textureStrength: 0.7, shade: true },
+    { type: 'rect', x: 0, y: 0, w: 100, h: 100, fill: INK, texture: 'grit', textureStrength: 0.7 },
     { type: 'rect', x: 1.8, y: 1.3, w: 96.4, h: 97.4, stroke: 'accent', strokeWidth: 0.9, radius: 3 },
 
     // Name bar: solid, above the art.

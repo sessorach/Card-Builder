@@ -2,7 +2,6 @@
 
 // Alternate column names people are likely to use, mapped to the canonical field.
 const HEADER_ALIASES = {
-  'background color': 'background',
   'outline color': 'color',
   'card color': 'color',
   '[w]': 'w',

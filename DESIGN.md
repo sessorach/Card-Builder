@@ -206,18 +206,15 @@ the `type` column. A `color` column on a card still overrides it, for one-off
 cards. The renderer supports this as a general feature: any layout can color
 cards by any column's value.
 
-**Two card colors any card can set.** As the user adds new kinds of card,
-they wanted to color cards without the layout deciding which types get which
-treatment. Each card can set two colors: `background` and `color` (the
-outlines, type bar, cost sticker and stat boxes). Colors are names (black,
-purple, navy) or codes (#8a5cf5). The background gets the same grit texture as
-the usual dark one plus automatic shading (a little light from the top, darker
-toward the bottom and corners), so a flat color still looks like the card the
-user liked. Left empty, the background stays dark and `color` comes from the
-card's type as before. A first draft went further: several background colors
-blended like RossQuest's Aura, a blend style, a separate text box color, and
-see-through panels. The user chose this simpler two-color version instead.
-The two columns sit at the end of the template.
+**The card color column.** As the user adds new kinds of card, they wanted to
+color cards without the layout deciding which types get which treatment. The
+Street template has a `color` column (at the end) for the outlines, type bar,
+cost sticker and stat boxes: a name (purple) or a code (#8a5cf5). Left empty,
+the card takes its type's color, and a type with none gets yellow. The
+background stays the same dark ink on every card, so the cards look
+consistent; the user decided this after trying a background color column
+(with automatic shading), and before that a draft with blended backgrounds, a
+separate text box color and see-through panels.
 
 ### The FlagonQuest layout
 

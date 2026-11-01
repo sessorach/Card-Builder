@@ -45,7 +45,6 @@ export const COLUMN_HELP = {
   },
 
   // Street
-  background: "Optional. The card's background color: a name (black, navy) or a code (#16151a). It gets the same grit and shading as the usual dark background, which is what you get when it's empty.",
   strengf: 'A stat in its own box. Cards without stats get a taller rules box.',
   helf: 'A stat in its own box.',
   steal: 'A stat in its own box.',
